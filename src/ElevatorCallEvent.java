@@ -6,7 +6,7 @@ public class ElevatorCallEvent {
     private final int floorNumber;
     private final Direction direction;
     private final int elevatorNumber;
-    public enum Direction {UP, DOWN}
+    public enum Direction {UP, DOWN, STANDBY}
 
     public ElevatorCallEvent(LocalTime time, int floorNumber, Direction direction, int elevatorNumber) {
         this.time = time;
