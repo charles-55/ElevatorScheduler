@@ -1,65 +1,69 @@
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.time.LocalTime;
-import java.util.Scanner;
-
-/*
- * Represents current status of floor
- * Takes the information in table and processes it
- */
 /**
+ * The Floor Class.
+ * Represents current status of floor.
+ * Takes the information in table and processes it.
+ *
  * @author Sabah Samwatin
+ * @version 1.0
  */
-public class Floor implements Runnable {
-    private boolean buttonDirection; // True for up. False for down
-    private int floorNumber;
-    private boolean lampOn = true; // checks if floor is ready to receive an elevator
-    private Scheduler sched;
-    private ButtonPress recentPress;
-    private ButtonPress receivedInfo;
+public class Floor extends Thread {
+    private ElevatorCallEvent.Direction buttonDirection;
+    private final int floorNumber;
+    private boolean lampOn; // checks if floor is ready to receive an elevator
+    private final Scheduler scheduler;
 
     /**
      * Constructor for the floor class.
      */
-    public Floor(int FloorNumber, Scheduler sched) {
-        this.sched = sched;
+    public Floor(int FloorNumber, Scheduler scheduler) {
+        this.scheduler = scheduler;
         this.floorNumber = FloorNumber;
+    }
+
+    public ElevatorCallEvent.Direction getButtonDirection() {
+        return buttonDirection;
+    }
+
+    public int getFloorNumber() {
+        return floorNumber;
+    }
+
+    public boolean isLampOn() {
+        return lampOn;
+    }
+
+    public Scheduler getScheduler() {
+        return scheduler;
+    }
+
+    public void setButtonDirection(ElevatorCallEvent.Direction buttonDirection) {
+        this.buttonDirection = buttonDirection;
+    }
+
+    public void setLampOn(boolean lampOn) {
+        this.lampOn = lampOn;
     }
 
     /**
      * This is the section for running with threads.
      */
     public void run() {
-        synchronized (sched.getFloorQueue()) {
-            while(true) {
-                if (this.sched.getFloorQueue().size() < 100000) {
-                    System.out.println("Floor Queue is Empty");
-
-                    try {
-                        sched.getFloorQueue().wait();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                }
-                this.recentPress = sched.getFloorQueue().get(0);
-                System.out.println("Floor has received something!");
-                sched.getFloorQueue().notifyAll();
-            }
-        }
-    }
-
-    /**
-     * Returns the number of the floor.
-     */
-    public int getFloorNumber() {
-        return this.floorNumber;
-    }
-
-    /**
-     * Indicates the button that was most recently pressed.
-     */
-    public ButtonPress getRecentPress() {
-        return this.recentPress;
+        FloorSubsystem floorSubsystem = new FloorSubsystem(scheduler);
+        floorSubsystem.parseData(""); // edit this to specify the file to read
+//        while(true) {
+//            if (this.scheduler.getFloorQueue().size() < 100000) {
+//                System.out.println("Floor Queue is Empty");
+//
+//                try {
+//                    scheduler.getFloorQueue().wait();
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//
+//            }
+//            this.recentPress = scheduler.getFloorQueue().get(0);
+//            System.out.println("Floor has received something!");
+//            scheduler.getFloorQueue().notifyAll();
+//        }
     }
 }

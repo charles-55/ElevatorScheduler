@@ -1,91 +1,97 @@
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 
-/*
- * @author Sabah Samwatin
- * Communicates between ElevatorSubsystem and FloorSubsystem
- * Scheduler will reply to the Elevator when there is work to be done
- * After data is sent from to the elevator, it will forward the data to the floor
+/**
+ * The Scheduler Class.
+ * Connects the elevators to the floor. It calls an elevator to a floor
+ * and adds the elevator to a queue when there is work to be done.
+ *
+ * @author Osamudiamen Nwoko 101152520
+ * @version 1.0
  */
-public class Scheduler implements Runnable {
+public class Scheduler extends Thread {
 
-    private ArrayList<ButtonPress> queue = new ArrayList<ButtonPress>();
-    private ArrayList<ButtonPress> floorQueue = new ArrayList<ButtonPress>();
-    private FloorSubsystem floorsub;
+    private final ArrayList<Elevator> elevators;
+    private final ArrayList<Floor> floors;
+    private final HashMap<Integer, ArrayList<Integer>> queue;
 
-    /*
-     * Constructor for Scheduler class.
-     *
+    /**
+     * Initializes the controller.
      */
-    public Scheduler(FloorSubsystem floorsub) {
-        this.floorsub = floorsub;
+    public Scheduler() {
+        elevators = new ArrayList<>();
+        floors = new ArrayList<>();
+        queue = new HashMap<>();
     }
 
     /**
-     * Override constructor for Schedulere class including a queue.
+     * Gets the list of elevators.
+     * @return ArrayList<Elevator>, the list of elevators.
      */
-    public Scheduler(FloorSubsystem floorsub, ArrayList<ButtonPress> queue) {
-        this.floorsub = floorsub;
-        this.queue = queue;
-    }
-
-    public synchronized void getQueueValue() {
-        queue.get(0);
-        notifyAll();
+    public ArrayList<Elevator> getElevators() {
+        return elevators;
     }
 
     /**
-     * Returns a queue of all the button presses.
+     * Gets the list of floors.
+     * @return ArrayList<Floor>, the list of floors.
      */
-    public ArrayList<ButtonPress> getQueue() {
-        return this.queue;
+    public ArrayList<Floor> getFloors() {
+        return floors;
     }
 
     /**
-     * Returns the queue of the floors.
+     * Gets the queue.
+     * @return Hashmap<Integer, ArrayList<Integer>>, the queue.
      */
-    public ArrayList<ButtonPress> getFloorQueue() {
-        return this.floorQueue;
+    public HashMap<Integer, ArrayList<Integer>> getQueue() {
+        return queue;
     }
 
     /**
-     * Adds button presses to the queue of button presses.
+     * Adds an elevator to the controller.
+     * @param elevator Elevator, the elevator to add.
      */
-    public synchronized void addToQueue(ButtonPress btn) {
-        queue.add(btn);
-        notifyAll();
-    }
-
-    @Override
-    public void run() {
-        synchronized (this.floorsub.getInfo()) {
-            while(true) {
-                if (this.floorsub.getInfo().size() == 0) {
-                    System.out.println("Scheduler found that FloorSubsytem is empty");
-
-                    try {
-                        //Thread.sleep(4000);
-                        this.floorsub.getInfo().wait();
-                    } catch (InterruptedException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-
-                }
-                queue.add(this.floorsub.getInfo().get(0));
-                this.floorsub.getInfo().remove(0);
-                System.out.println("Read from Floorsub");
-                //this.floorsub.getInfo().notifyAll();
-            }
-        }
+    public void addElevator(Elevator elevator) {
+        elevators.add(elevator);
     }
 
     /**
-     * Adds button presses to the floor queue.
+     * Adds a floor to the controller.
+     * @param floor Floor, the floor to add.
      */
-    public void addFloorQueue(ButtonPress buttonpress) {
-        synchronized(this.floorQueue) {
-            this.floorQueue.add(buttonpress);
-            this.floorQueue.notifyAll();
-        }
+    public void addFloor(Floor floor) {
+        floors.add(floor);
+    }
+
+    /**
+     * Calls for an elevator to a floor.
+     * @param event ElevatorCallEvent, an event containing details of the elevator call.
+     */
+    public synchronized void callElevator(ElevatorCallEvent event) {
+        //elevators.get(event.getElevatorNumber()).goToFloor(event.getFloorNumber);
+        //elevators.get(event.getElevatorNumber()).setDirection(event.getDirection());
+    }
+
+    /**
+     * Adds a stop for an elevator.
+     * @param elevatorNumber int, the elevator number.
+     * @param floorDestination int, the floor number.
+     */
+    public synchronized void addToQueue(int elevatorNumber, int floorDestination) {
+        queue.get(elevatorNumber).add(floorDestination);
+        Collections.sort(queue.get(elevatorNumber));
+    }
+
+    /**
+     * Removes a stop from an elevator and sets it to standby when there is no more task to be done.
+     * @param elevatorNumber int, the elevator number.
+     * @param floorDestination int, the floor number.
+     */
+    public synchronized void removeFromQueue(int elevatorNumber, int floorDestination) {
+        queue.get(elevatorNumber).remove(floorDestination);
+        //if(queue.get(elevatorNumber).isEmpty())
+            //elevators.get(elevatorNumber).setDirection(ElevatorCallEvent.Directions.STANDBY);
     }
 }

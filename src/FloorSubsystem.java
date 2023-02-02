@@ -1,78 +1,62 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.Scanner;
 
-/*
- * @author Sabah Samwatin
+/**
+ * The FloorSubsystem Class.
  * Client in system
  * To read events in the format: Time, floor, floor direction, and elevator button,
  * Each line of input is to be sent to the Scheduler
+ *
+ * @author Sabah Samwatin
+ * @version 1.0
  * */
 
 public class FloorSubsystem {
-    private ArrayList<ButtonPress> info = new ArrayList<ButtonPress>();
-    private String fileName = " (put location for txt file) "; //current location for the file
 
-    public FloorSubsystem() {
+    private final Scheduler scheduler;
+
+    public FloorSubsystem(Scheduler scheduler) {
+        this.scheduler = scheduler;
     }
 
     /**
      * Parse the data received in the input file
-     * @param fileName - the name of the input file assuming it is .txt
+     * @param fileName - the name of the input file preferably a .txt file
      */
     public void parseData(String fileName) {
-        this.fileName = fileName;
         File file = new File(fileName);
 
         try {
             Scanner sc = new Scanner(file);
             while (sc.hasNextLine()) {
                 String data = sc.nextLine();
-                String[] splited = data.split(" ");
+                String[] splitData = data.split(" ");
 
-                // create a new ArrayList with the data separated
-                boolean direction = false;
-                if(splited[2].equals("Up")) {
-                    direction = true;
+                LocalTime time;
+                int floorNumber, elevatorNumber;
+                ElevatorCallEvent.Direction direction = ElevatorCallEvent.Direction.STANDBY;
+
+                String[] timeInfo = splitData[0].split(":");
+                time = LocalTime.of(Integer.parseInt(timeInfo[0]), Integer.parseInt(timeInfo[1]), Integer.parseInt(timeInfo[2].split("\\.")[0]), Integer.parseInt(timeInfo[2].split("\\.")[1]) * 1000000);
+
+                floorNumber= Integer.parseInt(splitData[1]);
+                elevatorNumber= Integer.parseInt(splitData[3]);
+
+                for(ElevatorCallEvent.Direction d : ElevatorCallEvent.Direction.values()) {
+                    if(splitData[2].equalsIgnoreCase(d.toString())){
+                        direction = d;
+                        break;
+                    }
                 }
-                this.info.add(new ButtonPress(direction,Integer.parseInt(splited[1]), Integer.parseInt(splited[3]), LocalTime.parse(splited[0])));
+
+                ElevatorCallEvent event = new ElevatorCallEvent(time, floorNumber, direction, elevatorNumber);
+                scheduler.callElevator(event);
             }
 
         } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
-    /**
-     * Adds a ButtonPress to the info arraylist
-     */
-    public void addIn(ButtonPress buttonpress) {
-        this.info.add(buttonpress);
-    }
-
-    /**
-     * Removes a ButtonPress from the info arraylist
-     */
-    public void removeOut(ArrayList<Object> removee) {
-        info.remove(removee);
-    }
-
-    /**
-     * Removes a ButtonPress to the info arraylist using an index
-     * @param index - the index of the removee
-     */
-    public void removeOut(int index) {
-        info.remove(index);
-    }
-
-    /**
-     * Gets info arraylist
-     */
-    public ArrayList<ButtonPress> getInfo(){
-        return info;
-    }
-
 }
-
