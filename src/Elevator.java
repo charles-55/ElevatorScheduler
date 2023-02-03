@@ -12,7 +12,6 @@ public class Elevator extends Thread {
     private ElevatorCallEvent.Direction direction;
     private Buttons button;
     private final HashMap<Integer, Boolean> buttonsAndLamps;
-    public static final int NUM_OF_ELEVATORS = 4; // edit this to change the number of elevators in the building.
     private enum Buttons {ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, CLOSE, OPEN}
 
     public Elevator() {
