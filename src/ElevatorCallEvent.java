@@ -2,7 +2,7 @@ import java.time.LocalTime;
 
 /**
  * The ElevatorCallEvent Class.
- * Creates an event to call an elevator to a particular floor.
+ * Creates an event to call an elevator to a particular floor and assign its destination.
  *
  * @author Osamudiamen Nwoko 101152520
  * @version 1.0
@@ -12,7 +12,7 @@ public class ElevatorCallEvent {
     private final LocalTime time;
     private final int floorNumber;
     private final Direction direction;
-    private final int elevatorNumber;
+    private final int destinationFloor;
     public enum Direction {UP, DOWN, STANDBY}
 
     /**
@@ -20,13 +20,13 @@ public class ElevatorCallEvent {
      * @param time LocalTime, the time the elevator is called.
      * @param floorNumber int, the floor number.
      * @param direction Direction, the direction the elevator is to go.
-     * @param elevatorNumber int, the elevator number.
+     * @param destinationFloor int, the destination floor.
      */
-    public ElevatorCallEvent(LocalTime time, int floorNumber, Direction direction, int elevatorNumber) {
+    public ElevatorCallEvent(LocalTime time, int floorNumber, Direction direction, int destinationFloor) {
         this.time = time;
         this.floorNumber = floorNumber;
         this.direction = direction;
-        this.elevatorNumber = elevatorNumber;
+        this.destinationFloor = destinationFloor;
     }
 
     /**
@@ -55,9 +55,9 @@ public class ElevatorCallEvent {
 
     /**
      * Get the number of the elevator that was called.
-     * @return int, the number of the elevator that was called.
+     * @return int, the destination floor of the elevator.
      */
-    public int getElevatorNumber() {
-        return elevatorNumber;
+    public int getDestinationFloor() {
+        return destinationFloor;
     }
 }

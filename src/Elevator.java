@@ -1,3 +1,5 @@
+import java.util.HashMap;
+
 /**
  * The Elevator Class.
  */
@@ -5,12 +7,17 @@ public class Elevator extends Thread {
     private int passengers;
     private int currentFloor;
 
-    private Boolean doorsOpen;
-    private Boolean isMoving;
-    private Direction directionLamp;
-    private enum Direction {UP, DOWN, STANDBY}
+    private boolean doorOpen;
+    private boolean isMoving;
+    private ElevatorCallEvent.Direction direction;
     private Buttons button;
+    private final HashMap<Integer, Boolean> buttonsAndLamps;
+    public static final int NUM_OF_ELEVATORS = 4; // edit this to change the number of elevators in the building.
     private enum Buttons {ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, CLOSE, OPEN}
+
+    public Elevator() {
+        this(1);
+    }
 
     /**
      *
@@ -18,10 +25,56 @@ public class Elevator extends Thread {
      */
     public Elevator(int currentFloor) {
         this.currentFloor = currentFloor;
+        doorOpen = false;
+        isMoving = false;
+        direction = ElevatorCallEvent.Direction.STANDBY;
+
+        buttonsAndLamps = new HashMap<>();
+        for(int i = 1; i <= Floor.NUM_OF_FLOORS; i++) {
+            buttonsAndLamps.put(i, false);
+        }
     }
 
     public int getCurrentFloor() {
         return this.currentFloor;
+    }
+
+    public void setCurrentFloor(int currentFloor) {
+        this.currentFloor = currentFloor;
+    }
+
+    public boolean isDoorOpen() {
+        return doorOpen;
+    }
+
+    public boolean setDoorOpen(boolean doorOpen) {
+        if(isMoving)
+            return false;
+        this.doorOpen = doorOpen;
+        return true;
+    }
+
+    public boolean isMoving() {
+        return isMoving;
+    }
+
+    public boolean setMoving(boolean moving) {
+        if(doorOpen)
+            return false;
+        isMoving = moving;
+        return true;
+    }
+
+    public ElevatorCallEvent.Direction getDirection() {
+        return direction;
+    }
+
+    public void setDirection(ElevatorCallEvent.Direction direction) {
+        this.direction = direction;
+    }
+
+    public HashMap<Integer, Boolean> getButtonsAndLamps() {
+        return buttonsAndLamps;
     }
 
     /**
@@ -36,14 +89,14 @@ public class Elevator extends Thread {
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            this.doorsOpen = true;
+            this.doorOpen = true;
 
             try {
                 Thread.sleep((long)(passengersIn + passengersOut) * 3000); //Arbitrary time for people to enter and get out of the car (3 seconds per person)
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            this.doorsOpen = false;
+            this.doorOpen = false;
         }
     }
 
@@ -81,7 +134,7 @@ public class Elevator extends Thread {
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
-                    this.doorsOpen = true;
+                    this.doorOpen = true;
                 }
                     break;
             case CLOSE:
@@ -91,7 +144,7 @@ public class Elevator extends Thread {
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
-                    this.doorsOpen = false;
+                    this.doorOpen = false;
                 }
                 break;
         }
@@ -103,10 +156,11 @@ public class Elevator extends Thread {
         try {
             Thread.sleep((long) Math.abs(targetFloor - this.currentFloor) * 4000); //Arbitrary time for the elevator to move up X floors (X * 4 seconds)
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
 
         this.isMoving = false;
         this.currentFloor = targetFloor;
+        // open door
     }
 }

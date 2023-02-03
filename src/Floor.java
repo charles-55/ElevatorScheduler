@@ -11,6 +11,7 @@ public class Floor extends Thread {
     private final int floorNumber;
     private boolean lampOn; // checks if floor is ready to receive an elevator
     private final Scheduler scheduler;
+    public static final int NUM_OF_FLOORS = 5; // edit this to change the number of floors in the building.
 
     /**
      * Constructor for the floor class.

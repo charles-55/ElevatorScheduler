@@ -70,8 +70,21 @@ public class Scheduler extends Thread {
      * @param event ElevatorCallEvent, an event containing details of the elevator call.
      */
     public synchronized void callElevator(ElevatorCallEvent event) {
-        //elevators.get(event.getElevatorNumber()).goToFloor(event.getFloorNumber);
-        //elevators.get(event.getElevatorNumber()).setDirection(event.getDirection());
+        Elevator elevator = null;
+        while(elevator == null) {
+            for(Elevator e : elevators) {
+                try {
+                    if ((Math.abs(e.getCurrentFloor() - event.getFloorNumber())
+                            < Math.abs(elevator.getCurrentFloor() - event.getFloorNumber()))
+                            && ((e.getDirection().equals(event.getDirection()))
+                            || (e.getDirection().equals(ElevatorCallEvent.Direction.STANDBY))))
+                        elevator = e;
+                } catch (NullPointerException ignored) {}
+            }
+        }
+        elevator.moveToFloor(event.getFloorNumber());
+        elevator.setDoorOpen(true);
+        elevator.setDirection(event.getDirection());
     }
 
     /**
