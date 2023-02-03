@@ -52,10 +52,13 @@ public class FloorSubsystem {
                 }
 
                 ElevatorCallEvent event = new ElevatorCallEvent(time, floorNumber, direction, elevatorNumber);
-                scheduler.callElevator(event);
+                if(LocalTime.now().equals(time))
+                    scheduler.callElevator(event);
+                else if (time.isAfter(LocalTime.now()))
+                    Thread.sleep((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000);
             }
 
-        } catch (FileNotFoundException e) {
+        } catch (FileNotFoundException | InterruptedException e) {
             e.printStackTrace();
         }
     }
