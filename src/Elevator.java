@@ -26,14 +26,6 @@ public class Elevator extends Thread {
 
     /**
      *
-     * @param targetFloor
-     */
-    public void setCurrentFloor(int targetFloor) {
-        this.currentFloor = targetFloor;
-    }
-
-    /**
-     *
      * @param passengersIn
      * @param passengersOut
      */
@@ -62,33 +54,25 @@ public class Elevator extends Thread {
     public void pressButton(Buttons buttonPressed) {
         switch(buttonPressed) {
             case ONE:
-                //Move to targeted floor
-                this.setCurrentFloor(1);
-
+                this.moveToFloor(1);
                 break;
             case TWO:
-                //Move to targeted floor
-                this.setCurrentFloor(2);
+                this.moveToFloor(2);
                 break;
             case THREE:
-                //Move to targeted floor
-                this.setCurrentFloor(3);
+                this.moveToFloor(3);
                 break;
             case FOUR:
-                //Move to targeted floor
-                this.setCurrentFloor(4);
+                this.moveToFloor(4);
                 break;
             case FIVE:
-                //Move to targeted floor
-                this.setCurrentFloor(5);
+                this.moveToFloor(5);
                 break;
             case SIX:
-                //Move to targeted floor
-                this.setCurrentFloor(6);
+                this.moveToFloor(6);
                 break;
             case SEVEN:
-                //Move to targeted floor
-                this.setCurrentFloor(7);
+                this.moveToFloor(7);
                 break;
             case OPEN:
                 if (!this.isMoving) {
@@ -116,6 +100,11 @@ public class Elevator extends Thread {
     public void moveToFloor(int targetFloor) {
         this.isMoving = true;
 
+        try {
+            Thread.sleep((long) Math.abs(targetFloor - this.currentFloor) * 4000); //Arbitrary time for the elevator to move up X floors (X * 4 seconds)
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
         this.isMoving = false;
         this.currentFloor = targetFloor;
