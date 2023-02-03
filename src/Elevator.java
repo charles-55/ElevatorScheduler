@@ -38,20 +38,20 @@ public class Elevator extends Thread {
      * @param passengersOut
      */
     public void openCloseDoors(int passengersIn, int passengersOut) {
-        if (!isMoving) {
+        if (!this.isMoving) {
             try {
                 Thread.sleep(3000); //Arbitrary time for doors to open
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            doorsOpen = true;
+            this.doorsOpen = true;
 
             try {
                 Thread.sleep((long)(passengersIn + passengersOut) * 3000); //Arbitrary time for people to enter and get out of the car (3 seconds per person)
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            doorsOpen = false;
+            this.doorsOpen = false;
         }
     }
 
@@ -91,25 +91,33 @@ public class Elevator extends Thread {
                 this.setCurrentFloor(7);
                 break;
             case OPEN:
-                if (!isMoving) {
+                if (!this.isMoving) {
                     try {
                         Thread.sleep(3000); //Arbitrary time for doors to open
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
-                    doorsOpen = true;
+                    this.doorsOpen = true;
                 }
                     break;
             case CLOSE:
-                if (!isMoving) {
+                if (!this.isMoving) {
                     try {
                         Thread.sleep(3000); //Arbitrary time for doors to open
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
-                    doorsOpen = false;
+                    this.doorsOpen = false;
                 }
                 break;
         }
+    }
+
+    public void moveToFloor(int targetFloor) {
+        this.isMoving = true;
+
+
+        this.isMoving = false;
+        this.currentFloor = targetFloor;
     }
 }
