@@ -1,5 +1,5 @@
 /**
- *
+ * The Elevator Class.
  */
 public class Elevator extends Thread {
     private int passengers;
