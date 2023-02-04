@@ -50,20 +50,5 @@ public class Floor extends Thread {
     public void run() {
         FloorSubsystem floorSubsystem = new FloorSubsystem(scheduler);
         floorSubsystem.parseData("InputTable.txt"); // edit this to specify the file to read
-//        while(true) {
-//            if (this.scheduler.getFloorQueue().size() < 100000) {
-//                System.out.println("Floor Queue is Empty");
-//
-//                try {
-//                    scheduler.getFloorQueue().wait();
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//
-//            }
-//            this.recentPress = scheduler.getFloorQueue().get(0);
-//            System.out.println("Floor has received something!");
-//            scheduler.getFloorQueue().notifyAll();
-//        }
     }
 }
