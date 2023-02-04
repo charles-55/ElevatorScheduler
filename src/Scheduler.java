@@ -55,6 +55,7 @@ public class Scheduler extends Thread {
      */
     public void addElevator(Elevator elevator) {
         elevators.add(elevator);
+        queue.put(elevator, new ArrayList<>());
     }
 
     /**
