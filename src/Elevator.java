@@ -7,7 +7,6 @@ public class Elevator extends Thread {
 
     //private int passengers;
     private int currentFloor;
-    private Scheduler scheduler;
     private boolean doorOpen;
     private boolean isMoving;
     private ElevatorCallEvent.Direction direction;
@@ -27,7 +26,6 @@ public class Elevator extends Thread {
      */
     public Elevator(int numOfFloors, int currentFloor, Scheduler scheduler) {
         this.currentFloor = currentFloor;
-        this.scheduler = scheduler;
         scheduler.addElevator(this);
 
         doorOpen = false;
