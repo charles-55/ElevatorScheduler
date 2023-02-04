@@ -4,33 +4,39 @@ import java.util.HashMap;
  * The Elevator Class.
  */
 public class Elevator extends Thread {
-    private int passengers;
+
+    //private int passengers;
     private int currentFloor;
+    private Scheduler scheduler;
     private boolean doorOpen;
     private boolean isMoving;
     private ElevatorCallEvent.Direction direction;
-    private Buttons button;
+    //private Buttons button;
     private final HashMap<Integer, Boolean> buttonsAndLamps;
     private enum Buttons {ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, CLOSE, OPEN}
 
-    public Elevator(int numOfFloors) {
-        this(numOfFloors, 1);
+    public Elevator(int numOfFloors, Scheduler scheduler) {
+        this(numOfFloors, 1, scheduler);
     }
 
     /**
      *
+     * @param numOfFloors
      * @param currentFloor
+     * @param scheduler
      */
-    public Elevator(int numOfFloors, int currentFloor) {
+    public Elevator(int numOfFloors, int currentFloor, Scheduler scheduler) {
         this.currentFloor = currentFloor;
+        this.scheduler = scheduler;
+        scheduler.addElevator(this);
+
         doorOpen = false;
         isMoving = false;
         direction = ElevatorCallEvent.Direction.STANDBY;
 
         buttonsAndLamps = new HashMap<>();
-        for(int i = 1; i <= numOfFloors; i++) {
+        for(int i = 1; i <= numOfFloors; i++)
             buttonsAndLamps.put(i, false);
-        }
     }
 
     public int getCurrentFloor() {
