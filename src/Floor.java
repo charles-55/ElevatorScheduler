@@ -1,3 +1,5 @@
+import java.util.HashMap;
+
 /**
  * The Floor Class.
  * Represents current status of floor.
@@ -9,7 +11,7 @@
 public class Floor extends Thread {
     // private ElevatorCallEvent.Direction buttonDirection;
     private final int floorNumber;
-    private Hashmap<ElevatorCallEvent.Direction, Boolean> buttonsAndLamps;
+    private HashMap<ElevatorCallEvent.Direction, Boolean> buttonsAndLamps;
     private boolean lampOn; // checks if floor is ready to receive an elevator
     private final Scheduler scheduler;
 
@@ -24,8 +26,8 @@ public class Floor extends Thread {
         buttonsAndLamps.put(ElevatorCallEvent.Direction.DOWN, false);
     }
 
-    public ElevatorCallEvent.Direction getButtonDirection() {
-        return buttonDirection;
+    public HashMap<ElevatorCallEvent.Direction, Boolean> getButtonsAndLamps() {
+        return buttonsAndLamps;
     }
 
     public int getFloorNumber() {
@@ -40,8 +42,8 @@ public class Floor extends Thread {
         return scheduler;
     }
 
-    public void setButtonDirection(ElevatorCallEvent.Direction buttonDirection) {
-        this.buttonDirection = buttonDirection;
+    public void setButtonDirection(ElevatorCallEvent.Direction direction, boolean state) {
+        buttonsAndLamps.put(direction, state);
     }
 
     public void setLampOn(boolean lampOn) {
@@ -52,7 +54,7 @@ public class Floor extends Thread {
      * This is the section for running with threads.
      */
     public void run() {
-        FloorSubsystem floorSubsystem = new FloorSubsystem(scheduler);
+        FloorSubsystem floorSubsystem = new FloorSubsystem(this, scheduler);
         floorSubsystem.parseData("InputTable.txt"); // edit this to specify the file to read
     }
 }

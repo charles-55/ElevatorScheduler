@@ -15,9 +15,11 @@ import java.util.Scanner;
 
 public class FloorSubsystem {
 
+    private final Floor floor;
     private final Scheduler scheduler;
 
-    public FloorSubsystem(Scheduler scheduler) {
+    public FloorSubsystem(Floor floor, Scheduler scheduler) {
+        this.floor = floor;
         this.scheduler = scheduler;
     }
 
