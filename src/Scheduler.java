@@ -65,9 +65,19 @@ public class Scheduler extends Thread {
     }
 
 
-//    public synchronized ArrayList<Integer> getFromQueue(Elevator elevator) {
-//        queue.get(elevator).remove(0);
-//        //if(queue.get(elevatorNumber).isEmpty())
-//            //elevators.get(elevatorNumber).setDirection(ElevatorCallEvent.Directions.STANDBY);
-//    }
+    public synchronized void getFromQueue(Elevator elevator) {
+        while(queue.get(elevator).size() == 0) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        int i=0;
+        for(int e : queue.get(elevator)){
+            elevator.getButtonsAndLamps().put(e, true);
+            queue.get(elevator).remove(i);
+            i++;
+        }
+    }
 }
