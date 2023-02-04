@@ -64,7 +64,10 @@ public class Scheduler extends Thread {
         notifyAll();
     }
 
-
+    /**
+     * Removes a stop for the elevator from the queue.
+     * @param elevator Elevator, the elevator
+     */
     public synchronized void getFromQueue(Elevator elevator) {
         while(queue.get(elevator).size() == 0) {
             try {
