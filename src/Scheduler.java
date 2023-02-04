@@ -12,23 +12,13 @@ import java.util.HashMap;
  */
 public class Scheduler extends Thread {
 
-    private final ArrayList<Floor> floors;
     private final HashMap<Elevator, ArrayList<Integer>> queue;
 
     /**
      * Initializes the controller.
      */
     public Scheduler() {
-        floors = new ArrayList<>();
         queue = new HashMap<>();
-    }
-
-    /**
-     * Gets the list of floors.
-     * @return ArrayList<Floor>, the list of floors.
-     */
-    public ArrayList<Floor> getFloors() {
-        return floors;
     }
 
     /**
@@ -45,14 +35,6 @@ public class Scheduler extends Thread {
      */
     public void addElevator(Elevator elevator) {
         queue.put(elevator, new ArrayList<>());
-    }
-
-    /**
-     * Adds a floor to the controller.
-     * @param floor Floor, the floor to add.
-     */
-    public void addFloor(Floor floor) {
-        floors.add(floor);
     }
 
     /**

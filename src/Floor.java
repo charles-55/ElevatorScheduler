@@ -18,7 +18,6 @@ public class Floor extends Thread {
     public Floor(int numOfFloors, Scheduler scheduler) {
         this.scheduler = scheduler;
         this.numOfFloors = numOfFloors;
-        scheduler.addFloor(this);
     }
 
     public ElevatorCallEvent.Direction getButtonDirection() {
