@@ -7,25 +7,29 @@
  * @version 1.0
  */
 public class Floor extends Thread {
-    private ElevatorCallEvent.Direction buttonDirection;
-    private final int numOfFloors;
+    // private ElevatorCallEvent.Direction buttonDirection;
+    private final int floorNumber;
+    private Hashmap<ElevatorCallEvent.Direction, Boolean> buttonsAndLamps;
     private boolean lampOn; // checks if floor is ready to receive an elevator
     private final Scheduler scheduler;
 
     /**
      * Constructor for the floor class.
      */
-    public Floor(int numOfFloors, Scheduler scheduler) {
+    public Floor(int floorNumber, Scheduler scheduler) {
         this.scheduler = scheduler;
-        this.numOfFloors = numOfFloors;
+        this.floorNumber = floorNumber;
+        buttonsAndLamps = new HashMap<>();
+        buttonsAndLamps.put(ElevatorCallEvent.Direction.UP, false);
+        buttonsAndLamps.put(ElevatorCallEvent.Direction.DOWN, false);
     }
 
     public ElevatorCallEvent.Direction getButtonDirection() {
         return buttonDirection;
     }
 
-    public int getNumOfFloors() {
-        return numOfFloors;
+    public int getFloorNumber() {
+        return floorNumber;
     }
 
     public boolean isLampOn() {
