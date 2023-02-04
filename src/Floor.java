@@ -8,25 +8,25 @@
  */
 public class Floor extends Thread {
     private ElevatorCallEvent.Direction buttonDirection;
-    private final int floorNumber;
+    private final int numOfFloors;
     private boolean lampOn; // checks if floor is ready to receive an elevator
     private final Scheduler scheduler;
-    public static final int NUM_OF_FLOORS = 5; // edit this to change the number of floors in the building.
 
     /**
      * Constructor for the floor class.
      */
-    public Floor(int FloorNumber, Scheduler scheduler) {
+    public Floor(int numOfFloors, Scheduler scheduler) {
         this.scheduler = scheduler;
-        this.floorNumber = FloorNumber;
+        this.numOfFloors = numOfFloors;
+        scheduler.addFloor(this);
     }
 
     public ElevatorCallEvent.Direction getButtonDirection() {
         return buttonDirection;
     }
 
-    public int getFloorNumber() {
-        return floorNumber;
+    public int getNumOfFloors() {
+        return numOfFloors;
     }
 
     public boolean isLampOn() {
@@ -50,7 +50,7 @@ public class Floor extends Thread {
      */
     public void run() {
         FloorSubsystem floorSubsystem = new FloorSubsystem(scheduler);
-        floorSubsystem.parseData(""); // edit this to specify the file to read
+        floorSubsystem.parseData("InputTable.txt"); // edit this to specify the file to read
 //        while(true) {
 //            if (this.scheduler.getFloorQueue().size() < 100000) {
 //                System.out.println("Floor Queue is Empty");

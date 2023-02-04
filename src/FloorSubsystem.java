@@ -53,7 +53,7 @@ public class FloorSubsystem {
 
                 ElevatorCallEvent event = new ElevatorCallEvent(time, floorNumber, direction, elevatorNumber);
                 if(LocalTime.now().equals(time))
-                    scheduler.callElevator(event);
+                    scheduler.addToQueue(event);
                 else if (time.isAfter(LocalTime.now()))
                     Thread.sleep((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000); //
             }

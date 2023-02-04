@@ -14,7 +14,7 @@ public class Scheduler extends Thread {
 
     private final ArrayList<Elevator> elevators;
     private final ArrayList<Floor> floors;
-    private final HashMap<Integer, ArrayList<Integer>> queue;
+    private final HashMap<Elevator, ArrayList<Integer>> queue;
 
     /**
      * Initializes the controller.
@@ -43,9 +43,9 @@ public class Scheduler extends Thread {
 
     /**
      * Gets the queue.
-     * @return Hashmap<Integer, ArrayList<Integer>>, the queue.
+     * @return Hashmap<Elevator, ArrayList<Integer>>, the queue.
      */
-    public HashMap<Integer, ArrayList<Integer>> getQueue() {
+    public HashMap<Elevator, ArrayList<Integer>> getQueue() {
         return queue;
     }
 
@@ -66,10 +66,11 @@ public class Scheduler extends Thread {
     }
 
     /**
+     * Adds a stop for an elevator.
      * Calls for an elevator to a floor.
      * @param event ElevatorCallEvent, an event containing details of the elevator call.
      */
-    public synchronized void callElevator(ElevatorCallEvent event) {
+    public synchronized void addToQueue(ElevatorCallEvent event) {
         Elevator elevator = null;
         while(elevator == null) {
             for(Elevator e : elevators) {
@@ -82,29 +83,18 @@ public class Scheduler extends Thread {
                 } catch (NullPointerException ignored) {}
             }
         }
-        elevator.moveToFloor(event.getFloorNumber());
-        elevator.setDoorOpen(true);
-        elevator.setDirection(event.getDirection());
+//        elevator.setDirection(event.getDirection());
+//        elevator.moveToFloor(event.getFloorNumber());
+//        if(!elevator.isMoving())
+//            elevator.setDoorOpen(true);
+        queue.get(elevator).add(event.getDestinationFloor());
+        Collections.sort(queue.get(elevator));
     }
 
-    /**
-     * Adds a stop for an elevator.
-     * @param elevatorNumber int, the elevator number.
-     * @param floorDestination int, the floor number.
-     */
-    public synchronized void addToQueue(int elevatorNumber, int floorDestination) {
-        queue.get(elevatorNumber).add(floorDestination);
-        Collections.sort(queue.get(elevatorNumber));
-    }
 
-    /**
-     * Removes a stop from an elevator and sets it to standby when there is no more task to be done.
-     * @param elevatorNumber int, the elevator number.
-     * @param floorDestination int, the floor number.
-     */
-    public synchronized void removeFromQueue(int elevatorNumber, int floorDestination) {
-        queue.get(elevatorNumber).remove(floorDestination);
-        //if(queue.get(elevatorNumber).isEmpty())
-            //elevators.get(elevatorNumber).setDirection(ElevatorCallEvent.Directions.STANDBY);
-    }
+//    public synchronized ArrayList<Integer> getFromQueue(Elevator elevator) {
+//        queue.get(elevator).remove(0);
+//        //if(queue.get(elevatorNumber).isEmpty())
+//            //elevators.get(elevatorNumber).setDirection(ElevatorCallEvent.Directions.STANDBY);
+//    }
 }

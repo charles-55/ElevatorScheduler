@@ -6,7 +6,6 @@ import java.util.HashMap;
 public class Elevator extends Thread {
     private int passengers;
     private int currentFloor;
-
     private boolean doorOpen;
     private boolean isMoving;
     private ElevatorCallEvent.Direction direction;
@@ -14,22 +13,22 @@ public class Elevator extends Thread {
     private final HashMap<Integer, Boolean> buttonsAndLamps;
     private enum Buttons {ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, CLOSE, OPEN}
 
-    public Elevator() {
-        this(1);
+    public Elevator(int numOfFloors) {
+        this(numOfFloors, 1);
     }
 
     /**
      *
      * @param currentFloor
      */
-    public Elevator(int currentFloor) {
+    public Elevator(int numOfFloors, int currentFloor) {
         this.currentFloor = currentFloor;
         doorOpen = false;
         isMoving = false;
         direction = ElevatorCallEvent.Direction.STANDBY;
 
         buttonsAndLamps = new HashMap<>();
-        for(int i = 1; i <= Floor.NUM_OF_FLOORS; i++) {
+        for(int i = 1; i <= numOfFloors; i++) {
             buttonsAndLamps.put(i, false);
         }
     }
