@@ -12,7 +12,6 @@ import java.util.HashMap;
  */
 public class Scheduler extends Thread {
 
-    private final ArrayList<Elevator> elevators;
     private final ArrayList<Floor> floors;
     private final HashMap<Elevator, ArrayList<Integer>> queue;
 
@@ -20,17 +19,8 @@ public class Scheduler extends Thread {
      * Initializes the controller.
      */
     public Scheduler() {
-        elevators = new ArrayList<>();
         floors = new ArrayList<>();
         queue = new HashMap<>();
-    }
-
-    /**
-     * Gets the list of elevators.
-     * @return ArrayList<Elevator>, the list of elevators.
-     */
-    public ArrayList<Elevator> getElevators() {
-        return elevators;
     }
 
     /**
@@ -54,7 +44,6 @@ public class Scheduler extends Thread {
      * @param elevator Elevator, the elevator to add.
      */
     public void addElevator(Elevator elevator) {
-        elevators.add(elevator);
         queue.put(elevator, new ArrayList<>());
     }
 
@@ -74,7 +63,7 @@ public class Scheduler extends Thread {
     public synchronized void addToQueue(ElevatorCallEvent event) {
         Elevator elevator = null;
         while(elevator == null) {
-            for(Elevator e : elevators) {
+            for(Elevator e : queue.keySet()) {
                 try {
                     if ((Math.abs(e.getCurrentFloor() - event.getFloorNumber())
                             < Math.abs(elevator.getCurrentFloor() - event.getFloorNumber()))
