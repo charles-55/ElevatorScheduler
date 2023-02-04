@@ -8,6 +8,7 @@ import java.util.HashMap;
  * and adds the elevator to a queue when there is work to be done.
  *
  * @author Osamudiamen Nwoko 101152520
+ * @author Leslie Ejeh 101161386
  * @version 1.0
  */
 public class Scheduler extends Thread {
@@ -38,7 +39,7 @@ public class Scheduler extends Thread {
     }
 
     /**
-     * Adds a stop for an elevator.
+     * Adds a stop for an elevator to the queue.
      * Calls for an elevator to a floor.
      * @param event ElevatorCallEvent, an event containing details of the elevator call.
      */
@@ -55,10 +56,6 @@ public class Scheduler extends Thread {
                 } catch (NullPointerException ignored) {}
             }
         }
-//        elevator.setDirection(event.getDirection());
-//        elevator.moveToFloor(event.getFloorNumber());
-//        if(!elevator.isMoving())
-//            elevator.setDoorOpen(true);
         queue.get(elevator).add(event.getDestinationFloor());
         Collections.sort(queue.get(elevator));
         notifyAll();
@@ -77,7 +74,7 @@ public class Scheduler extends Thread {
             }
         }
         int i=0;
-        for(int e : queue.get(elevator)){
+        for(int e : queue.get(elevator)) {
             elevator.getButtonsAndLamps().put(e, true);
             queue.get(elevator).remove(i);
             i++;
