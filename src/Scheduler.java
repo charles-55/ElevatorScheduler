@@ -61,6 +61,7 @@ public class Scheduler extends Thread {
 //            elevator.setDoorOpen(true);
         queue.get(elevator).add(event.getDestinationFloor());
         Collections.sort(queue.get(elevator));
+        notifyAll();
     }
 
 
