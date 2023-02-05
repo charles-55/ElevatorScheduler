@@ -124,17 +124,21 @@ public class Elevator extends Thread {
     /**
      *
      */
-    public void openCloseDoors() {
-        if (!this.isMoving) {
+    public void openDoors() {
+        if (!this.isMoving && !doorOpen) {
             try {
-                Thread.sleep(3000); //Arbitrary time for doors to open
+                Thread.sleep(3000); // Arbitrary time for doors to open // implement open door using motors
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
             this.doorOpen = true;
+        }
+    }
 
+    public void closeDoors() {
+        if(!this.isMoving && doorOpen) {
             try {
-                Thread.sleep(3000);
+                Thread.sleep(3000); // Arbitrary time for doors to close // implement close door using motors
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -147,57 +151,22 @@ public class Elevator extends Thread {
      * @param targetFloor int, the floor to move to.
      */
     public synchronized void moveToFloor(int targetFloor, ElevatorCallEvent.Direction direction) {
-        if (!(this.direction == direction)) {
-            this.direction = direction;
-        }
-
-        this.isMoving = true;
+        this.direction = direction;
+        if(!doorOpen)
+            this.isMoving = true;
+        else
+            closeDoors();
 
         try {
-            Thread.sleep((long) Math.abs(targetFloor - this.currentFloor) * 4000); //Arbitrary time for the elevator to move up X floors (X * 4 seconds)
+            Thread.sleep((long) Math.abs(targetFloor - this.currentFloor) * 4000); // Arbitrary time for the elevator to move up X floors (X * 4 seconds)
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
         this.isMoving = false;
         this.setCurrentFloor(targetFloor);
-        this.openCloseDoors();
+        this.openDoors();
     }
-
-    public void updateQueueDirection(ElevatorCallEvent.Direction direction) {
-        //int nextFloor = scheduler.getFromQueue(this);
-        //this.moveToFloor(nextFloor)
-
-    }
-        /*
-        //Open Door Button
-        if (**open button is pressed**) {
-            if (!this.isMoving) {
-                try {
-                    Thread.sleep(3000); //Arbitrary time for doors to open
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                this.doorOpen = true;
-            }
-            break;
-        }
-        */
-
-        /*
-        //Close Door Button
-        if (**closed button is pressed**) {
-            if (!this.isMoving) {
-                try {
-                    Thread.sleep(3000); //Arbitrary time for doors to open
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                this.doorOpen = false;
-            }
-            break;
-        }
-        */
 
     /**
      *
@@ -207,6 +176,12 @@ public class Elevator extends Thread {
         while(true) {
             try {
                 scheduler.getFromQueue(this);
+                for(int floorNumber : buttonsAndLamps.keySet()) {
+                    if(buttonsAndLamps.get(floorNumber)) {
+                        moveToFloor(floorNumber, direction);
+
+                    }
+                }
             } catch (Exception e) {
                 break;
             }

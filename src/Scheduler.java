@@ -58,6 +58,13 @@ public class Scheduler extends Thread {
         }
         queue.get(elevator).add(event.getDestinationFloor());
         Collections.sort(queue.get(elevator));
+
+        if((elevator.getCurrentFloor() - event.getFloorNumber()) > 0)
+            elevator.setDirection(ElevatorCallEvent.Direction.DOWN);
+        else if((elevator.getCurrentFloor() - event.getFloorNumber()) < 0)
+            elevator.setDirection(ElevatorCallEvent.Direction.UP);
+        elevator.moveToFloor(event.getFloorNumber(), event.getDirection());
+
         notifyAll();
     }
 
@@ -73,7 +80,7 @@ public class Scheduler extends Thread {
                 e.printStackTrace();
             }
         }
-        int i=0;
+        int i = 0;
         for(int e : queue.get(elevator)) {
             elevator.getButtonsAndLamps().put(e, true);
             queue.get(elevator).remove(i);
