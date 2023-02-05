@@ -57,7 +57,7 @@ public class FloorSubsystem {
                 if(LocalTime.now().equals(time))
                     scheduler.addToQueue(event);
                 else if (time.isAfter(LocalTime.now()))
-                    Thread.sleep((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000); //
+                    wait((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000);
             }
 
         } catch (FileNotFoundException | InterruptedException e) {
