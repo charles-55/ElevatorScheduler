@@ -122,7 +122,7 @@ public class Elevator extends Thread {
     }
 
     /**
-     *
+     * Open the door of the elevator.
      */
     public void openDoors() {
         if (!this.isMoving && !doorOpen) {
@@ -135,6 +135,9 @@ public class Elevator extends Thread {
         }
     }
 
+    /**
+     * Close the door of the elevator.
+     */
     public void closeDoors() {
         if(!this.isMoving && doorOpen) {
             try {
@@ -169,7 +172,7 @@ public class Elevator extends Thread {
     }
 
     /**
-     *
+     * This is the section for running with threads.
      */
     @Override
     public void run() {
@@ -179,7 +182,7 @@ public class Elevator extends Thread {
                 for(int floorNumber : buttonsAndLamps.keySet()) {
                     if(buttonsAndLamps.get(floorNumber)) {
                         moveToFloor(floorNumber, direction);
-
+                        buttonsAndLamps.put(floorNumber, false);
                     }
                 }
             } catch (Exception e) {
