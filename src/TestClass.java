@@ -40,6 +40,16 @@ public class TestClass {
 
     }
 
+    @Test
+    public void testMoveFloor() {
+        scheduler = new Scheduler();
+        elevator = new Elevator(5, scheduler);
+
+        assertEquals(1, elevator.getCurrentFloor());
+        elevator.moveToFloor(3, ElevatorCallEvent.Direction.UP);
+        assertEquals(3, elevator.getCurrentFloor());
+    }
+
 
 
 
