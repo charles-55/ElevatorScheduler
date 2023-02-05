@@ -35,11 +35,11 @@ done. The Elevator will then send the data back to the Scheduler who will then s
 
 #### FloorSubsystem - This is the client class that reads events in the format: Time, floor, floor direction, and elevator button. Each line of input is to be sent to the Scheduler.
 
-#### Scheduler -
+#### Scheduler - This class connects the elevators to the floor. It calls an elevator to a floor and adds the elevator to a queue when there is work to be done.
 
-#### Elevator -
+#### Elevator - 
 
-#### ElevatorCallEvent -
+#### ElevatorCallEvent - This class creates an event to call an elevator to a particular floor.
 
 #### Main - This class is used to run the program.
 
