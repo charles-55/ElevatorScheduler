@@ -18,32 +18,32 @@ done. The Elevator will then send the data back to the Scheduler who will then s
 
 
 ## RESPONSIBILITIES:
-#### Floor Class - Sabah Samwatin
-#### FloorSubsystem - Sabah Samwatin
-#### Scheduler - Osamudiamen Nwoko, Leslie Ejeh
-#### Elevator - Nicholas Thibault
-#### ElevatorCallEvent - Osamudiamen Nwoko
-#### Main - *
-#### TestClass - Oyindamola Taiwo-Olupeka
-#### UML Diagrams - Oyindamola Taiwo-Olupeka
-#### README.txt - Oyindamola Taiwo-Olupeka
+Floor Class - Sabah Samwatin
+FloorSubsystem - Sabah Samwatin
+Scheduler - Osamudiamen Nwoko, Leslie Ejeh
+Elevator - Nicholas Thibault
+ElevatorCallEvent - Osamudiamen Nwoko
+Main - *
+TestClass - Oyindamola Taiwo-Olupeka
+UML Diagrams - Oyindamola Taiwo-Olupeka
+README.txt - Oyindamola Taiwo-Olupeka
 
 
 ## FILE NAMES AND EXPLANATIONS:
 
-#### Floor - This class represents the current status of the floor. It takes the information from the table of the text file and processes it.
+Floor - This class represents the current status of the floor. It takes the information from the table of the text file and processes it.
 
-#### FloorSubsystem - This is the client class that reads events in the format: Time, floor, floor direction, and elevator button. Each line of input is to be sent to the Scheduler.
+FloorSubsystem - This is the client class that reads events in the format: Time, floor, floor direction, and elevator button. Each line of input is to be sent to the Scheduler.
 
-#### Scheduler - This class connects the elevators to the floor. It calls an elevator to a floor and adds the elevator to a queue when there is work to be done.
+Scheduler - This class connects the elevators to the floor. It calls an elevator to a floor and adds the elevator to a queue when there is work to be done. It is only being used as a communication channel from the Floor thread to the Elevator thread and back again.
 
 #### Elevator - 
 
-#### ElevatorCallEvent - This class creates an event to call an elevator to a particular floor.
+ElevatorCallEvent - This class creates an event to call an elevator to a particular floor.
 
-#### Main - This class is used to run the program.
+Main - This class is used to run the program.
 
-#### TestClass - This class is test the methods are performing their assigned functions.
+TestClass - This class has been created to test the methods are performing their assigned functions.
 
 
 ## SET UP INSTRUCTIONS:
