@@ -205,6 +205,11 @@ public class Elevator extends Thread {
     @Override
     public void run() {
         while(true) {
+            try {
+                scheduler.getFromQueue(this);
+            } catch (Exception e) {
+                break;
+            }
         }
     }
 }
