@@ -37,7 +37,7 @@ FloorSubsystem - This is the client class that reads events in the format: Time,
 
 Scheduler - This class connects the elevators to the floor. It calls an elevator to a floor and adds the elevator to a queue when there is work to be done. It is only being used as a communication channel from the Floor thread to the Elevator thread and back again.
 
-# Elevator - 
+Elevator - FIXME
 
 ElevatorCallEvent - This class creates an event to call an elevator to a particular floor.
 
