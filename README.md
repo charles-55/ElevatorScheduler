@@ -30,12 +30,19 @@ done. The Elevator will then send the data back to the Scheduler who will then s
 
 
 ## FILE NAMES AND EXPLANATIONS:
-#### Floor - 
-#### FloorSubsystem -
+
+#### Floor - This class represents the current status of the floor. It takes the information from the table of the text file and processes it.
+
+#### FloorSubsystem - This is the client class that reads events in the format: Time, floor, floor direction, and elevator button. Each line of input is to be sent to the Scheduler.
+
 #### Scheduler -
+
 #### Elevator -
+
 #### ElevatorCallEvent -
+
 #### Main - This class is used to run the program.
+
 #### TestClass - This class is test the methods are performing their assigned functions.
 
 
