@@ -9,11 +9,16 @@ public class Elevator extends Thread {
     private int currentFloor;
     private boolean doorOpen;
     private boolean isMoving;
+    private final Scheduler scheduler;
     private ElevatorCallEvent.Direction direction;
     //private Buttons button;
     private final HashMap<Integer, Boolean> buttonsAndLamps;
-    private enum Buttons {ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, CLOSE, OPEN}
 
+    /**
+     *
+     * @param numOfFloors
+     * @param scheduler
+     */
     public Elevator(int numOfFloors, Scheduler scheduler) {
         this(numOfFloors, 1, scheduler);
     }
@@ -25,7 +30,10 @@ public class Elevator extends Thread {
      * @param scheduler
      */
     public Elevator(int numOfFloors, int currentFloor, Scheduler scheduler) {
+
         this.currentFloor = currentFloor;
+        this.scheduler = scheduler;
+
         scheduler.addElevator(this);
 
         doorOpen = false;
@@ -49,22 +57,14 @@ public class Elevator extends Thread {
         return doorOpen;
     }
 
-    public boolean setDoorOpen(boolean doorOpen) {
-        if(isMoving)
-            return false;
-        this.doorOpen = doorOpen;
-        return true;
+    public void setDoorOpen(boolean doorOpen) {
+        if(!isMoving) {
+            this.doorOpen = doorOpen;
+        }
     }
 
     public boolean isMoving() {
         return isMoving;
-    }
-
-    public boolean setMoving(boolean moving) {
-        if(doorOpen)
-            return false;
-        isMoving = moving;
-        return true;
     }
 
     public ElevatorCallEvent.Direction getDirection() {
@@ -81,10 +81,8 @@ public class Elevator extends Thread {
 
     /**
      *
-     * @param passengersIn
-     * @param passengersOut
      */
-    public void openCloseDoors(int passengersIn, int passengersOut) {
+    public void openCloseDoors() {
         if (!this.isMoving) {
             try {
                 Thread.sleep(3000); //Arbitrary time for doors to open
@@ -94,7 +92,7 @@ public class Elevator extends Thread {
             this.doorOpen = true;
 
             try {
-                Thread.sleep((long)(passengersIn + passengersOut) * 3000); //Arbitrary time for people to enter and get out of the car (3 seconds per person)
+                Thread.sleep(3000);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -104,55 +102,13 @@ public class Elevator extends Thread {
 
     /**
      *
-     * @param buttonPressed
+     * @param targetFloor
      */
-    public void pressButton(Buttons buttonPressed) {
-        switch(buttonPressed) {
-            case ONE:
-                this.moveToFloor(1);
-                break;
-            case TWO:
-                this.moveToFloor(2);
-                break;
-            case THREE:
-                this.moveToFloor(3);
-                break;
-            case FOUR:
-                this.moveToFloor(4);
-                break;
-            case FIVE:
-                this.moveToFloor(5);
-                break;
-            case SIX:
-                this.moveToFloor(6);
-                break;
-            case SEVEN:
-                this.moveToFloor(7);
-                break;
-            case OPEN:
-                if (!this.isMoving) {
-                    try {
-                        Thread.sleep(3000); //Arbitrary time for doors to open
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                    this.doorOpen = true;
-                }
-                    break;
-            case CLOSE:
-                if (!this.isMoving) {
-                    try {
-                        Thread.sleep(3000); //Arbitrary time for doors to open
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                    this.doorOpen = false;
-                }
-                break;
+    public synchronized void moveToFloor(int targetFloor, ElevatorCallEvent.Direction direction) {
+        if (!(this.direction == direction)) {
+            this.direction = direction;
         }
-    }
 
-    public void moveToFloor(int targetFloor) {
         this.isMoving = true;
 
         try {
@@ -162,7 +118,54 @@ public class Elevator extends Thread {
         }
 
         this.isMoving = false;
-        this.currentFloor = targetFloor;
-        // open door
+        this.setCurrentFloor(targetFloor);
+        this.openCloseDoors();
+    }
+
+    public void updateQueueDirection(ElevatorCallEvent.Direction direction) {
+        //int nextFloor = scheduler.getFromQueue(this);
+        //this.moveToFloor(nextFloor)
+
+    }
+        /*
+        //Open Door Button
+        if (**open button is pressed**) {
+            if (!this.isMoving) {
+                try {
+                    Thread.sleep(3000); //Arbitrary time for doors to open
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                this.doorOpen = true;
+            }
+            break;
+        }
+        */
+
+        /*
+        //Close Door Button
+        if (**closed button is pressed**) {
+            if (!this.isMoving) {
+                try {
+                    Thread.sleep(3000); //Arbitrary time for doors to open
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                this.doorOpen = false;
+            }
+            break;
+        }
+        */
+
+    /**
+     *
+     */
+    @Override
+    public void run() {
+        while(true) {
+
+
+            stop();
+        }
     }
 }
