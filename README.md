@@ -18,14 +18,23 @@ done. The Elevator will then send the data back to the Scheduler who will then s
 
 
 ## Responsibilities:
+
 Floor Class - Sabah Samwatin
+
 FloorSubsystem - Sabah Samwatin
+
 Scheduler - Osamudiamen Nwoko, Leslie Ejeh
+
 Elevator - Nicholas Thibault
+
 ElevatorCallEvent - Osamudiamen Nwoko
+
 Main - *
+
 TestClass - Oyindamola Taiwo-Olupeka
+
 UML Diagrams - Oyindamola Taiwo-Olupeka
+
 README.txt - Oyindamola Taiwo-Olupeka
 
 
