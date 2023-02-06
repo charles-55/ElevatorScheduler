@@ -46,13 +46,4 @@ public class TestClass {
         elevator.moveToFloor(3, ElevatorCallEvent.Direction.UP);
         assertEquals(3, elevator.getCurrentFloor());
     }
-
-
-
-
-
-
-
-
-
 }
