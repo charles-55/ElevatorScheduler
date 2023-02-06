@@ -33,11 +33,8 @@ public class TestClass {
         assertEquals(1,event.getFloorNumber());
         scheduler.addToQueue(event);
 
-        if(event.getFloorNumber() == 3){
-
+        if(event.getFloorNumber() == 3) {
         }
-
-
     }
 
     @Test

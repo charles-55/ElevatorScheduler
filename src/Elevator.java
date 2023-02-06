@@ -4,7 +4,7 @@ import java.util.HashMap;
  * The Elevator Class.
  * Moves between floors based on the data sent from the floor to the scheduler.
  *
- * @author Nicholas Thibault
+ * @author Nicholas Thibault 101172413
  * @version 1.0
  */
 public class Elevator extends Thread {
