@@ -155,10 +155,9 @@ public class Elevator extends Thread {
      */
     public synchronized void moveToFloor(int targetFloor, ElevatorCallEvent.Direction direction) {
         this.direction = direction;
-        if(!doorOpen)
-            this.isMoving = true;
-        else
+        if(doorOpen)
             closeDoors();
+        this.isMoving = true;
 
         try {
             Thread.sleep((long) Math.abs(targetFloor - this.currentFloor) * 4000); // Arbitrary time for the elevator to move up X floors (X * 4 seconds)
@@ -166,9 +165,15 @@ public class Elevator extends Thread {
             e.printStackTrace();
         }
 
+        System.out.println("Moved from " + currentFloor + " to " + targetFloor);
         this.isMoving = false;
         this.setCurrentFloor(targetFloor);
         this.openDoors();
+        notifyAll();
+    }
+
+    public void put(int i, boolean b) {
+        buttonsAndLamps.put(i, b);
     }
 
     /**
@@ -177,16 +182,12 @@ public class Elevator extends Thread {
     @Override
     public void run() {
         while(true) {
-            try {
-                scheduler.getFromQueue(this);
-                for(int floorNumber : buttonsAndLamps.keySet()) {
-                    if(buttonsAndLamps.get(floorNumber)) {
-                        moveToFloor(floorNumber, direction);
-                        buttonsAndLamps.put(floorNumber, false);
-                    }
+            scheduler.getFromQueue(this);
+            for(int destinationFloor : buttonsAndLamps.keySet()) {
+                if(buttonsAndLamps.get(destinationFloor)) {
+                    moveToFloor(destinationFloor, direction);
+                    buttonsAndLamps.put(destinationFloor, false);
                 }
-            } catch (Exception e) {
-                break;
             }
         }
     }

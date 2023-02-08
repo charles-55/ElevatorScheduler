@@ -13,7 +13,7 @@ import java.util.Scanner;
  * @version 1.0
  * */
 
-public class FloorSubsystem {
+public class FloorSubsystem extends Thread {
 
     private final Floor floor;
     private final Scheduler scheduler;
@@ -34,17 +34,18 @@ public class FloorSubsystem {
             Scanner sc = new Scanner(file);
             while (sc.hasNextLine()) {
                 String data = sc.nextLine();
+                System.out.println("Line scanned: " + data);
                 String[] splitData = data.split(" ");
 
                 LocalTime time;
-                int floorNumber, elevatorNumber;
+                int floorNumber, destinationFloor;
                 ElevatorCallEvent.Direction direction = ElevatorCallEvent.Direction.STANDBY;
 
                 String[] timeInfo = splitData[0].split(":");
                 time = LocalTime.of(Integer.parseInt(timeInfo[0]), Integer.parseInt(timeInfo[1]), Integer.parseInt(timeInfo[2].split("\\.")[0]), Integer.parseInt(timeInfo[2].split("\\.")[1]) * 1000000);
 
-                floorNumber= Integer.parseInt(splitData[1]);
-                elevatorNumber= Integer.parseInt(splitData[3]);
+                floorNumber = Integer.parseInt(splitData[1]);
+                destinationFloor = Integer.parseInt(splitData[3]);
 
                 for(ElevatorCallEvent.Direction d : ElevatorCallEvent.Direction.values()) {
                     if(splitData[2].equalsIgnoreCase(d.toString())){
@@ -53,13 +54,12 @@ public class FloorSubsystem {
                     }
                 }
 
-                ElevatorCallEvent event = new ElevatorCallEvent(time, floorNumber, direction, elevatorNumber);
+                ElevatorCallEvent event = new ElevatorCallEvent(time, floorNumber, direction, destinationFloor);
                 if(LocalTime.now().equals(time))
                     scheduler.addToQueue(event);
                 else if (time.isAfter(LocalTime.now()))
-                    wait((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000);
+                    Thread.sleep((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000);
             }
-
         } catch (FileNotFoundException | InterruptedException e) {
             e.printStackTrace();
         }

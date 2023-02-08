@@ -55,6 +55,6 @@ public class Floor extends Thread {
      */
     public void run() {
         FloorSubsystem floorSubsystem = new FloorSubsystem(this, scheduler);
-        floorSubsystem.parseData("InputTable.txt"); // edit this to specify the file to read
+        floorSubsystem.parseData("src/InputTable.txt"); // edit this to specify the file to read
     }
 }

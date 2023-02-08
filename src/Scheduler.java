@@ -44,26 +44,31 @@ public class Scheduler extends Thread {
      * @param event ElevatorCallEvent, an event containing details of the elevator call.
      */
     public synchronized void addToQueue(ElevatorCallEvent event) {
-        Elevator elevator = null;
-        while(elevator == null) {
-            for(Elevator e : queue.keySet()) {
-                try {
-                    if ((Math.abs(e.getCurrentFloor() - event.getFloorNumber())
-                            < Math.abs(elevator.getCurrentFloor() - event.getFloorNumber()))
-                            && ((e.getDirection().equals(event.getDirection()))
-                            || (e.getDirection().equals(ElevatorCallEvent.Direction.STANDBY))))
-                        elevator = e;
-                } catch (NullPointerException ignored) {}
-            }
+        Elevator elevator = (Elevator) queue.keySet().toArray()[0];
+        for(Elevator e : queue.keySet()) {
+            if ((Math.abs(e.getCurrentFloor() - event.getFloorNumber())
+                    < Math.abs(elevator.getCurrentFloor() - event.getFloorNumber()))
+                    && ((e.getDirection().equals(event.getDirection()))
+                    || (e.getDirection().equals(ElevatorCallEvent.Direction.STANDBY))))
+                elevator = e;
         }
         queue.get(elevator).add(event.getDestinationFloor());
         Collections.sort(queue.get(elevator));
 
-        if((elevator.getCurrentFloor() - event.getFloorNumber()) > 0)
-            elevator.setDirection(ElevatorCallEvent.Direction.DOWN);
-        else if((elevator.getCurrentFloor() - event.getFloorNumber()) < 0)
-            elevator.setDirection(ElevatorCallEvent.Direction.UP);
-        elevator.moveToFloor(event.getFloorNumber(), event.getDirection());
+        if(elevator.getDirection().equals(ElevatorCallEvent.Direction.STANDBY))
+            elevator.moveToFloor(event.getFloorNumber(), event.getDirection());
+        else if(elevator.getDirection().equals(ElevatorCallEvent.Direction.DOWN) && (elevator.getCurrentFloor() - event.getFloorNumber() >= 0))
+            elevator.put(event.getFloorNumber(), true);
+        else if(elevator.getDirection().equals(ElevatorCallEvent.Direction.UP) && (elevator.getCurrentFloor() - event.getFloorNumber() <= 0))
+            elevator.put(event.getFloorNumber(), true);
+        else {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println("Added to queue.");
 
         notifyAll();
     }
@@ -80,11 +85,11 @@ public class Scheduler extends Thread {
                 e.printStackTrace();
             }
         }
-        int i = 0;
-        for(int e : queue.get(elevator)) {
-            elevator.getButtonsAndLamps().put(e, true);
+
+        for(int i = 0; i < queue.get(elevator).size();) {
+            elevator.put(queue.get(elevator).get(i), true);
             queue.get(elevator).remove(i);
-            i++;
         }
+        System.out.println("Got from queue.");
     }
 }
