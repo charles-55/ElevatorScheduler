@@ -1,7 +1,4 @@
-# SYSC3303Project
-
-
-# SYSC 3303 PROJECT ITERATION 1
+# SYSC 3303 PROJECT
 
 ## Introduction:
 Iteration 1 introduces the concept of concurrency between two or more threads. 
