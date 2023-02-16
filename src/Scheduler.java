@@ -1,3 +1,6 @@
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,12 +17,21 @@ import java.util.HashMap;
 public class Scheduler extends Thread {
 
     private final HashMap<Elevator, ArrayList<Integer>> queue;
+    private DatagramPacket floorSendPacket, floorReceivePacket, elevatorSendPacket, elevatorReceivePacket;
+    private DatagramSocket floorSocket, elevatorSocket;
+    private static final int FLOOR_PORT = 23, ELEVATOR_PORT = 69;
 
     /**
      * Initializes the controller.
      */
     public Scheduler() {
         queue = new HashMap<>();
+        try {
+            floorSocket = new DatagramSocket(FLOOR_PORT);
+            elevatorSocket = new DatagramSocket(ELEVATOR_PORT);
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

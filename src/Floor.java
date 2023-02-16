@@ -1,3 +1,6 @@
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.SocketException;
 import java.util.HashMap;
 
 /**
@@ -14,6 +17,9 @@ public class Floor extends Thread {
     private final HashMap<ElevatorCallEvent.Direction, Boolean> buttonsAndLamps;
     private boolean lampOn; // checks if floor is ready to receive an elevator
     private final Scheduler scheduler;
+    private DatagramPacket sendPacket, receivePacket;
+    private DatagramSocket socket;
+    private static final int PORT = 23;
 
     /**
      * Constructor for the floor class.
@@ -24,6 +30,13 @@ public class Floor extends Thread {
         buttonsAndLamps = new HashMap<>();
         buttonsAndLamps.put(ElevatorCallEvent.Direction.UP, false);
         buttonsAndLamps.put(ElevatorCallEvent.Direction.DOWN, false);
+
+        try {
+            socket = new DatagramSocket(PORT);
+        } catch (SocketException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 
     public HashMap<ElevatorCallEvent.Direction, Boolean> getButtonsAndLamps() {
