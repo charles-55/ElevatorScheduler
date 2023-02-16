@@ -1,7 +1,6 @@
-import org.junit.Test;
+import org.junit.*;
 import java.time.LocalTime;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * The Test Class.
@@ -12,29 +11,30 @@ import static org.junit.Assert.assertTrue;
 public class TestClass {
 
     private Scheduler scheduler;
+    private Floor floor;
     private Elevator elevator;
     private ElevatorCallEvent event;
+    private static int NUM_OF_FLOORS = 5;
 
-    @Test
-    public void setUp(){
-
-    }
-
-    @Test
-    public void testDown(){
-
-    }
-
-    @Test
-    public void testElevator(){
+    @Before
+    public void setUp() {
         scheduler = new Scheduler();
-        elevator = new Elevator(7,1,scheduler);
-        event = new ElevatorCallEvent(LocalTime.now(),1, ElevatorCallEvent.Direction.UP,3);
-        assertEquals(1,event.getFloorNumber());
-        scheduler.addToQueue(event);
+        floor = new Floor(1, scheduler);
+        elevator = new Elevator(5, scheduler);
+    }
 
-        if(event.getFloorNumber() == 3) {
-        }
+    @After
+    public void tearDown() {
+        scheduler = null;
+        floor = null;
+        elevator = null;
+    }
+
+    @Test
+    public void testInputFile() {
+        floor.start();
+        assertEquals(11, scheduler.getQueue().get(elevator).size());
+        floor.stop();
     }
 
     @Test
