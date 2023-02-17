@@ -29,9 +29,9 @@ public class Elevator extends Thread {
     public Elevator(int numOfFloors, Scheduler scheduler) {
         this(numOfFloors, 1, scheduler);
         try{
-            socket=new DatagramSocket(PORT);
-        }catch (SocketException se){
-            se.printStackTrace();
+            socket = new DatagramSocket(PORT);
+        } catch (SocketException e){
+            e.printStackTrace();
             System.exit(1);
         }
     }
@@ -198,7 +198,7 @@ public class Elevator extends Thread {
 
         // need to find a better condition to keep the loop running to be able to close the socket
         while (true) {
-            byte data[] = new byte[1024];
+            byte[] data = new byte[1024];
             receivePacket=new DatagramPacket(data, data.length);
             System.out.println("Waiting for Packet...\n");
 
@@ -225,8 +225,8 @@ public class Elevator extends Thread {
             }
 
             // trying to send message back to the elevator
-            byte byteRes[] = null;
-            sendPacket=new DatagramPacket(byteRes, byteRes.length,receivePacket.getAddress(), PORT);
+            byte[] byteRes = null;
+            sendPacket = new DatagramPacket(byteRes, byteRes.length,receivePacket.getAddress(), PORT);
             System.out.println( "Sending packet:\n");
 
             //Send packet to host
