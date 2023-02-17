@@ -20,7 +20,7 @@ public class TestClass {
     public void setUp() {
         scheduler = new Scheduler();
         floor = new Floor(1, scheduler);
-        elevator = new Elevator(5, scheduler);
+        elevator = new Elevator(1, 5, scheduler);
     }
 
     @After
@@ -40,7 +40,7 @@ public class TestClass {
     @Test
     public void testMoveFloor() {
         scheduler = new Scheduler();
-        elevator = new Elevator(5, scheduler);
+        elevator = new Elevator(1, 5, scheduler);
 
         assertEquals(1, elevator.getCurrentFloor());
         elevator.moveToFloor(3, ElevatorCallEvent.Direction.UP);
