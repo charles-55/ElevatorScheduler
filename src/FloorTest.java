@@ -2,18 +2,19 @@ import org.junit.*;
 import static org.junit.Assert.assertEquals;
 
 /**
- * The Test Class.
+ * The Floor Test Class.
  *
- * @author Oyindamola Taiwo-Olupeka
+ * @author Oyindamola Taiwo-Olupeka 101155729
  * @version 1.0
  */
-public class TestClass {
-
+public class FloorTest {
     private Scheduler scheduler;
     private Floor floor;
+    private FloorSubsystem floorSubsystem;
     private Elevator elevator;
     private ElevatorCallEvent event;
     private static int NUM_OF_FLOORS = 5;
+
 
     @Before
     public void setUp() {
@@ -30,9 +31,16 @@ public class TestClass {
     }
 
     @Test
-    public void testInputFile() {
-        floor.start();
-        assertEquals(0, scheduler.getQueue().get(elevator).size());
-        floor.stop();
+    public void testRun(){
+        scheduler = new Scheduler();
+        elevator = new Elevator(NUM_OF_FLOORS, scheduler);
+
+        //////////////******FIX
+    }
+
+    @Test
+    public void testParseData(){
+
+        //////////////******FIX
     }
 }
