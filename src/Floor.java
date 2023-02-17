@@ -1,6 +1,5 @@
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.SocketException;
+import java.io.IOException;
+import java.net.*;
 import java.util.HashMap;
 
 /**
@@ -15,10 +14,10 @@ public class Floor extends Thread {
 
     private final int floorNumber;
     private final HashMap<ElevatorCallEvent.Direction, Boolean> buttonsAndLamps;
-    private boolean lampOn; // checks if floor is ready to receive an elevator
     private final Scheduler scheduler;
-    private DatagramPacket sendPacket, receivePacket;
+    private DatagramPacket receivePacket;
     private DatagramSocket socket;
+    private InetAddress address;
     private static final int PORT = 23;
 
     /**
@@ -33,7 +32,8 @@ public class Floor extends Thread {
 
         try {
             socket = new DatagramSocket(PORT);
-        } catch (SocketException e) {
+            address = InetAddress.getLocalHost();
+        } catch (SocketException | UnknownHostException e) {
             e.printStackTrace();
             System.exit(1);
         }
@@ -47,10 +47,6 @@ public class Floor extends Thread {
         return floorNumber;
     }
 
-    public boolean isLampOn() {
-        return lampOn;
-    }
-
     public Scheduler getScheduler() {
         return scheduler;
     }
@@ -59,15 +55,35 @@ public class Floor extends Thread {
         buttonsAndLamps.put(direction, state);
     }
 
-    public void setLampOn(boolean lampOn) {
-        this.lampOn = lampOn;
+    public void readMessage() {
+        byte[] info = new byte[3];
+        receivePacket = new DatagramPacket(info, info.length, address, PORT);
+
+        try {
+            socket.receive(receivePacket);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        if(info[0] == (byte) floorNumber) {
+            if(info[1] == 1) {
+                if(info[2] == 1)
+                    setButtonDirection(ElevatorCallEvent.Direction.UP, false);
+                else if(info[2] == 2)
+                    setButtonDirection(ElevatorCallEvent.Direction.DOWN, false);
+            }
+        }
     }
 
     /**
      * This is the section for running with threads.
      */
     public void run() {
-        FloorSubsystem floorSubsystem = new FloorSubsystem(this, scheduler);
+        FloorSubsystem floorSubsystem = new FloorSubsystem(this, scheduler, address, PORT);
         floorSubsystem.parseData("src/InputTable.txt"); // edit this to specify the file to read
+        while(true) {
+            readMessage();
+        }
     }
 }
