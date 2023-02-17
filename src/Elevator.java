@@ -11,6 +11,7 @@ import java.util.HashMap;
  */
 public class Elevator extends Thread {
 
+    private int elevatorNum;
     private int currentFloor;
     private boolean doorOpen;
     private boolean isMoving;
@@ -23,11 +24,12 @@ public class Elevator extends Thread {
 
     /**
      * Initialize the elevator.
+     * @param elevatorNum int, the elevator number.
      * @param numOfFloors int, the number of floors to move between.
      * @param scheduler Scheduler, the scheduler to get the data from.
      */
-    public Elevator(int numOfFloors, Scheduler scheduler) {
-        this(numOfFloors, 1, scheduler);
+    public Elevator(int elevatorNum, int numOfFloors, Scheduler scheduler) {
+        this(elevatorNum, numOfFloors, 1, scheduler);
         try{
             socket = new DatagramSocket(PORT);
         } catch (SocketException e){
@@ -38,11 +40,12 @@ public class Elevator extends Thread {
 
     /**
      * Initialize the elevator.
+     * @param elevatorNum int, the elevator number.
      * @param numOfFloors int, the number of floors to move between.
      * @param currentFloor int, the current floor the elevator is on.
      * @param scheduler Scheduler, the scheduler to get the data from.
      */
-    public Elevator(int numOfFloors, int currentFloor, Scheduler scheduler) {
+    public Elevator(int elevatorNum, int numOfFloors, int currentFloor, Scheduler scheduler) {
 
         this.currentFloor = currentFloor;
         this.scheduler = scheduler;

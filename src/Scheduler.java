@@ -17,6 +17,7 @@ public class Scheduler extends Thread {
 
     private final HashMap<Elevator, ArrayList<Integer>> queue;
     private DatagramPacket floorSendPacket, floorReceivePacket, elevatorSendPacket, elevatorReceivePacket;
+    private InetAddress floorAddress, elevatorAddress;
     private DatagramSocket floorSocket, elevatorSocket;
     private static final int FLOOR_PORT = 23, ELEVATOR_PORT = 69;
 
@@ -28,7 +29,9 @@ public class Scheduler extends Thread {
         try {
             floorSocket = new DatagramSocket(FLOOR_PORT);
             elevatorSocket = new DatagramSocket(ELEVATOR_PORT);
-        } catch (SocketException e) {
+            floorAddress = InetAddress.getLocalHost();
+            elevatorAddress = InetAddress.getLocalHost();
+        } catch (SocketException| UnknownHostException e) {
             e.printStackTrace();
             System.exit(1);
         }
@@ -85,9 +88,9 @@ public class Scheduler extends Thread {
         notifyAll();
     }
 
-    public void doYourJob(){
-        byte data[] = new byte[1024];
-        elevatorReceivePacket = new DatagramPacket(data, data.length);
+    public void doYourJob() {
+        byte[] data = new byte[1024];
+        elevatorReceivePacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_PORT);
 
         //Receive packet from the elevator
         try {
@@ -104,8 +107,7 @@ public class Scheduler extends Thread {
         // find a way to get the messages from the packet for accuracy
 
 
-
-        floorReceivePacket = new DatagramPacket(data, data.length);
+        floorReceivePacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_PORT);
 
         //Receive packet from the elevator
         try {
@@ -129,12 +131,7 @@ public class Scheduler extends Thread {
         }
 
         // sending packet to elevator
-        try {
-            elevatorSendPacket = new DatagramPacket(data, elevatorReceivePacket.getLength(), InetAddress.getLocalHost(), ELEVATOR_PORT);
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
+        elevatorSendPacket = new DatagramPacket(data, elevatorReceivePacket.getLength(), elevatorAddress, ELEVATOR_PORT);
 
         try {
             elevatorSocket.send(elevatorSendPacket);
