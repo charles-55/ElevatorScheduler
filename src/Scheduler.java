@@ -31,6 +31,7 @@ public class Scheduler extends Thread {
             elevatorSocket = new DatagramSocket(ELEVATOR_PORT);
         } catch (SocketException e) {
             e.printStackTrace();
+            System.exit(1);
         }
     }
 

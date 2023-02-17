@@ -1,3 +1,6 @@
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.SocketException;
 import java.util.HashMap;
 
 /**
@@ -49,7 +52,12 @@ public class Elevator extends Thread {
         for(int i = 1; i <= numOfFloors; i++)
             buttonsAndLamps.put(i, false);
 
-        socket = new DatagramSocket(PORT);
+        try {
+            socket = new DatagramSocket(PORT);
+        } catch (SocketException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 
     /**
