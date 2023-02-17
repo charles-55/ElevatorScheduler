@@ -1,5 +1,7 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.*;
 import java.time.LocalTime;
 import java.util.Scanner;
 
@@ -17,10 +19,22 @@ public class FloorSubsystem extends Thread {
 
     private final Floor floor;
     private final Scheduler scheduler;
+    private DatagramPacket sendPacket;
+    private DatagramSocket socket;
+    private final InetAddress address;
+    private final int port;
 
-    public FloorSubsystem(Floor floor, Scheduler scheduler) {
+    public FloorSubsystem(Floor floor, Scheduler scheduler, InetAddress address, int port) {
         this.floor = floor;
         this.scheduler = scheduler;
+        this.address = address;
+        this.port = port;
+        try {
+            socket = new DatagramSocket(port);
+        } catch (SocketException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 
     /**
@@ -48,20 +62,31 @@ public class FloorSubsystem extends Thread {
                 destinationFloor = Integer.parseInt(splitData[3]);
 
                 for(ElevatorCallEvent.Direction d : ElevatorCallEvent.Direction.values()) {
-                    if(splitData[2].equalsIgnoreCase(d.toString())){
+                    if(splitData[2].equalsIgnoreCase(d.toString())) {
                         direction = d;
                         break;
                     }
                 }
 
-                ElevatorCallEvent event = new ElevatorCallEvent(time, floorNumber, direction, destinationFloor);
-                if(LocalTime.now().equals(time))
-                    scheduler.addToQueue(event);
-                else if (time.isAfter(LocalTime.now()))
-                    Thread.sleep((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000);
+                byte[] info = new byte[3];
+                info[0] = (byte) floorNumber;
+                if(direction == ElevatorCallEvent.Direction.UP)
+                    info[1] = 1;
+                else if(direction == ElevatorCallEvent.Direction.DOWN)
+                    info[1] = 2;
+                info[2] = (byte) destinationFloor;
+                sendPacket = new DatagramPacket(info, info.length, address, port);
+                socket.send(sendPacket);
+
+//                ElevatorCallEvent event = new ElevatorCallEvent(time, floorNumber, direction, destinationFloor);
+//                if(LocalTime.now().equals(time))
+//                    scheduler.addToQueue(event);
+//                else if (time.isAfter(LocalTime.now()))
+//                    Thread.sleep((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000);
             }
-        } catch (FileNotFoundException | InterruptedException e) {
+        } catch (/*InterruptedException | */IOException e) {
             e.printStackTrace();
+            System.exit(1);
         }
     }
 }
