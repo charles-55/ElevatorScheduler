@@ -1,6 +1,5 @@
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.SocketException;
+import java.io.IOException;
+import java.net.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -84,6 +83,68 @@ public class Scheduler extends Thread {
         System.out.println("Added to queue.");
 
         notifyAll();
+    }
+
+    public void doYourJob(){
+        byte data[] = new byte[1024];
+        elevatorReceivePacket = new DatagramPacket(data, data.length);
+
+        //Receive packet from the elevator
+        try {
+            System.out.println("Waiting for Packet from elevator...\n");
+            elevatorSocket.receive(elevatorReceivePacket);
+        } catch (IOException e) {
+            System.out.print("IO Exception: likely:");
+            System.out.println("Receive Socket Timed Out.\n" + e);
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        System.out.println("Packet received from Client\n");
+        // find a way to get the messages from the packet for accuracy
+
+
+
+        floorReceivePacket = new DatagramPacket(data, data.length);
+
+        //Receive packet from the elevator
+        try {
+            System.out.println("Waiting for Packet from elevator...\n");
+            floorSocket.receive(floorReceivePacket);
+        } catch (IOException e) {
+            System.out.print("IO Exception: likely:");
+            System.out.println("Receive Socket Timed Out.\n" + e);
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        System.out.println("Packet received from floor\n");
+        // find a way to get the exact  messages sent to the packet for accuracy
+
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e ) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        // sending packet to elevator
+        try {
+            elevatorSendPacket = new DatagramPacket(data, elevatorReceivePacket.getLength(), InetAddress.getLocalHost(), ELEVATOR_PORT);
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        try {
+            elevatorSocket.send(elevatorSendPacket);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+        System.out.println("Packet sent to Elevator!\n");
+
+
     }
 
     /**

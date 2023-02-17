@@ -29,7 +29,7 @@ public class Elevator extends Thread {
     public Elevator(int numOfFloors, Scheduler scheduler) {
         this(numOfFloors, 1, scheduler);
         try{
-            socket=new DatagramSocket(23);
+            socket=new DatagramSocket(PORT);
         }catch (SocketException se){
             se.printStackTrace();
             System.exit(1);
@@ -197,43 +197,26 @@ public class Elevator extends Thread {
     public void doYourJob(){
 
         // need to find a better condition to keep the loop running to be able to close the socket
-        while (true){
-            byte[] byteReq = null;
-            String elevatorSend="Please add what the elevator will be sending";
-            byteReq=elevatorSend.getBytes();
-            System.out.println("Sending a packet containing:\nDetails of the elevator: "  + "\nByte: " + byteReq.toString() + "\n");
-
-
-            // Creating a packet in order to send the information to the  scheduler
-            try {
-                sendPacket = new DatagramPacket(byteReq, byteReq.length, InetAddress.getLocalHost(), 23);// Sending data to the host InetAddress.getLocalHost() gets your devuces address
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
-
-            try{
-                socket.send(sendPacket);
-            }catch (IOException e){
-                e.printStackTrace();
-                System.exit(1);
-            }
-            System.out.println("Packet sent.\n");
-
+        while (true) {
             byte data[] = new byte[1024];
             receivePacket=new DatagramPacket(data, data.length);
+            System.out.println("Waiting for Packet...\n");
 
-            //Receive packet from the host
+            //Receive the packet from scheduler
+
             try {
                 socket.receive(receivePacket);
-            } catch(IOException e) {
+            } catch (IOException e) {
+                System.out.print("IO Exception: likely:");
+                System.out.println("Receive Socket Timed Out.\n" + e);
                 e.printStackTrace();
                 System.exit(1);
             }
-            System.out.println("Packet Received!\n");
+            System.out.println("Packet received!\n");
+
+            // print out the information received from the socket
 
 
-            // form like a way to get the data that was received
             try {
                 Thread.sleep(5000);
             } catch (InterruptedException e ) {
@@ -241,8 +224,26 @@ public class Elevator extends Thread {
                 System.exit(1);
             }
 
+            // trying to send message back to the elevator
+            byte byteRes[] = null;
+            sendPacket=new DatagramPacket(byteRes, byteRes.length,receivePacket.getAddress(), PORT);
+            System.out.println( "Sending packet:\n");
+
+            //Send packet to host
+            try {
+                socket.send(sendPacket);
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+
+            System.out.println("Packet Sent!\n");
+
+            socket.close();
+
+
+
         }
-        // socket.close();
     }
 
     /**
