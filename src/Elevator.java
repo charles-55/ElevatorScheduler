@@ -15,6 +15,9 @@ public class Elevator extends Thread {
     private final Scheduler scheduler;
     private ElevatorCallEvent.Direction direction;
     private final HashMap<Integer, Boolean> buttonsAndLamps;
+    private DatagramPacket sendPacket, receivePacket;
+    private DatagramSocket socket;
+    private static final int PORT = 69;
 
     /**
      * Initialize the elevator.
@@ -45,6 +48,8 @@ public class Elevator extends Thread {
         buttonsAndLamps = new HashMap<>();
         for(int i = 1; i <= numOfFloors; i++)
             buttonsAndLamps.put(i, false);
+
+        socket = new DatagramSocket(PORT);
     }
 
     /**
