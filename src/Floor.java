@@ -80,8 +80,8 @@ public class Floor extends Thread {
      * This is the section for running with threads.
      */
     public void run() {
-        FloorSubsystem floorSubsystem = new FloorSubsystem(this, scheduler, address, PORT);
-        floorSubsystem.parseData("src/InputTable.txt"); // edit this to specify the file to read
+        FloorSubsystem floorSubsystem = new FloorSubsystem(this, scheduler, address, PORT, "src/InputTable.txt");
+        floorSubsystem.start();
         while(true) {
             readMessage();
         }

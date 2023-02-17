@@ -23,12 +23,22 @@ public class FloorSubsystem extends Thread {
     private DatagramSocket socket;
     private final InetAddress address;
     private final int port;
+    private final String fileName;
 
-    public FloorSubsystem(Floor floor, Scheduler scheduler, InetAddress address, int port) {
+    /**
+     * Initialize the FloorSubsystem.
+     * @param floor
+     * @param scheduler
+     * @param address
+     * @param port
+     * @param fileName - the name of the input file preferably a .txt file.
+     */
+    public FloorSubsystem(Floor floor, Scheduler scheduler, InetAddress address, int port, String fileName) {
         this.floor = floor;
         this.scheduler = scheduler;
         this.address = address;
         this.port = port;
+        this.fileName = fileName;
         try {
             socket = new DatagramSocket(port);
         } catch (SocketException e) {
@@ -39,9 +49,8 @@ public class FloorSubsystem extends Thread {
 
     /**
      * Parse the data received in the input file
-     * @param fileName - the name of the input file preferably a .txt file
      */
-    public void parseData(String fileName) {
+    private void parseData() {
         File file = new File(fileName);
 
         try {
@@ -88,5 +97,10 @@ public class FloorSubsystem extends Thread {
             e.printStackTrace();
             System.exit(1);
         }
+    }
+
+    @Override
+    public void run() {
+        parseData();
     }
 }
