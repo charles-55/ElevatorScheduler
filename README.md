@@ -1,8 +1,10 @@
 # SYSC 3303 PROJECT
 
 ## Introduction:
-Iteration 1 introduces the concept of concurrency between two or more threads. 
-The Floor subsystem and the Elevators are the clients in the system; The Scheduler is the server. The Floor subsystem is to read in events(Time, floor or elevator number, and button). Each line of input is to be sent to the Scheduler. The elevators will make calls to the Scheduler which will then reply when there is work to be done. The Elevator will then send the data back to the Scheduler who will then send it back to the Floor. For this iteration the Scheduler is only being used as a communication channel from the Floor thread to the Elevator thread and back again.
+Iteration 2 builds on the concept of concurrency between two or more threads, it also introduces state machines.
+The goal of this iteration is to add the state machines for the scheduler and elevator subsystems assuming that
+there is only one elevator. The elevator subsystem is used to notify the scheduler that an elevator has
+reached a floor, so that once an elevator has been told to move, the elevator subsystem also has to be informed so that it can send out messages back to the scheduler to denote the arrival by an elevator.
 
 
 ## Team Members:
@@ -27,9 +29,15 @@ ElevatorCallEvent - Osamudiamen Nwoko
 
 Main - *
 
-TestClass - Oyindamola Taiwo-Olupeka
+FloorTest -  Oyindamola Taiwo-Olupeka
 
-UML Diagrams - Oyindamola Taiwo-Olupeka
+ElevatorTest - Oyindamola Taiwo-Olupeka
+
+SchedulerTest - Oyindamola Taiwo-Olupeka
+
+UML Class & Sequence Diagrams - Sabah Samwatin, Oyindamola Taiwo-Olupeka
+
+State Machine Diagram - Sabah Samwatin
 
 README.txt - Oyindamola Taiwo-Olupeka
 
@@ -48,12 +56,19 @@ ElevatorCallEvent class - This class creates an event to call an elevator to a p
 
 Main class - This class is used to run the program.
 
-TestClass - This class has been created to test the methods are performing their assigned functions.
+FloorTest - This is a test class that tests the methods in the Floor and FloorSubsytem classes.
+
+ElevatorTest - This is a test class that tests the methods in the Elevator class.
+
+SchedulerTest - This is a test class that tests the methods in the Scheduler class.
 
 InputTable.txt - A text file filled with random data entries to be parsed into the scheduler.
 
 
 ## Set-up Instructions:
 Run the Main class.
+
+## Test Instructions:
+Run the Test classes (ElevatorTest, FloorTest, SchedulerTest) individually.
 
 
