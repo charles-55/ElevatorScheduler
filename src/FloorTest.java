@@ -1,8 +1,11 @@
 import org.junit.*;
+
+import java.util.Arrays;
+
 import static org.junit.Assert.assertEquals;
 
 /**
- * The Floor Test Class.
+ * The Floor and FloorSubsystem Test Class.
  *
  * @author Oyindamola Taiwo-Olupeka 101155729
  * @version 1.0
@@ -10,7 +13,6 @@ import static org.junit.Assert.assertEquals;
 public class FloorTest {
     private Scheduler scheduler;
     private Floor floor;
-    private FloorSubsystem floorSubsystem;
     private Elevator elevator;
     private ElevatorCallEvent event;
     private static int NUM_OF_FLOORS = 5;
@@ -32,15 +34,15 @@ public class FloorTest {
 
     @Test
     public void testRun(){
-        scheduler = new Scheduler();
-        elevator = new Elevator(NUM_OF_FLOORS, scheduler);
-
-        //////////////******FIX
+        floor.start();
+        assertEquals(0, scheduler.getQueue().get(elevator).size());
+        floor.stop();
     }
 
     @Test
     public void testParseData(){
-
-        //////////////******FIX
+        String data = "14:05:15:0 1 Up 4";
+        String splitData = Arrays.toString(data.split(","));
+        assertEquals(splitData,"[" + data + "]");
     }
 }

@@ -72,4 +72,15 @@ public class ElevatorTest {
         //////////////******FIX
 
     }
+//    public void run() {
+//        while(true) {
+//            scheduler.getFromQueue(this);
+//            for(int destinationFloor : buttonsAndLamps.keySet()) {
+//                if(buttonsAndLamps.get(destinationFloor)) {
+//                    moveToFloor(destinationFloor, direction);
+//                    buttonsAndLamps.put(destinationFloor, false);
+//                }
+//            }
+//        }
+//    }
 }

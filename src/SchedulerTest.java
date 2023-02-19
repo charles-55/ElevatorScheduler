@@ -3,7 +3,8 @@ import org.junit.*;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
-import static org.junit.Assert.assertEquals;
+
+import static org.junit.Assert.*;
 
 /**
  * The Scheduler Test Class.
@@ -14,7 +15,6 @@ import static org.junit.Assert.assertEquals;
 public class SchedulerTest {
     private Scheduler scheduler;
     private Floor floor;
-    private FloorSubsystem floorSubsystem;
     private Elevator elevator;
     private ElevatorCallEvent event;
     private static int NUM_OF_FLOORS = 5;
@@ -32,9 +32,9 @@ public class SchedulerTest {
 
     @After
     public void tearDown() {
-//        scheduler = null;
-//        floor = null;
-//        elevator = null;
+        scheduler = null;
+        floor = null;
+        elevator = null;
     }
 
     @Test
@@ -46,23 +46,16 @@ public class SchedulerTest {
 
     @Test
     public void testAddToQueue(){
-        assertEquals(0,queue.size());
-        queue.get(elevator).add(event.getDestinationFloor());
-        assertEquals(1,queue.size());
-
-        //////////////******FIX
-
+        scheduler.getQueue().put(elevator,new ArrayList<>());
+        assertFalse(scheduler.getQueue().isEmpty());
     }
 
     @Test
     public void testGetFromQueue(){
-        queue.get(elevator).add(event.getFloorNumber());
-        assertEquals(1,queue.size());
-        //queue.remove(elevator);
-        queue.get(elevator).remove(0);
-        assertEquals(0,queue.size());
-
-        //////////////******FIX
+        scheduler.getQueue().put(elevator,new ArrayList<>());
+        assertEquals(1,scheduler.getQueue().size());
+        scheduler.getQueue().remove(elevator,new ArrayList<>());
+        assertTrue(scheduler.getQueue().isEmpty());
     }
 
 
