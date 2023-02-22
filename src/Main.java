@@ -6,6 +6,7 @@ public class Main {
         Elevator elevator = new Elevator(1, 5, scheduler);
 
         floor.start();
+        scheduler.start();
         elevator.start();
     }
 }
