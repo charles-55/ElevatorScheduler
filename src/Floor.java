@@ -13,7 +13,7 @@ import java.util.HashMap;
 public class Floor extends Thread {
 
     private final int floorNumber;
-    private final HashMap<ElevatorCallEvent.Direction, Boolean> buttonsAndLamps;
+    private final HashMap<Elevator.Direction, Boolean> buttonsAndLamps;
     private final Scheduler scheduler;
     private DatagramPacket receivePacket;
     private DatagramSocket socket;
@@ -27,8 +27,8 @@ public class Floor extends Thread {
         this.scheduler = scheduler;
         this.floorNumber = floorNumber;
         buttonsAndLamps = new HashMap<>();
-        buttonsAndLamps.put(ElevatorCallEvent.Direction.UP, false);
-        buttonsAndLamps.put(ElevatorCallEvent.Direction.DOWN, false);
+        buttonsAndLamps.put(Elevator.Direction.UP, false);
+        buttonsAndLamps.put(Elevator.Direction.DOWN, false);
 
         try {
             socket = new DatagramSocket(PORT);
@@ -39,7 +39,7 @@ public class Floor extends Thread {
         }
     }
 
-    public HashMap<ElevatorCallEvent.Direction, Boolean> getButtonsAndLamps() {
+    public HashMap<Elevator.Direction, Boolean> getButtonsAndLamps() {
         return buttonsAndLamps;
     }
 
@@ -51,7 +51,7 @@ public class Floor extends Thread {
         return scheduler;
     }
 
-    public void setButtonDirection(ElevatorCallEvent.Direction direction, boolean state) {
+    public void setButtonDirection(Elevator.Direction direction, boolean state) {
         buttonsAndLamps.put(direction, state);
     }
 
@@ -67,12 +67,10 @@ public class Floor extends Thread {
         }
 
         if(info[0] == (byte) floorNumber) {
-            if(info[1] == 1) {
-                if(info[2] == 1)
-                    setButtonDirection(ElevatorCallEvent.Direction.UP, false);
-                else if(info[2] == 2)
-                    setButtonDirection(ElevatorCallEvent.Direction.DOWN, false);
-            }
+            if(info[2] == 1)
+                setButtonDirection(Elevator.Direction.UP, false);
+            else if(info[2] == 2)
+                setButtonDirection(Elevator.Direction.DOWN, false);
         }
     }
 
@@ -80,6 +78,12 @@ public class Floor extends Thread {
      * This is the section for running with threads.
      */
     public void run() {
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
         FloorSubsystem floorSubsystem = new FloorSubsystem(this, scheduler, address, PORT, "src/InputTable.txt");
         floorSubsystem.start();
         while(true) {

@@ -16,6 +16,7 @@ import java.util.HashMap;
 public class Scheduler extends Thread {
 
     private final HashMap<Elevator, ArrayList<Integer>> queue;
+    private final ArrayList<Elevator> elevators;
     private DatagramPacket floorSendPacket, floorReceivePacket, elevatorSendPacket, elevatorReceivePacket;
     private InetAddress floorAddress, elevatorAddress;
     private DatagramSocket floorSocket, elevatorSocket;
@@ -26,6 +27,7 @@ public class Scheduler extends Thread {
      */
     public Scheduler() {
         queue = new HashMap<>();
+        elevators = new ArrayList<>();
         try {
             floorSocket = new DatagramSocket(FLOOR_PORT);
             elevatorSocket = new DatagramSocket(ELEVATOR_PORT);
@@ -51,22 +53,26 @@ public class Scheduler extends Thread {
      */
     public void addElevator(Elevator elevator) {
         queue.put(elevator, new ArrayList<>());
+        elevators.add(elevator);
     }
 
     /**
-     * Adds a stop for an elevator to the queue.
-     * Calls for an elevator to a floor.
-     * @param event ElevatorCallEvent, an event containing details of the elevator call.
+     * Get the closest elevator to a floor and moving in the same direction or on standby.
+     * @param floorNum int, the floor the elevator is bing called to.
+     * @param direction Direction, direction of the elevator.
+     * @return int, the elevator number for the closest elevator.
      */
-    public synchronized void addToQueue(ElevatorCallEvent event) {
+    public synchronized int getClosestElevator(int floorNum, Elevator.Direction direction) {
         Elevator elevator = (Elevator) queue.keySet().toArray()[0];
         for(Elevator e : queue.keySet()) {
-            if ((Math.abs(e.getCurrentFloor() - event.getFloorNumber())
-                    < Math.abs(elevator.getCurrentFloor() - event.getFloorNumber()))
-                    && ((e.getDirection().equals(event.getDirection()))
-                    || (e.getDirection().equals(ElevatorCallEvent.Direction.STANDBY))))
+            if ((Math.abs(e.getCurrentFloor() - floorNum)
+                    < Math.abs(elevator.getCurrentFloor() - floorNum))
+                    && ((e.getDirection().equals(direction))
+                    || (e.getDirection().equals(Elevator.Direction.STANDBY))))
                 elevator = e;
         }
+        return elevator.getElevatorNum();
+        /*
         queue.get(elevator).add(event.getDestinationFloor());
         Collections.sort(queue.get(elevator));
 
@@ -86,32 +92,16 @@ public class Scheduler extends Thread {
         System.out.println("Added to queue.");
 
         notifyAll();
+
+         */
     }
 
-    public void doYourJob() {
-        byte[] data = new byte[1024];
-        elevatorReceivePacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_PORT);
+    public void sendToElevator() {
+        byte[] floorData = new byte[3];
+        floorReceivePacket = new DatagramPacket(floorData, floorData.length, floorAddress, FLOOR_PORT);
 
-        //Receive packet from the elevator
         try {
-            System.out.println("Waiting for Packet from elevator...\n");
-            elevatorSocket.receive(elevatorReceivePacket);
-        } catch (IOException e) {
-            System.out.print("IO Exception: likely:");
-            System.out.println("Receive Socket Timed Out.\n" + e);
-            e.printStackTrace();
-            System.exit(1);
-        }
-
-        System.out.println("Packet received from Client\n");
-        // find a way to get the messages from the packet for accuracy
-
-
-        floorReceivePacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_PORT);
-
-        //Receive packet from the elevator
-        try {
-            System.out.println("Waiting for Packet from elevator...\n");
+            System.out.println("Waiting for Packet from Floor...\n");
             floorSocket.receive(floorReceivePacket);
         } catch (IOException e) {
             System.out.print("IO Exception: likely:");
@@ -120,8 +110,32 @@ public class Scheduler extends Thread {
             System.exit(1);
         }
 
-        System.out.println("Packet received from floor\n");
-        // find a way to get the exact  messages sent to the packet for accuracy
+        System.out.println("Packet received from Floor\n");
+
+        byte[] elevatorData = new byte[4];
+
+        Elevator.Direction direction = Elevator.Direction.STANDBY;
+        if(floorData[1] == 1)
+            direction = Elevator.Direction.UP;
+        else if(floorData[1] == 2)
+            direction = Elevator.Direction.DOWN;
+
+        elevatorData[0] = (byte) getClosestElevator((int) floorData[0], direction);
+        System.arraycopy(floorData, 0, elevatorData, 1, 3);
+
+        elevatorSendPacket = new DatagramPacket(elevatorData, elevatorData.length, elevatorAddress, ELEVATOR_PORT);
+
+        try {
+            System.out.println("Sending Packet to elevator...\n");
+            elevatorSocket.send(elevatorSendPacket);
+        } catch (IOException e) {
+            System.out.print("IO Exception: likely:");
+            System.out.println("Elevator Socket Timed Out.\n" + e);
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        System.out.println("Packet sent to elevator\n");
 
         try {
             Thread.sleep(50);
@@ -129,19 +143,44 @@ public class Scheduler extends Thread {
             e.printStackTrace();
             System.exit(1);
         }
+    }
 
-        // sending packet to elevator
-        elevatorSendPacket = new DatagramPacket(data, elevatorReceivePacket.getLength(), elevatorAddress, ELEVATOR_PORT);
+    public void sendToFloor() {
+        byte[] data = new byte[3];
+        elevatorReceivePacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_PORT);
 
         try {
-            elevatorSocket.send(elevatorSendPacket);
+            System.out.println("Waiting for Packet from Elevator...\n");
+            elevatorSocket.receive(elevatorReceivePacket);
         } catch (IOException e) {
+            System.out.print("IO Exception: likely:");
+            System.out.println("Elevator Socket Timed Out.\n" + e);
             e.printStackTrace();
             System.exit(1);
         }
-        System.out.println("Packet sent to Elevator!\n");
 
+        System.out.println("Packet received from Elevator\n");
 
+        floorSendPacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_PORT);
+
+        try {
+            System.out.println("Sending Packet to floor...\n");
+            floorSocket.send(floorSendPacket);
+        } catch (IOException e) {
+            System.out.print("IO Exception: likely:");
+            System.out.println("Floor Socket Timed Out.\n" + e);
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        System.out.println("Packet sent to floor\n");
+
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e ) {
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 
     /**
@@ -162,5 +201,20 @@ public class Scheduler extends Thread {
             queue.get(elevator).remove(i);
         }
         System.out.println("Got from queue.");
+    }
+
+    @Override
+    public void run() {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        while(true) {
+            sendToElevator();
+            sendToFloor();
+        }
     }
 }

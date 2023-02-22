@@ -11,16 +11,17 @@ import java.util.HashMap;
  */
 public class Elevator extends Thread {
 
-    private int elevatorNum;
+    private final int elevatorNum;
     private int currentFloor;
     private boolean doorOpen;
     private boolean isMoving;
     private final Scheduler scheduler;
-    private ElevatorCallEvent.Direction direction;
+    private Direction direction;
     private final HashMap<Integer, Boolean> buttonsAndLamps;
     private DatagramPacket sendPacket, receivePacket;
     private DatagramSocket socket;
     private static final int PORT = 69;
+    public enum Direction {UP, DOWN, STANDBY}
 
     /**
      * Initialize the elevator.
@@ -30,12 +31,6 @@ public class Elevator extends Thread {
      */
     public Elevator(int elevatorNum, int numOfFloors, Scheduler scheduler) {
         this(elevatorNum, numOfFloors, 1, scheduler);
-        try{
-            socket = new DatagramSocket(PORT);
-        } catch (SocketException e){
-            e.printStackTrace();
-            System.exit(1);
-        }
     }
 
     /**
@@ -46,7 +41,7 @@ public class Elevator extends Thread {
      * @param scheduler Scheduler, the scheduler to get the data from.
      */
     public Elevator(int elevatorNum, int numOfFloors, int currentFloor, Scheduler scheduler) {
-
+        this.elevatorNum = elevatorNum;
         this.currentFloor = currentFloor;
         this.scheduler = scheduler;
 
@@ -54,7 +49,7 @@ public class Elevator extends Thread {
 
         doorOpen = false;
         isMoving = false;
-        direction = ElevatorCallEvent.Direction.STANDBY;
+        direction = Direction.STANDBY;
 
         buttonsAndLamps = new HashMap<>();
         for(int i = 1; i <= numOfFloors; i++)
@@ -69,19 +64,19 @@ public class Elevator extends Thread {
     }
 
     /**
+     * Get the elevator number.
+     * @return int, the elevator number.
+     */
+    public int getElevatorNum() {
+        return elevatorNum;
+    }
+
+    /**
      * Get the current floor.
      * @return int, the current floor.
      */
     public int getCurrentFloor() {
         return this.currentFloor;
-    }
-
-    /**
-     * Set the current floor.
-     * @param currentFloor int, the current floor.
-     */
-    public void setCurrentFloor(int currentFloor) {
-        this.currentFloor = currentFloor;
     }
 
     /**
@@ -111,27 +106,11 @@ public class Elevator extends Thread {
     }
 
     /**
-     * Set the state of the elevator.
-     * @param moving boolean, true if moving, false otherwise.
-     */
-    public void setMoving(boolean moving) {
-        isMoving = moving;
-    }
-
-    /**
      * Get the direction of the elevator.
-     * @return ElevatorCallEvent.Direction, direction of the elevator.
+     * @return Direction, direction of the elevator.
      */
-    public ElevatorCallEvent.Direction getDirection() {
+    public Direction getDirection() {
         return direction;
-    }
-
-    /**
-     * Set the direction of the elevator.
-     * @param direction ElevatorCallEvent.Direction, direction of the elevator.
-     */
-    public void setDirection(ElevatorCallEvent.Direction direction) {
-        this.direction = direction;
     }
 
     /**
@@ -174,7 +153,7 @@ public class Elevator extends Thread {
      * Move the elevator to a particular floor.
      * @param targetFloor int, the floor to move to.
      */
-    public synchronized void moveToFloor(int targetFloor, ElevatorCallEvent.Direction direction) {
+    public synchronized void moveToFloor(int targetFloor, Direction direction) {
         this.direction = direction;
         if(doorOpen)
             closeDoors();
@@ -188,7 +167,7 @@ public class Elevator extends Thread {
 
         System.out.println("Moved from " + currentFloor + " to " + targetFloor);
         this.isMoving = false;
-        this.setCurrentFloor(targetFloor);
+        this.currentFloor = targetFloor;
         this.openDoors();
         notifyAll();
     }
@@ -197,56 +176,55 @@ public class Elevator extends Thread {
         buttonsAndLamps.put(i, b);
     }
 
-    public void doYourJob(){
-
+    public void doYourJob() {
         // need to find a better condition to keep the loop running to be able to close the socket
-        while (true) {
-            byte[] data = new byte[1024];
-            receivePacket=new DatagramPacket(data, data.length);
-            System.out.println("Waiting for Packet...\n");
 
-            //Receive the packet from scheduler
+        byte[] data = new byte[1024];
+        receivePacket=new DatagramPacket(data, data.length);
+        System.out.println("Waiting for Packet...\n");
 
-            try {
-                socket.receive(receivePacket);
-            } catch (IOException e) {
-                System.out.print("IO Exception: likely:");
-                System.out.println("Receive Socket Timed Out.\n" + e);
-                e.printStackTrace();
-                System.exit(1);
-            }
-            System.out.println("Packet received!\n");
+        //Receive the packet from scheduler
 
-            // print out the information received from the socket
-
-
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e ) {
-                e.printStackTrace();
-                System.exit(1);
-            }
-
-            // trying to send message back to the elevator
-            byte[] byteRes = null;
-            sendPacket = new DatagramPacket(byteRes, byteRes.length,receivePacket.getAddress(), PORT);
-            System.out.println( "Sending packet:\n");
-
-            //Send packet to host
-            try {
-                socket.send(sendPacket);
-            } catch (IOException e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
-
-            System.out.println("Packet Sent!\n");
-
-            socket.close();
-
-
-
+        try {
+            socket.receive(receivePacket);
+        } catch (IOException e) {
+            System.out.print("IO Exception: likely:");
+            System.out.println("Receive Socket Timed Out.\n" + e);
+            e.printStackTrace();
+            System.exit(1);
         }
+        System.out.println("Packet received!\n");
+
+        // print out the information received from the socket
+
+
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e ) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        // trying to send message back to the elevator
+        byte[] byteRes = null;
+        sendPacket = new DatagramPacket(byteRes, byteRes.length,receivePacket.getAddress(), PORT);
+        System.out.println( "Sending packet:\n");
+
+        //Send packet to host
+        try {
+            socket.send(sendPacket);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        System.out.println("Packet Sent!\n");
+
+        socket.close();
+
+
+
+
     }
 
     /**

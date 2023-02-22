@@ -62,7 +62,7 @@ public class FloorSubsystem extends Thread {
 
                 LocalTime time;
                 int floorNumber, destinationFloor;
-                ElevatorCallEvent.Direction direction = ElevatorCallEvent.Direction.STANDBY;
+                Elevator.Direction direction = Elevator.Direction.STANDBY;
 
                 String[] timeInfo = splitData[0].split(":");
                 time = LocalTime.of(Integer.parseInt(timeInfo[0]), Integer.parseInt(timeInfo[1]), Integer.parseInt(timeInfo[2].split("\\.")[0]), Integer.parseInt(timeInfo[2].split("\\.")[1]) * 1000000);
@@ -70,8 +70,8 @@ public class FloorSubsystem extends Thread {
                 floorNumber = Integer.parseInt(splitData[1]);
                 destinationFloor = Integer.parseInt(splitData[3]);
 
-                for(ElevatorCallEvent.Direction d : ElevatorCallEvent.Direction.values()) {
-                    if(splitData[2].equalsIgnoreCase(d.toString())) {
+                for (Elevator.Direction d : Elevator.Direction.values()) {
+                    if (splitData[2].equalsIgnoreCase(d.toString())) {
                         direction = d;
                         break;
                     }
@@ -79,21 +79,22 @@ public class FloorSubsystem extends Thread {
 
                 byte[] info = new byte[3];
                 info[0] = (byte) floorNumber;
-                if(direction == ElevatorCallEvent.Direction.UP)
+                if (direction == Elevator.Direction.UP)
                     info[1] = 1;
-                else if(direction == ElevatorCallEvent.Direction.DOWN)
+                else if (direction == Elevator.Direction.DOWN)
                     info[1] = 2;
                 info[2] = (byte) destinationFloor;
                 sendPacket = new DatagramPacket(info, info.length, address, port);
-                socket.send(sendPacket);
 
-//                ElevatorCallEvent event = new ElevatorCallEvent(time, floorNumber, direction, destinationFloor);
-//                if(LocalTime.now().equals(time))
-//                    scheduler.addToQueue(event);
-//                else if (time.isAfter(LocalTime.now()))
-//                    Thread.sleep((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000);
+                //time = LocalTime.now(); // for testing purposes only!
+                if(LocalTime.now().equals(time))
+                    socket.send(sendPacket);
+                else if (time.isAfter(LocalTime.now())) {
+                    Thread.sleep((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000);
+                    socket.send(sendPacket);
+                }
             }
-        } catch (/*InterruptedException | */IOException e) {
+        } catch (InterruptedException | IOException e) {
             e.printStackTrace();
             System.exit(1);
         }

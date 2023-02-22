@@ -43,7 +43,7 @@ public class TestClass {
         elevator = new Elevator(1, 5, scheduler);
 
         assertEquals(1, elevator.getCurrentFloor());
-        elevator.moveToFloor(3, ElevatorCallEvent.Direction.UP);
+        elevator.moveToFloor(3, Elevator.Direction.UP);
         assertEquals(3, elevator.getCurrentFloor());
     }
 }

@@ -11,9 +11,8 @@ public class ElevatorCallEvent {
 
     private final LocalTime time;
     private final int floorNumber;
-    private final Direction direction;
+    private final Elevator.Direction direction;
     private final int destinationFloor;
-    public enum Direction {UP, DOWN, STANDBY}
 
     /**
      * Initialize the event.
@@ -22,7 +21,7 @@ public class ElevatorCallEvent {
      * @param direction Direction, the direction the elevator is to go.
      * @param destinationFloor int, the destination floor.
      */
-    public ElevatorCallEvent(LocalTime time, int floorNumber, Direction direction, int destinationFloor) {
+    public ElevatorCallEvent(LocalTime time, int floorNumber, Elevator.Direction direction, int destinationFloor) {
         this.time = time;
         this.floorNumber = floorNumber;
         this.direction = direction;
@@ -49,7 +48,7 @@ public class ElevatorCallEvent {
      * Get the direction the elevator is supposed to go in.
      * @return Direction, the direction the elevator is supposed to go in.
      */
-    public Direction getDirection() {
+    public Elevator.Direction getDirection() {
         return direction;
     }
 
