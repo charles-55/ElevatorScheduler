@@ -20,6 +20,7 @@ public class Elevator extends Thread {
     private final HashMap<Integer, Boolean> buttonsAndLamps;
     private DatagramPacket sendPacket, receivePacket;
     private DatagramSocket socket;
+    private InetAddress address;
     private static final int PORT = 69;
     public enum Direction {UP, DOWN, STANDBY}
 
@@ -57,7 +58,8 @@ public class Elevator extends Thread {
 
         try {
             socket = new DatagramSocket(PORT);
-        } catch (SocketException e) {
+            address = InetAddress.getLocalHost();
+        } catch (SocketException | UnknownHostException e) {
             e.printStackTrace();
             System.exit(1);
         }
@@ -125,6 +127,7 @@ public class Elevator extends Thread {
      * Open the door of the elevator.
      */
     public void openDoors() {
+        alertArrival();
         if (!this.isMoving && !doorOpen) {
             try {
                 Thread.sleep(3000); // Arbitrary time for doors to open // implement open door using motors
@@ -143,7 +146,7 @@ public class Elevator extends Thread {
             try {
                 Thread.sleep(3000); // Arbitrary time for doors to close // implement close door using motors
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
             this.doorOpen = false;
         }
@@ -165,7 +168,7 @@ public class Elevator extends Thread {
             e.printStackTrace();
         }
 
-        System.out.println("Moved from " + currentFloor + " to " + targetFloor);
+        buttonsAndLamps.put(targetFloor, false);
         this.isMoving = false;
         this.currentFloor = targetFloor;
         this.openDoors();
@@ -176,55 +179,96 @@ public class Elevator extends Thread {
         buttonsAndLamps.put(i, b);
     }
 
-    public void doYourJob() {
+    public void respondToCall() {
         // need to find a better condition to keep the loop running to be able to close the socket
 
-        byte[] data = new byte[1024];
-        receivePacket=new DatagramPacket(data, data.length);
-        System.out.println("Waiting for Packet...\n");
-
-        //Receive the packet from scheduler
+        byte[] data = new byte[4];
+        receivePacket = new DatagramPacket(data, data.length, address, PORT);
 
         try {
+            System.out.println("Waiting for Packet...\n");
             socket.receive(receivePacket);
         } catch (IOException e) {
             System.out.print("IO Exception: likely:");
-            System.out.println("Receive Socket Timed Out.\n" + e);
+            System.out.println("Socket Timed Out.\n" + e);
             e.printStackTrace();
             System.exit(1);
         }
+
         System.out.println("Packet received!\n");
 
-        // print out the information received from the socket
+        if(elevatorNum == (int) data[0]) {
+            Direction direction = Direction.STANDBY;
+            if(data[2] == 1)
+                direction = Elevator.Direction.UP;
+            else if(data[2] == 2)
+                direction = Elevator.Direction.DOWN;
 
+            if(this.direction.equals(Direction.STANDBY))
+                moveToFloor(data[1], direction);
+            else if(direction.equals(Direction.DOWN) && (currentFloor - (int) data[1] >= 0))
+                buttonsAndLamps.put((int) data[1], true);
+            else if(direction.equals(Direction.UP) && (currentFloor - (int) data[1] <= 0))
+                buttonsAndLamps.put((int) data[1], true);
+            else {
+                try {
+                    wait();
+                    buttonsAndLamps.put((int) data[1], true);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+            }
+
+            // wait till arrived at floor
+
+            buttonsAndLamps.put((int) data[3], true);
+        }
 
         try {
-            Thread.sleep(5000);
+            Thread.sleep(50);
         } catch (InterruptedException e ) {
             e.printStackTrace();
             System.exit(1);
         }
+    }
 
-        // trying to send message back to the elevator
-        byte[] byteRes = null;
-        sendPacket = new DatagramPacket(byteRes, byteRes.length,receivePacket.getAddress(), PORT);
-        System.out.println( "Sending packet:\n");
+    public void alertArrival() {
+        byte[] data = new byte[3];
+        data[0] = (byte) currentFloor;
+        data[1] = (byte) elevatorNum;
 
-        //Send packet to host
+        if(direction.equals(Direction.UP))
+            data[2] = 1;
+        else if(direction.equals(Direction.DOWN))
+            data[2] = 2;
+
+        boolean stillMoving = false;
+        for(Integer integer : buttonsAndLamps.keySet()) {
+            if(buttonsAndLamps.get(integer))
+                stillMoving = true;
+        }
+
+        if(!stillMoving)
+            direction = Direction.STANDBY;
+
+        sendPacket = new DatagramPacket(data, data.length, address, PORT);
+
         try {
+            System.out.println( "Sending packet:\n");
             socket.send(sendPacket);
+            System.out.println("Packet Sent!\n");
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
         }
 
-        System.out.println("Packet Sent!\n");
-
-        socket.close();
-
-
-
-
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e ) {
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 
     /**
@@ -233,11 +277,10 @@ public class Elevator extends Thread {
     @Override
     public void run() {
         while(true) {
-            scheduler.getFromQueue(this);
+            respondToCall();
             for(int destinationFloor : buttonsAndLamps.keySet()) {
                 if(buttonsAndLamps.get(destinationFloor)) {
                     moveToFloor(destinationFloor, direction);
-                    buttonsAndLamps.put(destinationFloor, false);
                 }
             }
         }
