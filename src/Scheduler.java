@@ -29,8 +29,8 @@ public class Scheduler extends Thread {
         queue = new HashMap<>();
         elevators = new ArrayList<>();
         try {
-            floorSocket = new DatagramSocket(FLOOR_PORT);
-            elevatorSocket = new DatagramSocket(ELEVATOR_PORT);
+            floorSocket = new DatagramSocket();
+            elevatorSocket = new DatagramSocket();
             floorAddress = InetAddress.getLocalHost();
             elevatorAddress = InetAddress.getLocalHost();
         } catch (SocketException| UnknownHostException e) {

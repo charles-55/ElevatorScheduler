@@ -40,7 +40,7 @@ public class FloorSubsystem extends Thread {
         this.port = port;
         this.fileName = fileName;
         try {
-            socket = new DatagramSocket(port);
+            socket = new DatagramSocket();
         } catch (SocketException e) {
             e.printStackTrace();
             System.exit(1);

@@ -57,7 +57,7 @@ public class Elevator extends Thread {
             buttonsAndLamps.put(i, false);
 
         try {
-            socket = new DatagramSocket(PORT);
+            socket = new DatagramSocket();
             address = InetAddress.getLocalHost();
         } catch (SocketException | UnknownHostException e) {
             e.printStackTrace();

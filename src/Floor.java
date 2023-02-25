@@ -31,7 +31,7 @@ public class Floor extends Thread {
         buttonsAndLamps.put(Elevator.Direction.DOWN, false);
 
         try {
-            socket = new DatagramSocket(PORT);
+            socket = new DatagramSocket();
             address = InetAddress.getLocalHost();
         } catch (SocketException | UnknownHostException e) {
             e.printStackTrace();
