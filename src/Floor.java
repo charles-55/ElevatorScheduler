@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.net.*;
+import java.util.Arrays;
 import java.util.HashMap;
 
 /**
@@ -60,17 +61,30 @@ public class Floor extends Thread {
         receivePacket = new DatagramPacket(info, info.length, address, PORT);
 
         try {
+            System.out.println("FLOOR " + floorNumber + ":");
+            System.out.println("Waiting for Packet...");
             socket.receive(receivePacket);
         } catch (IOException e) {
+            System.out.println("Error: Socket Timed Out.\n");
             e.printStackTrace();
             System.exit(1);
         }
+
+        System.out.println("Packet received:");
+        System.out.println(Arrays.toString(info) + "\n");
 
         if(info[0] == (byte) floorNumber) {
             if(info[2] == 1)
                 setButtonDirection(Elevator.Direction.UP, false);
             else if(info[2] == 2)
                 setButtonDirection(Elevator.Direction.DOWN, false);
+        }
+
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e ) {
+            e.printStackTrace();
+            System.exit(1);
         }
     }
 

@@ -3,6 +3,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.*;
 import java.time.LocalTime;
+import java.util.Arrays;
 import java.util.Scanner;
 
 /**
@@ -57,7 +58,8 @@ public class FloorSubsystem extends Thread {
             Scanner sc = new Scanner(file);
             while (sc.hasNextLine()) {
                 String data = sc.nextLine();
-                System.out.println("Line scanned: " + data);
+                System.out.println("FLOOR SUBSYSTEM:");
+                System.out.println("Line scanned: " + data + ".\n");
                 String[] splitData = data.split(" ");
 
                 LocalTime time;
@@ -86,15 +88,21 @@ public class FloorSubsystem extends Thread {
                 info[2] = (byte) destinationFloor;
                 sendPacket = new DatagramPacket(info, info.length, address, port);
 
-                //time = LocalTime.now(); // for testing purposes only!
-                if(LocalTime.now().equals(time))
+                time = LocalTime.now(); // for testing purposes only!
+                if(LocalTime.now().equals(time)) {
+                    System.out.println("FLOOR SUBSYSTEM:");
+                    System.out.println("Sending packet:");
+                    System.out.println(Arrays.toString(info));
                     socket.send(sendPacket);
+                    System.out.println("Packet Sent!\n");
+                }
                 else if (time.isAfter(LocalTime.now())) {
                     Thread.sleep((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000);
                     socket.send(sendPacket);
                 }
             }
         } catch (InterruptedException | IOException e) {
+            System.out.println("Error: Socket Timed Out.\n");
             e.printStackTrace();
             System.exit(1);
         }
