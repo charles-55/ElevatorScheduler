@@ -101,7 +101,7 @@ public class Scheduler extends Thread {
         floorReceivePacket = new DatagramPacket(floorData, floorData.length, floorAddress, FLOOR_PORT);
 
         try {
-            System.out.println("Waiting for Packet from Floor...\n");
+            System.out.println("Scheduler Waiting for Packet from Floor...\n");
             floorSocket.receive(floorReceivePacket);
         } catch (IOException e) {
             System.out.print("IO Exception: likely:");
@@ -110,7 +110,7 @@ public class Scheduler extends Thread {
             System.exit(1);
         }
 
-        System.out.println("Packet received from Floor\n");
+        System.out.println("Packet received from Floor"+ ""+floorSocket.toString()+" \n");
 
         byte[] elevatorData = new byte[4];
 
@@ -126,7 +126,7 @@ public class Scheduler extends Thread {
         elevatorSendPacket = new DatagramPacket(elevatorData, elevatorData.length, elevatorAddress, ELEVATOR_PORT);
 
         try {
-            System.out.println("Sending Packet to elevator...\n");
+            System.out.println("Sending Packet to elevator with data.." +""+elevatorSendPacket.toString()+"\n");
             elevatorSocket.send(elevatorSendPacket);
         } catch (IOException e) {
             System.out.print("IO Exception: likely:");
@@ -159,12 +159,12 @@ public class Scheduler extends Thread {
             System.exit(1);
         }
 
-        System.out.println("Packet received from Elevator\n");
+        System.out.println("Packet received from Elevator" +""+elevatorSocket.toString()+"\n");
 
         floorSendPacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_PORT);
 
         try {
-            System.out.println("Sending Packet to floor...\n");
+            System.out.println("Sending Packet to floor details ="+""+ floorSendPacket.toString()+"\n");
             floorSocket.send(floorSendPacket);
         } catch (IOException e) {
             System.out.print("IO Exception: likely:");
