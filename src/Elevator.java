@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.net.*;
+import java.util.Arrays;
 import java.util.HashMap;
 
 /**
@@ -156,7 +157,7 @@ public class Elevator extends Thread {
      * Move the elevator to a particular floor.
      * @param targetFloor int, the floor to move to.
      */
-    public synchronized void moveToFloor(int targetFloor, Direction direction) {
+    public void moveToFloor(int targetFloor, Direction direction) {
         this.direction = direction;
         if(doorOpen)
             closeDoors();
@@ -180,22 +181,21 @@ public class Elevator extends Thread {
     }
 
     public void respondToCall() {
-        // need to find a better condition to keep the loop running to be able to close the socket
-
         byte[] data = new byte[4];
         receivePacket = new DatagramPacket(data, data.length, address, PORT);
 
         try {
-            System.out.println("Waiting for Packet...\n");
+            System.out.println("ELEVATOR " + elevatorNum + ":");
+            System.out.println("Waiting for Packet...");
             socket.receive(receivePacket);
         } catch (IOException e) {
-            System.out.print("IO Exception: likely:");
-            System.out.println("Socket Timed Out.\n" + e);
+            System.out.println("Error: Socket Timed Out.\n");
             e.printStackTrace();
             System.exit(1);
         }
 
-        System.out.println("Packet received!\n");
+        System.out.println("Packet received:");
+        System.out.println(Arrays.toString(data) + "\n");
 
         if(elevatorNum == (int) data[0]) {
             Direction direction = Direction.STANDBY;
@@ -255,10 +255,13 @@ public class Elevator extends Thread {
         sendPacket = new DatagramPacket(data, data.length, address, PORT);
 
         try {
-            System.out.println( "Sending packet:\n");
+            System.out.println("ELEVATOR " + elevatorNum + ":");
+            System.out.println("Sending packet:");
+            System.out.println(Arrays.toString(data));
             socket.send(sendPacket);
             System.out.println("Packet Sent!\n");
         } catch (IOException e) {
+            System.out.println("Error: Socket Timed Out.\n");
             e.printStackTrace();
             System.exit(1);
         }
