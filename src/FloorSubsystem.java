@@ -100,6 +100,7 @@ public class FloorSubsystem extends Thread {
                     Thread.sleep((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000);
                     socket.send(sendPacket);
                 }
+                Thread.sleep(50);
             }
         } catch (InterruptedException | IOException e) {
             System.out.println("Error: Socket Timed Out.\n");
