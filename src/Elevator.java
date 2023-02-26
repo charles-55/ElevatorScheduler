@@ -58,7 +58,7 @@ public class Elevator extends Thread {
             buttonsAndLamps.put(i, false);
 
         try {
-            socket = new DatagramSocket();
+            socket = new DatagramSocket(PORT);
             address = InetAddress.getLocalHost();
         } catch (SocketException | UnknownHostException e) {
             e.printStackTrace();
@@ -173,7 +173,6 @@ public class Elevator extends Thread {
         this.isMoving = false;
         this.currentFloor = targetFloor;
         this.openDoors();
-        notifyAll();
     }
 
     public void put(int i, boolean b) {
@@ -185,17 +184,15 @@ public class Elevator extends Thread {
         receivePacket = new DatagramPacket(data, data.length, address, PORT);
 
         try {
-            System.out.println("ELEVATOR " + elevatorNum + ":");
-            System.out.println("Waiting for Packet...\n");
+            System.out.println("ELEVATOR " + elevatorNum + ": Waiting for Packet...\n");
             socket.receive(receivePacket);
         } catch (IOException e) {
-            System.out.println("Error: Socket Timed Out.\n");
+            System.out.println("ELEVATOR " + elevatorNum + " Error: Socket Timed Out.");
             e.printStackTrace();
             System.exit(1);
         }
 
-        System.out.println("Packet received:");
-        System.out.println(Arrays.toString(data) + "\n");
+        System.out.println("ELEVATOR " + elevatorNum + ": Packet Received: " + Arrays.toString(data) + ".\n");
 
         if(elevatorNum == (int) data[0]) {
             Direction direction = Direction.STANDBY;
@@ -255,13 +252,11 @@ public class Elevator extends Thread {
         sendPacket = new DatagramPacket(data, data.length, address, PORT);
 
         try {
-            System.out.println("ELEVATOR " + elevatorNum + ":");
-            System.out.println("Sending packet:");
-            System.out.println(Arrays.toString(data));
+            System.out.println("ELEVATOR " + elevatorNum + ": Sending packet: " + Arrays.toString(data) + "\n");
             socket.send(sendPacket);
-            System.out.println("Packet Sent!\n");
+            System.out.println("ELEVATOR " + elevatorNum + ": Packet Sent!\n");
         } catch (IOException e) {
-            System.out.println("Error: Socket Timed Out.\n");
+            System.out.println("ELEVATOR " + elevatorNum + " Error: Socket Timed Out.\n");
             e.printStackTrace();
             System.exit(1);
         }

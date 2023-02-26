@@ -30,7 +30,7 @@ public class Scheduler extends Thread {
         queue = new HashMap<>();
         elevators = new ArrayList<>();
         try {
-            floorSocket = new DatagramSocket();
+            floorSocket = new DatagramSocket(FLOOR_PORT);
             elevatorSocket = new DatagramSocket();
             floorAddress = InetAddress.getLocalHost();
             elevatorAddress = InetAddress.getLocalHost();
@@ -102,19 +102,15 @@ public class Scheduler extends Thread {
         floorReceivePacket = new DatagramPacket(floorData, floorData.length, floorAddress, FLOOR_PORT);
 
         try {
-            System.out.println("SCHEDULER: ");
-            System.out.println("Waiting for Packet from Floor...\n");
+            System.out.println("SCHEDULER: Waiting for Packet from Floor...\n");
             floorSocket.receive(floorReceivePacket);
         } catch (IOException e) {
-            System.out.print("IO Exception: likely:");
-            System.out.println("Receive Socket Timed Out.\n" + e);
+            System.out.println("SCHEDULER Error: Floor Socket Timed Out.");
             e.printStackTrace();
             System.exit(1);
         }
 
-        System.out.println("SCHEDULER:");
-        System.out.println("Packet received from Floor " + ((int) floorData[0]) + ":");
-        System.out.println(Arrays.toString(floorData) + "\n");
+        System.out.println("SCHEDULER: Packet Received from Floor " + ((int) floorData[0]) + ": " + Arrays.toString(floorData) + ".\n");
 
         byte[] elevatorData = new byte[4];
 
@@ -124,23 +120,22 @@ public class Scheduler extends Thread {
         else if(floorData[1] == 2)
             direction = Elevator.Direction.DOWN;
 
-        elevatorData[0] = (byte) getClosestElevator((int) floorData[0], direction);
+        elevatorData[0] = (byte) getClosestElevator(floorData[0], direction);
         System.arraycopy(floorData, 0, elevatorData, 1, 3);
 
         elevatorSendPacket = new DatagramPacket(elevatorData, elevatorData.length, elevatorAddress, ELEVATOR_PORT);
 
         try {
-            System.out.println("Sending Packet to elevator:");
-            System.out.println(Arrays.toString(elevatorData) + "\n");
+            System.out.println("SCHEDULER: Sending Packet to elevator: " + Arrays.toString(elevatorData) + "\n");
             elevatorSocket.send(elevatorSendPacket);
+            System.out.println("SCHEDULER: Packet Sent!\n");
         } catch (IOException e) {
-            System.out.print("IO Exception: likely:");
-            System.out.println("Elevator Socket Timed Out.\n");
+            System.out.println("SCHEDULER Error: Elevator Socket Timed Out.");
             e.printStackTrace();
             System.exit(1);
         }
 
-        System.out.println("Packet sent to elevator.\n");
+        System.out.println("SCHEDULER: Packet sent to elevator.\n");
 
         try {
             Thread.sleep(50);
@@ -155,30 +150,28 @@ public class Scheduler extends Thread {
         elevatorReceivePacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_PORT);
 
         try {
-            System.out.println("Waiting for Packet from Elevator...\n");
+            System.out.println("SCHEDULER: Waiting for Packet from Elevator...\n");
             elevatorSocket.receive(elevatorReceivePacket);
         } catch (IOException e) {
-            System.out.print("IO Exception: likely:");
-            System.out.println("Elevator Socket Timed Out.\n" + e);
+            System.out.println("SCHEDULER Error: Elevator Socket Timed Out.");
             e.printStackTrace();
             System.exit(1);
         }
 
-        System.out.println("Packet received from Elevator" +""+elevatorSocket.toString()+"\n");
+        System.out.println("SCHEDULER: Packet Received from Elevator: " + Arrays.toString(data) + ".\n");
 
         floorSendPacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_PORT);
 
         try {
-            System.out.println("Sending Packet to floor details ="+""+ floorSendPacket.toString()+"\n");
+            System.out.println("SCHEDULER: Sending Packet to Floor: " + Arrays.toString(data)+".\n");
             floorSocket.send(floorSendPacket);
         } catch (IOException e) {
-            System.out.print("IO Exception: likely:");
-            System.out.println("Floor Socket Timed Out.\n" + e);
+            System.out.println("SCHEDULER Error: Floor Socket Timed Out.");
             e.printStackTrace();
             System.exit(1);
         }
 
-        System.out.println("Packet sent to floor\n");
+        System.out.println("SCHEDULER: Packet sent to floor\n");
 
         try {
             Thread.sleep(50);

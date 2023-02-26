@@ -61,17 +61,15 @@ public class Floor extends Thread {
         receivePacket = new DatagramPacket(info, info.length, address, PORT);
 
         try {
-            System.out.println("FLOOR " + floorNumber + ":");
-            System.out.println("Waiting for Packet...\n");
+            System.out.println("FLOOR " + floorNumber + ": Waiting for Packet...\n");
             socket.receive(receivePacket);
         } catch (IOException e) {
-            System.out.println("Error: Socket Timed Out.\n");
+            System.out.println(" FLOOR Error: Socket Timed Out.\n");
             e.printStackTrace();
             System.exit(1);
         }
 
-        System.out.println("Packet received:");
-        System.out.println(Arrays.toString(info) + "\n");
+        System.out.println("FLOOR: Packet received:" + Arrays.toString(info) + "\n");
 
         if(info[0] == (byte) floorNumber) {
             if(info[2] == 1)

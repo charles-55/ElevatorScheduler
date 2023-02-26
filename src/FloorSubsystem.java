@@ -56,10 +56,10 @@ public class FloorSubsystem extends Thread {
 
         try {
             Scanner sc = new Scanner(file);
-            while (sc.hasNextLine()) {
+            //while (sc.hasNextLine()) {
+            for(int i = 0; i < 2; i++) {
                 String data = sc.nextLine();
-                System.out.println("FLOOR SUBSYSTEM:");
-                System.out.println("Line scanned: " + data + ".\n");
+                System.out.println("FLOOR SUBSYSTEM: Line scanned: " + data + ".\n");
                 String[] splitData = data.split(" ");
 
                 LocalTime time;
@@ -90,11 +90,9 @@ public class FloorSubsystem extends Thread {
 
                 time = LocalTime.now(); // for testing purposes only!
                 if(LocalTime.now().equals(time)) {
-                    System.out.println("FLOOR SUBSYSTEM:");
-                    System.out.println("Sending packet:");
-                    System.out.println(Arrays.toString(info));
+                    System.out.println("FLOOR SUBSYSTEM: Sending Packet: " + Arrays.toString(info) + ".");
                     socket.send(sendPacket);
-                    System.out.println("Packet Sent!\n");
+                    System.out.println("FLOOR SUBSYSTEM: Packet Sent!\n");
                 }
                 else if (time.isAfter(LocalTime.now())) {
                     Thread.sleep((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000);
@@ -103,7 +101,7 @@ public class FloorSubsystem extends Thread {
                 Thread.sleep(2500);
             }
         } catch (InterruptedException | IOException e) {
-            System.out.println("Error: Socket Timed Out.\n");
+            System.out.println("FLOOR SUBSYSTEM Error: Socket Timed Out.\n");
             e.printStackTrace();
             System.exit(1);
         }
