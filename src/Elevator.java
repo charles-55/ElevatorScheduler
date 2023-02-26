@@ -178,6 +178,36 @@ public class Elevator extends Thread {
     }
 
     /**
+     * method that prints the state of movement of the elevator and the state of its doors.
+     */
+    public void printState() throws Exception {
+        //TODO: Once we do multiple instances of elevators, identify which elevator it is in the print.
+        // Also, send error when doors are open but elevator is moving.
+        if (this.isDoorOpen()) {
+            System.out.println("The elevator's doors are open.");
+        } else {
+            System.out.println("The elevator's doors are closed.");
+        }
+
+        if (this.isMoving()) {
+            if (this.getDirection() == ElevatorCallEvent.Direction.UP) {
+                System.out.println("The elevator is moving up.");
+            } else if (this.getDirection() == ElevatorCallEvent.Direction.DOWN) {
+                System.out.println("The elevator is moving down.");
+            } else {
+                throw new Exception("Error: The elevator is moving but its direction is STANDBY.");
+            }
+        } else {
+            if (this.getDirection() == ElevatorCallEvent.Direction.STANDBY) {
+                System.out.println("The elevator is stopped.");
+            } else {
+                throw new Exception("Error: The elevator is not moving but its direction is not STANDBY.");
+            }
+
+        }
+    }
+
+    /**
      * This is the section for running with threads.
      */
     @Override
