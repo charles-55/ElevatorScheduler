@@ -13,6 +13,7 @@ import java.util.HashMap;
  */
 public class Floor extends Thread {
 
+    private final FloorSubsystem floorSubsystem;
     private final int floorNumber;
     private final HashMap<Elevator.Direction, Boolean> buttonsAndLamps;
     private final Scheduler scheduler;
@@ -25,6 +26,7 @@ public class Floor extends Thread {
      * Constructor for the floor class.
      */
     public Floor(int floorNumber, Scheduler scheduler) {
+        floorSubsystem = new FloorSubsystem(this, scheduler, address, PORT, "src/InputTable.txt");
         this.scheduler = scheduler;
         this.floorNumber = floorNumber;
         buttonsAndLamps = new HashMap<>();
@@ -57,8 +59,8 @@ public class Floor extends Thread {
     }
 
     public void readMessage() {
-        byte[] info = new byte[3];
-        receivePacket = new DatagramPacket(info, info.length, address, PORT);
+        byte[] data = new byte[4];
+        receivePacket = new DatagramPacket(data, data.length, address, PORT);
 
         try {
             System.out.println("FLOOR " + floorNumber + ": Waiting for Packet...\n");
@@ -69,13 +71,28 @@ public class Floor extends Thread {
             System.exit(1);
         }
 
-        System.out.println("FLOOR: Packet received:" + Arrays.toString(info) + "\n");
+        System.out.println("FLOOR: Packet received:" + Arrays.toString(data) + "\n");
 
-        if(info[0] == (byte) floorNumber) {
-            if(info[2] == 1)
-                setButtonDirection(Elevator.Direction.UP, false);
-            else if(info[2] == 2)
-                setButtonDirection(Elevator.Direction.DOWN, false);
+        if(data[0] == 1) {
+            if (data[1] == (byte) floorNumber) {
+                if (data[3] == 1)
+                    setButtonDirection(Elevator.Direction.UP, false);
+                else if (data[3] == 2)
+                    setButtonDirection(Elevator.Direction.DOWN, false);
+            }
+        }
+        else if(data[0] == 2) {
+            System.out.println("FLOOR " + floorNumber + ":  A delay occurred!\n");
+            try {
+                floorSubsystem.wait();
+            } catch (InterruptedException e) {
+                System.out.println("FLOOR " + floorNumber + ":  A error occurred!\n");
+                e.printStackTrace();
+            }
+        }
+        else if(data[0] == 3) {
+            floorSubsystem.notify();
+            System.out.println("FLOOR " + floorNumber + ":  Delay resolved!\n");
         }
 
         try {
@@ -96,7 +113,6 @@ public class Floor extends Thread {
             e.printStackTrace();
             System.exit(1);
         }
-        FloorSubsystem floorSubsystem = new FloorSubsystem(this, scheduler, address, PORT, "src/InputTable.txt");
         floorSubsystem.start();
         while(true) {
             readMessage();

@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.net.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -16,35 +17,27 @@ public class Elevator extends Thread {
     private int currentFloor;
     private boolean doorOpen;
     private boolean isMoving;
-    private final Scheduler scheduler;
+    private final ElevatorQueue elevatorQueue;
+    private final ArrayList<int[]> delayedQueue;
     private Direction direction;
     private final HashMap<Integer, Boolean> buttonsAndLamps;
-    private DatagramPacket sendPacket,
+    private DatagramPacket sendPacket, receivePacket;
+    private DatagramSocket socket;
+    private static InetAddress address;
+    private static final int PORT = 69;
     public enum Direction {UP, DOWN, STANDBY}
 
-    /**
-     * Initialize the elevator.
-     * @param elevatorNum int, the elevator number.
-     * @param numOfFloors int, the number of floors to move between.
-     * @param scheduler Scheduler, the scheduler to get the data from.
-     */
-    public Elevator(int elevatorNum, int numOfFloors, Scheduler scheduler) {
-        this(elevatorNum, numOfFloors, 1, scheduler);
+    public Elevator(int elevatorNum, int numOfFloors, ElevatorQueue elevatorQueue) {
+        this(elevatorNum, numOfFloors, 1, elevatorQueue);
     }
 
-    /**
-     * Initialize the elevator.
-     * @param elevatorNum int, the elevator number.
-     * @param numOfFloors int, the number of floors to move between.
-     * @param currentFloor int, the current floor the elevator is on.
-     * @param scheduler Scheduler, the scheduler to get the data from.
-     */
-    public Elevator(int elevatorNum, int numOfFloors, int currentFloor, Scheduler scheduler) {
+    public Elevator(int elevatorNum, int numOfFloors, int currentFloor, ElevatorQueue elevatorQueue) {
         this.elevatorNum = elevatorNum;
         this.currentFloor = currentFloor;
-        this.scheduler = scheduler;
+        this.elevatorQueue = elevatorQueue;
+        delayedQueue = new ArrayList<>();
 
-        scheduler.addElevator(this);
+        elevatorQueue.addElevator(this);
 
         doorOpen = false;
         isMoving = false;
@@ -55,7 +48,7 @@ public class Elevator extends Thread {
             buttonsAndLamps.put(i, false);
 
         try {
-            socket = new DatagramSocket(PORT);
+            socket = new DatagramSocket();
             address = InetAddress.getLocalHost();
         } catch (SocketException | UnknownHostException e) {
             e.printStackTrace();
@@ -150,6 +143,10 @@ public class Elevator extends Thread {
         }
     }
 
+    public void addToDelayedQueue(int floorNum, int destinationFloor) {
+        delayedQueue.add(new int[] {floorNum, destinationFloor});
+    }
+
     /**
      * Move the elevator to a particular floor.
      * @param targetFloor int, the floor to move to.
@@ -179,47 +176,90 @@ public class Elevator extends Thread {
         buttonsAndLamps.put(i, b);
     }
 
-    public void respondToCall() {
-        byte[] data = new byte[4];
-        receivePacket = new DatagramPacket(data, data.length, address, PORT);
+//    public void respondToCall() {
+//        byte[] data = new byte[4];
+//        receivePacket = new DatagramPacket(data, data.length, address, PORT);
+//
+//        try {
+//            System.out.println("ELEVATOR " + elevatorNum + ": Waiting for Packet...\n");
+//            socket.receive(receivePacket);
+//        } catch (IOException e) {
+//            System.out.println("ELEVATOR " + elevatorNum + " Error: Socket Timed Out.");
+//            e.printStackTrace();
+//            System.exit(1);
+//        }
+//
+//        System.out.println("ELEVATOR " + elevatorNum + ": Packet Received: " + Arrays.toString(data) + ".\n");
+//
+//        if(elevatorNum == (int) data[0]) {
+//            Direction direction = Direction.STANDBY;
+//            if(data[2] == 1)
+//                direction = Elevator.Direction.UP;
+//            else if(data[2] == 2)
+//                direction = Elevator.Direction.DOWN;
+//
+//            if(this.direction.equals(Direction.STANDBY))
+//                moveToFloor(data[1], direction);
+//            else if(direction.equals(Direction.DOWN) && (currentFloor - (int) data[1] >= 0))
+//                buttonsAndLamps.put((int) data[1], true);
+//            else if(direction.equals(Direction.UP) && (currentFloor - (int) data[1] <= 0))
+//                buttonsAndLamps.put((int) data[1], true);
+//            else {
+//                try {
+//                    wait();
+//                    buttonsAndLamps.put((int) data[1], true);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                    System.exit(1);
+//                }
+//            }
+//
+//            // wait till arrived at floor
+//
+//            buttonsAndLamps.put((int) data[3], true);
+//        }
+//
+//        try {
+//            Thread.sleep(50);
+//        } catch (InterruptedException e ) {
+//            e.printStackTrace();
+//            System.exit(1);
+//        }
+//    }
 
-        try {
-            System.out.println("ELEVATOR " + elevatorNum + ": Waiting for Packet...\n");
-            socket.receive(receivePacket);
-        } catch (IOException e) {
-            System.out.println("ELEVATOR " + elevatorNum + " Error: Socket Timed Out.");
-            e.printStackTrace();
-            System.exit(1);
+    public void alertArrival() {
+        byte[] data = new byte[4];
+        data[0] = 1;
+        data[1] = (byte) currentFloor;
+        data[2] = (byte) elevatorNum;
+
+        if(direction.equals(Direction.UP))
+            data[3] = 1;
+        else if(direction.equals(Direction.DOWN))
+            data[3] = 2;
+
+        boolean done = true;
+        for(int destinationFloor : buttonsAndLamps.keySet()) {
+            if(buttonsAndLamps.get(destinationFloor)) {
+                done = false;
+                break;
+            }
+        }
+        if(done) {
+            direction = Direction.STANDBY;
+            elevatorQueue.notify();
         }
 
-        System.out.println("ELEVATOR " + elevatorNum + ": Packet Received: " + Arrays.toString(data) + ".\n");
+        sendPacket = new DatagramPacket(data, data.length, address, PORT);
 
-        if(elevatorNum == (int) data[0]) {
-            Direction direction = Direction.STANDBY;
-            if(data[2] == 1)
-                direction = Elevator.Direction.UP;
-            else if(data[2] == 2)
-                direction = Elevator.Direction.DOWN;
-
-            if(this.direction.equals(Direction.STANDBY))
-                moveToFloor(data[1], direction);
-            else if(direction.equals(Direction.DOWN) && (currentFloor - (int) data[1] >= 0))
-                buttonsAndLamps.put((int) data[1], true);
-            else if(direction.equals(Direction.UP) && (currentFloor - (int) data[1] <= 0))
-                buttonsAndLamps.put((int) data[1], true);
-            else {
-                try {
-                    wait();
-                    buttonsAndLamps.put((int) data[1], true);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    System.exit(1);
-                }
-            }
-
-            // wait till arrived at floor
-
-            buttonsAndLamps.put((int) data[3], true);
+        try {
+            System.out.println("ELEVATOR " + elevatorNum + ": Sending Packet: " + Arrays.toString(data) + "\n");
+            socket.send(sendPacket);
+            System.out.println("ELEVATOR " + elevatorNum + ": Packet Sent!\n");
+        } catch (IOException e) {
+            System.out.println("ELEVATOR " + elevatorNum + " Error: Socket Timed Out.\n");
+            e.printStackTrace();
+            System.exit(1);
         }
 
         try {
@@ -230,33 +270,50 @@ public class Elevator extends Thread {
         }
     }
 
-    public void alertArrival() {
-        byte[] data = new byte[3];
-        data[0] = (byte) currentFloor;
-        data[1] = (byte) elevatorNum;
+    public static void alertDelay() {
+        byte[] data = new byte[4];
+        data[0] = 2;
+        data[1] = 0;
+        data[2] = 0;
+        data[3] = 0;
 
-        if(direction.equals(Direction.UP))
-            data[2] = 1;
-        else if(direction.equals(Direction.DOWN))
-            data[2] = 2;
-
-        boolean stillMoving = false;
-        for(Integer integer : buttonsAndLamps.keySet()) {
-            if(buttonsAndLamps.get(integer))
-                stillMoving = true;
-        }
-
-        if(!stillMoving)
-            direction = Direction.STANDBY;
-
-        sendPacket = new DatagramPacket(data, data.length, address, PORT);
+         DatagramPacket sendPacket = new DatagramPacket(data, data.length, address, PORT);
 
         try {
-            System.out.println("ELEVATOR " + elevatorNum + ": Sending packet: " + Arrays.toString(data) + "\n");
+            System.out.println("ELEVATOR: Alerting Delay: " + Arrays.toString(data) + "\n");
+            DatagramSocket socket = new DatagramSocket();
             socket.send(sendPacket);
-            System.out.println("ELEVATOR " + elevatorNum + ": Packet Sent!\n");
+            System.out.println("ELEVATOR: Packet Sent!\n");
         } catch (IOException e) {
-            System.out.println("ELEVATOR " + elevatorNum + " Error: Socket Timed Out.\n");
+            System.out.println("ELEVATOR Error: Socket Timed Out.\n");
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e ) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+
+    public static void alertDelayResolved() {
+        byte[] data = new byte[4];
+        data[0] = 3;
+        data[1] = 0;
+        data[2] = 0;
+        data[3] = 0;
+
+        DatagramPacket sendPacket = new DatagramPacket(data, data.length, address, PORT);
+
+        try {
+            System.out.println("ELEVATOR: Alerting Delay Resolved: " + Arrays.toString(data) + "\n");
+            DatagramSocket socket = new DatagramSocket();
+            socket.send(sendPacket);
+            System.out.println("ELEVATOR: Packet Sent!\n");
+        } catch (IOException e) {
+            System.out.println("ELEVATOR Error: Socket Timed Out.\n");
             e.printStackTrace();
             System.exit(1);
         }
@@ -275,7 +332,7 @@ public class Elevator extends Thread {
     @Override
     public void run() {
         while(true) {
-            respondToCall();
+            elevatorQueue.getFromQueue(this);
             for(int destinationFloor : buttonsAndLamps.keySet()) {
                 if(buttonsAndLamps.get(destinationFloor)) {
                     moveToFloor(destinationFloor, direction);

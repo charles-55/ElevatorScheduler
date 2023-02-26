@@ -12,6 +12,7 @@ public class TestClass {
 
     private Scheduler scheduler;
     private Floor floor;
+    private ElevatorQueue elevatorQueue;
     private Elevator elevator;
     private static int NUM_OF_FLOORS = 5;
 
@@ -19,7 +20,8 @@ public class TestClass {
     public void setUp() {
         scheduler = new Scheduler();
         floor = new Floor(1, scheduler);
-        elevator = new Elevator(1, 5, scheduler);
+        elevatorQueue = new ElevatorQueue();
+        elevator = new Elevator(1, 5, elevatorQueue);
     }
 
     @After
@@ -39,7 +41,8 @@ public class TestClass {
     @Test
     public void testMoveFloor() {
         scheduler = new Scheduler();
-        elevator = new Elevator(1, 5, scheduler);
+        elevatorQueue = new ElevatorQueue();
+        elevator = new Elevator(1, 5, elevatorQueue);
 
         assertEquals(1, elevator.getCurrentFloor());
         elevator.moveToFloor(3, Elevator.Direction.UP);

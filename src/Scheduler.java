@@ -31,7 +31,7 @@ public class Scheduler extends Thread {
         elevators = new ArrayList<>();
         try {
             floorSocket = new DatagramSocket(FLOOR_PORT);
-            elevatorSocket = new DatagramSocket();
+            elevatorSocket = new DatagramSocket(ELEVATOR_PORT);
             floorAddress = InetAddress.getLocalHost();
             elevatorAddress = InetAddress.getLocalHost();
         } catch (SocketException| UnknownHostException e) {
@@ -98,8 +98,8 @@ public class Scheduler extends Thread {
     }
 
     public void sendToElevator() {
-        byte[] floorData = new byte[3];
-        floorReceivePacket = new DatagramPacket(floorData, floorData.length, floorAddress, FLOOR_PORT);
+        byte[] data = new byte[3];
+        floorReceivePacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_PORT);
 
         try {
             System.out.println("SCHEDULER: Waiting for Packet from Floor...\n");
@@ -110,23 +110,12 @@ public class Scheduler extends Thread {
             System.exit(1);
         }
 
-        System.out.println("SCHEDULER: Packet Received from Floor " + ((int) floorData[0]) + ": " + Arrays.toString(floorData) + ".\n");
+        System.out.println("SCHEDULER: Packet Received from Floor " + ((int) data[0]) + ": " + Arrays.toString(data) + ".\n");
 
-        byte[] elevatorData = new byte[4];
-
-        Elevator.Direction direction = Elevator.Direction.STANDBY;
-        if(floorData[1] == 1)
-            direction = Elevator.Direction.UP;
-        else if(floorData[1] == 2)
-            direction = Elevator.Direction.DOWN;
-
-        elevatorData[0] = (byte) getClosestElevator(floorData[0], direction);
-        System.arraycopy(floorData, 0, elevatorData, 1, 3);
-
-        elevatorSendPacket = new DatagramPacket(elevatorData, elevatorData.length, elevatorAddress, ELEVATOR_PORT);
+        elevatorSendPacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_PORT);
 
         try {
-            System.out.println("SCHEDULER: Sending Packet to elevator: " + Arrays.toString(elevatorData) + "\n");
+            System.out.println("SCHEDULER: Sending Packet to elevator: " + Arrays.toString(data) + "\n");
             elevatorSocket.send(elevatorSendPacket);
             System.out.println("SCHEDULER: Packet Sent!\n");
         } catch (IOException e) {
