@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 
@@ -101,7 +102,8 @@ public class Scheduler extends Thread {
         floorReceivePacket = new DatagramPacket(floorData, floorData.length, floorAddress, FLOOR_PORT);
 
         try {
-            System.out.println("Scheduler Waiting for Packet from Floor...\n");
+            System.out.println("SCHEDULER: ");
+            System.out.println("Waiting for Packet from Floor...\n");
             floorSocket.receive(floorReceivePacket);
         } catch (IOException e) {
             System.out.print("IO Exception: likely:");
@@ -110,7 +112,9 @@ public class Scheduler extends Thread {
             System.exit(1);
         }
 
-        System.out.println("Packet received from Floor"+ ""+floorSocket.toString()+" \n");
+        System.out.println("SCHEDULER:");
+        System.out.println("Packet received from Floor " + ((int) floorData[0]) + ":");
+        System.out.println(Arrays.toString(floorData) + "\n");
 
         byte[] elevatorData = new byte[4];
 
@@ -126,16 +130,17 @@ public class Scheduler extends Thread {
         elevatorSendPacket = new DatagramPacket(elevatorData, elevatorData.length, elevatorAddress, ELEVATOR_PORT);
 
         try {
-            System.out.println("Sending Packet to elevator with data.." +""+elevatorSendPacket.toString()+"\n");
+            System.out.println("Sending Packet to elevator:");
+            System.out.println(Arrays.toString(elevatorData) + "\n");
             elevatorSocket.send(elevatorSendPacket);
         } catch (IOException e) {
             System.out.print("IO Exception: likely:");
-            System.out.println("Elevator Socket Timed Out.\n" + e);
+            System.out.println("Elevator Socket Timed Out.\n");
             e.printStackTrace();
             System.exit(1);
         }
 
-        System.out.println("Packet sent to elevator\n");
+        System.out.println("Packet sent to elevator.\n");
 
         try {
             Thread.sleep(50);
@@ -206,7 +211,7 @@ public class Scheduler extends Thread {
     @Override
     public void run() {
         try {
-            Thread.sleep(1000);
+            Thread.sleep(500);
         } catch (InterruptedException e) {
             e.printStackTrace();
             System.exit(1);

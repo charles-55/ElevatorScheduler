@@ -186,7 +186,7 @@ public class Elevator extends Thread {
 
         try {
             System.out.println("ELEVATOR " + elevatorNum + ":");
-            System.out.println("Waiting for Packet...");
+            System.out.println("Waiting for Packet...\n");
             socket.receive(receivePacket);
         } catch (IOException e) {
             System.out.println("Error: Socket Timed Out.\n");
