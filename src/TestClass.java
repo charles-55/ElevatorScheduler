@@ -13,7 +13,6 @@ public class TestClass {
     private Scheduler scheduler;
     private Floor floor;
     private Elevator elevator;
-    private ElevatorCallEvent event;
     private static int NUM_OF_FLOORS = 5;
 
     @Before
