@@ -9,9 +9,9 @@ import java.util.HashMap;
  * @version 1.0
  */
 public class Floor extends Thread {
-    // private ElevatorCallEvent.Direction buttonDirection;
+
     private final int floorNumber;
-    private HashMap<ElevatorCallEvent.Direction, Boolean> buttonsAndLamps;
+    private final HashMap<ElevatorCallEvent.Direction, Boolean> buttonsAndLamps;
     private boolean lampOn; // checks if floor is ready to receive an elevator
     private final Scheduler scheduler;
 
@@ -55,6 +55,6 @@ public class Floor extends Thread {
      */
     public void run() {
         FloorSubsystem floorSubsystem = new FloorSubsystem(this, scheduler);
-        floorSubsystem.parseData("InputTable.txt"); // edit this to specify the file to read
+        floorSubsystem.parseData("src/InputTable.txt"); // edit this to specify the file to read
     }
 }

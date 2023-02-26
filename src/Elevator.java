@@ -2,16 +2,18 @@ import java.util.HashMap;
 
 /**
  * The Elevator Class.
+ * Moves between floors based on the data sent from the floor to the scheduler.
+ *
+ * @author Nicholas Thibault 101172413
+ * @version 1.0
  */
 public class Elevator extends Thread {
 
-    //private int passengers;
     private int currentFloor;
     private boolean doorOpen;
     private boolean isMoving;
     private final Scheduler scheduler;
     private ElevatorCallEvent.Direction direction;
-    //private Buttons button;
     private final HashMap<Integer, Boolean> buttonsAndLamps;
 
     /**
@@ -88,6 +90,14 @@ public class Elevator extends Thread {
     }
 
     /**
+     * Set the state of the elevator.
+     * @param moving boolean, true if moving, false otherwise.
+     */
+    public void setMoving(boolean moving) {
+        isMoving = moving;
+    }
+
+    /**
      * Getter method for the current direction of the elevator.
      * @return ElevatorCallEvent.Direction direction of the elevator (up, down, standby)
      */
@@ -114,17 +124,24 @@ public class Elevator extends Thread {
     /**
      * method to open, disembark / embark passengers, then close the doors.
      */
-    public void openCloseDoors() {
-        if (!this.isMoving) {
+    public void openDoors() {
+        if (!this.isMoving && !doorOpen) {
             try {
-                Thread.sleep(3000); //Arbitrary time for doors to open
+                Thread.sleep(3000); // Arbitrary time for doors to open // implement open door using motors
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
             this.doorOpen = true;
+        }
+    }
 
+    /**
+     * Close the door of the elevator.
+     */
+    public void closeDoors() {
+        if(!this.isMoving && doorOpen) {
             try {
-                Thread.sleep(3000);
+                Thread.sleep(3000); // Arbitrary time for doors to close // implement close door using motors
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -138,75 +155,41 @@ public class Elevator extends Thread {
      * @param direction ElevatorCallEvent.Direction direction of target floor
      */
     public synchronized void moveToFloor(int targetFloor, ElevatorCallEvent.Direction direction) {
-        if (!(this.direction == direction)) {
-            this.direction = direction;
-        }
-
+        this.direction = direction;
+        if(doorOpen)
+            closeDoors();
         this.isMoving = true;
 
         try {
-            Thread.sleep((long) Math.abs(targetFloor - this.currentFloor) * 4000); //Arbitrary time for the elevator to move up X floors (X * 4 seconds)
+            Thread.sleep((long) Math.abs(targetFloor - this.currentFloor) * 4000); // Arbitrary time for the elevator to move up X floors (X * 4 seconds)
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
+        System.out.println("Moved from " + currentFloor + " to " + targetFloor);
         this.isMoving = false;
         this.setCurrentFloor(targetFloor);
-        this.openCloseDoors();
+        this.openDoors();
+        notifyAll();
+    }
+
+    public void put(int i, boolean b) {
+        buttonsAndLamps.put(i, b);
     }
 
     /**
-     *
-     * @param direction
-     */
-    public void updateQueueDirection(ElevatorCallEvent.Direction direction) {
-        //int nextFloor = scheduler.getFromQueue(this);
-        //this.moveToFloor(nextFloor)
-
-    }
-
-
-
-
-        /*
-        //Open Door Button
-        if (**open button is pressed**) {
-            if (!this.isMoving) {
-                try {
-                    Thread.sleep(3000); //Arbitrary time for doors to open
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                this.doorOpen = true;
-            }
-            break;
-        }
-        */
-
-        /*
-        //Close Door Button
-        if (**closed button is pressed**) {
-            if (!this.isMoving) {
-                try {
-                    Thread.sleep(3000); //Arbitrary time for doors to open
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                this.doorOpen = false;
-            }
-            break;
-        }
-        */
-
-    /**
-     * Run method.
+     * This is the section for running with threads.
      */
     @Override
     public void run() {
         while(true) {
-
-
-            stop();
+            scheduler.getFromQueue(this);
+            for(int destinationFloor : buttonsAndLamps.keySet()) {
+                if(buttonsAndLamps.get(destinationFloor)) {
+                    moveToFloor(destinationFloor, direction);
+                    buttonsAndLamps.put(destinationFloor, false);
+                }
+            }
         }
     }
 }
