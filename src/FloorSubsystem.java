@@ -56,8 +56,7 @@ public class FloorSubsystem extends Thread {
 
         try {
             Scanner sc = new Scanner(file);
-            //while (sc.hasNextLine()) {
-            for(int i = 0; i < 2; i++) {
+            while (sc.hasNextLine()) {
                 String data = sc.nextLine();
                 System.out.println("FLOOR SUBSYSTEM: Line scanned: " + data + ".\n");
                 String[] splitData = data.split(" ");

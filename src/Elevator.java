@@ -158,6 +158,7 @@ public class Elevator extends Thread {
      * @param targetFloor int, the floor to move to.
      */
     public void moveToFloor(int targetFloor, Direction direction) {
+        System.out.println("Moving from floor " + currentFloor + " to " + targetFloor + ".");
         this.direction = direction;
         if(doorOpen)
             closeDoors();
@@ -168,6 +169,8 @@ public class Elevator extends Thread {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        System.out.println("At floor " + currentFloor + ".");
 
         buttonsAndLamps.put(targetFloor, false);
         this.isMoving = false;
