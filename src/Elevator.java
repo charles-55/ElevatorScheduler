@@ -19,10 +19,7 @@ public class Elevator extends Thread {
     private final Scheduler scheduler;
     private Direction direction;
     private final HashMap<Integer, Boolean> buttonsAndLamps;
-    private DatagramPacket sendPacket, receivePacket;
-    private DatagramSocket socket;
-    private InetAddress address;
-    private static final int PORT = 69;
+    private DatagramPacket sendPacket,
     public enum Direction {UP, DOWN, STANDBY}
 
     /**
