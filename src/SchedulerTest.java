@@ -57,4 +57,5 @@ public class SchedulerTest {
         scheduler.getQueue().remove(elevator,new ArrayList<>());
         assertTrue(scheduler.getQueue().isEmpty());
     }
+
 }

@@ -67,21 +67,7 @@ public class ElevatorTest {
         elevatorQueue = new ElevatorQueue();
         elevator = new Elevator(1, NUM_OF_FLOORS, elevatorQueue);
 
-
-
-
         //////////////******FIX
-
     }
-//    public void run() {
-//        while(true) {
-//            scheduler.getFromQueue(this);
-//            for(int destinationFloor : buttonsAndLamps.keySet()) {
-//                if(buttonsAndLamps.get(destinationFloor)) {
-//                    moveToFloor(destinationFloor, direction);
-//                    buttonsAndLamps.put(destinationFloor, false);
-//                }
-//            }
-//        }
-//    }
+
 }
