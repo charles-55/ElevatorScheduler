@@ -79,7 +79,7 @@ public class ElevatorQueue extends Thread {
         Collections.sort(queue.get(elevator));
         System.out.println("ELEVATOR QUEUE: Added to queue.");
 
-        elevator.notify();
+        notifyAll();
     }
 
     public synchronized void getFromQueue(Elevator elevator) {

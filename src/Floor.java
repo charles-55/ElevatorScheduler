@@ -33,7 +33,7 @@ public class Floor extends Thread {
         buttonsAndLamps.put(Elevator.Direction.DOWN, false);
 
         try {
-            socket = new DatagramSocket();
+            socket = new DatagramSocket(PORT);
             address = InetAddress.getLocalHost();
         } catch (SocketException | UnknownHostException e) {
             e.printStackTrace();
@@ -71,7 +71,7 @@ public class Floor extends Thread {
             System.exit(1);
         }
 
-        System.out.println("FLOOR: Packet received:" + Arrays.toString(data) + "\n");
+        System.out.println("FLOOR: Packet received: " + Arrays.toString(data) + "\n");
 
         if(data[0] == 1) {
             System.out.println("FLOOR " + data[1] + ": Elevator " + data[2] + " arrived.\n");
