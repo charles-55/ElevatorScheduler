@@ -20,7 +20,7 @@ public class Floor extends Thread {
     private DatagramPacket receivePacket;
     private DatagramSocket socket;
     private InetAddress address;
-    private static final int PORT = 23;
+    private static final int PORT = 22;
 
     /**
      * Constructor for the floor class.
@@ -33,13 +33,13 @@ public class Floor extends Thread {
         buttonsAndLamps.put(Elevator.Direction.DOWN, false);
 
         try {
-            socket = new DatagramSocket();
+            socket = new DatagramSocket(PORT);
             address = InetAddress.getLocalHost();
         } catch (SocketException | UnknownHostException e) {
             e.printStackTrace();
             System.exit(1);
         }
-        floorSubsystem = new FloorSubsystem(this, address, PORT, "src/InputTable.txt");
+        floorSubsystem = new FloorSubsystem(this, address, "src/InputTable.txt");
     }
 
     public HashMap<Elevator.Direction, Boolean> getButtonsAndLamps() {
@@ -71,7 +71,7 @@ public class Floor extends Thread {
             System.exit(1);
         }
 
-        System.out.println("FLOOR: Packet received:" + Arrays.toString(data) + "\n");
+        System.out.println("FLOOR: Packet received: " + Arrays.toString(data) + "\n");
 
         if(data[0] == 1) {
             System.out.println("FLOOR " + data[1] + ": Elevator " + data[2] + " arrived.\n");

@@ -24,7 +24,7 @@ public class Elevator extends Thread {
     private DatagramPacket sendPacket, receivePacket;
     private DatagramSocket socket;
     private static InetAddress address;
-    private static final int PORT = 69;
+    private static final int PORT = 22;
     public enum Direction {UP, DOWN, STANDBY}
 
     public Elevator(int elevatorNum, int numOfFloors, ElevatorQueue elevatorQueue) {
@@ -166,7 +166,7 @@ public class Elevator extends Thread {
     /**
      * Moves the current elevator to target floor.
      * @param targetFloor int target floor number
-     * @param direction ElevatorCallEvent.Direction direction of target floor
+     * @param direction Direction direction of target floor
      */
     public void moveToFloor(int targetFloor, Direction direction) {
         System.out.println("ELEVATOR " + elevatorNum + ": Moving from floor " + currentFloor + " to " + targetFloor + ".");

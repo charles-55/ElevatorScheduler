@@ -17,18 +17,17 @@ import java.util.HashMap;
 public class Scheduler extends Thread {
 
     private final HashMap<Elevator, ArrayList<Integer>> queue;
-    private final ArrayList<Elevator> elevators;
     private DatagramPacket floorSendPacket, floorReceivePacket, elevatorSendPacket, elevatorReceivePacket;
     private InetAddress floorAddress, elevatorAddress;
     private DatagramSocket floorSocket, elevatorSocket;
-    private static final int FLOOR_PORT = 23, ELEVATOR_PORT = 69;
+    private static final int FLOOR_PORT = 20, ELEVATOR_PORT = 21;
 
     /**
      * Initializes the controller.
      */
     public Scheduler() {
         queue = new HashMap<>();
-        elevators = new ArrayList<>();
+
         try {
             floorSocket = new DatagramSocket(FLOOR_PORT);
             elevatorSocket = new DatagramSocket();
@@ -46,55 +45,6 @@ public class Scheduler extends Thread {
      */
     public HashMap<Elevator, ArrayList<Integer>> getQueue() {
         return queue;
-    }
-
-    /**
-     * Adds an elevator to the controller.
-     * @param elevator Elevator, the elevator to add.
-     */
-    public void addElevator(Elevator elevator) {
-        queue.put(elevator, new ArrayList<>());
-        elevators.add(elevator);
-    }
-
-    /**
-     * Get the closest elevator to a floor and moving in the same direction or on standby.
-     * @param floorNum int, the floor the elevator is bing called to.
-     * @param direction Direction, direction of the elevator.
-     * @return int, the elevator number for the closest elevator.
-     */
-    public synchronized int getClosestElevator(int floorNum, Elevator.Direction direction) {
-        Elevator elevator = (Elevator) queue.keySet().toArray()[0];
-        for(Elevator e : queue.keySet()) {
-            if ((Math.abs(e.getCurrentFloor() - floorNum)
-                    < Math.abs(elevator.getCurrentFloor() - floorNum))
-                    && ((e.getDirection().equals(direction))
-                    || (e.getDirection().equals(Elevator.Direction.STANDBY))))
-                elevator = e;
-        }
-        return elevator.getElevatorNum();
-        /*
-        queue.get(elevator).add(event.getDestinationFloor());
-        Collections.sort(queue.get(elevator));
-
-        if(elevator.getDirection().equals(ElevatorCallEvent.Direction.STANDBY))
-            elevator.moveToFloor(event.getFloorNumber(), event.getDirection());
-        else if(elevator.getDirection().equals(ElevatorCallEvent.Direction.DOWN) && (elevator.getCurrentFloor() - event.getFloorNumber() >= 0))
-            elevator.put(event.getFloorNumber(), true);
-        else if(elevator.getDirection().equals(ElevatorCallEvent.Direction.UP) && (elevator.getCurrentFloor() - event.getFloorNumber() <= 0))
-            elevator.put(event.getFloorNumber(), true);
-        else {
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        System.out.println("Added to queue.");
-
-        notifyAll();
-
-         */
     }
 
     public void sendToElevator() {
