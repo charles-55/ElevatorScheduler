@@ -19,7 +19,7 @@ public class Scheduler extends Thread {
     private DatagramPacket floorSendPacket, floorReceivePacket, elevatorSendPacket, elevatorReceivePacket;
     private InetAddress floorAddress, elevatorAddress;
     private DatagramSocket floorSocket, elevatorSocket;
-    private static final int FLOOR_RECEIVING_PORT = 20, FLOOR_SENDING_PORT = 22, ELEVATOR_SENDING_PORT = 21, ELEVATOR_RECEIVING_PORT = 23;
+    private static final int FLOOR_RECEIVING_PORT = 20, FLOOR_SENDING_PORT = 23, ELEVATOR_SENDING_PORT = 21, ELEVATOR_RECEIVING_PORT = 22;
 
     /**
      * Initializes the controller.
