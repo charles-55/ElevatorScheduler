@@ -27,10 +27,23 @@ public class Elevator extends Thread {
     private static final int PORT = 22;
     public enum Direction {UP, DOWN, STANDBY}
 
+    /**
+     * Constructor method for Elevator initializing the elevator on the first floor.
+     * @param elevatorNum int identifying elevator number.
+     * @param numOfFloors int number of floors in the building.
+     * @param elevatorQueue ElevatorQueue queue for the elevator object.
+     */
     public Elevator(int elevatorNum, int numOfFloors, ElevatorQueue elevatorQueue) {
         this(elevatorNum, numOfFloors, 1, elevatorQueue);
     }
 
+    /**
+     * Constructor method for Elevator with custom initializing floor.
+     * @param elevatorNum int identifying elevator number.
+     * @param numOfFloors int number of floors in the building.
+     * @param currentFloor int current floor where the elevator object is initially located.
+     * @param elevatorQueue ElevatorQueue queue for the elevator object.
+     */
     public Elevator(int elevatorNum, int numOfFloors, int currentFloor, ElevatorQueue elevatorQueue) {
         this.elevatorNum = elevatorNum;
         this.currentFloor = currentFloor;
@@ -81,7 +94,7 @@ public class Elevator extends Thread {
     }
 
     /**
-     * method for the current state of the doors
+     * Getter method for the current state of the doors
      * @return boolean doorOpen (open if true, closed if false)
      */
     public boolean isDoorOpen() {
@@ -99,7 +112,7 @@ public class Elevator extends Thread {
     }
 
     /**
-     * method for the current state of the movement of the elevator
+     * Getter method for the current state of the movement of the elevator
      * @return boolean isMoving (moving if true, stopped if false)
      */
     public boolean isMoving() {
@@ -131,7 +144,7 @@ public class Elevator extends Thread {
     }
 
     /**
-     * method to open, disembark / embark passengers, then close the doors.
+     * Open and close the doors.
      */
     public void openDoors() {
         alertArrival();
@@ -159,6 +172,11 @@ public class Elevator extends Thread {
         }
     }
 
+    /**
+     * Adds a new destination for the elevator in the delayed queue (different direction than current queue)
+     * @param floorNum int origin floor.
+     * @param destinationFloor int destination floor.
+     */
     public void addToDelayedQueue(int floorNum, int destinationFloor) {
         delayedQueue.add(new int[] {floorNum, destinationFloor});
     }
@@ -188,10 +206,18 @@ public class Elevator extends Thread {
         this.openDoors();
     }
 
+    /**
+     * Puts a new value for a button on the elevator. (on if true, off if false)
+     * @param i int button index.
+     * @param b boolean light state (On if true, Off if false)
+     */
     public void put(int i, boolean b) {
         buttonsAndLamps.put(i, b);
     }
 
+    /**
+     * Alerts server once elevator arrives to a floor in its' queue.
+     */
     public void alertArrival() {
         byte[] data = new byte[4];
         data[0] = 1;
@@ -236,6 +262,9 @@ public class Elevator extends Thread {
         }
     }
 
+    /**
+     * Alerts server that an elevator entered a delay.
+     */
     public static void alertDelay() {
         byte[] data = new byte[4];
         data[0] = 2;
@@ -264,6 +293,9 @@ public class Elevator extends Thread {
         }
     }
 
+    /**
+     * Alerts server that the elevator finished its delay.
+     */
     public static void alertDelayResolved() {
         byte[] data = new byte[4];
         data[0] = 3;
@@ -293,7 +325,7 @@ public class Elevator extends Thread {
     }
 
     /**
-     * method that prints the state of movement of the elevator and the state of its doors.
+     * Prints the state of movement of the elevator and the state of its doors.
      */
     public void printState() throws Exception {
         //TODO: Once we do multiple instances of elevators, identify which elevator it is in the print.
@@ -322,7 +354,14 @@ public class Elevator extends Thread {
     }
 
     /**
-     * This is the section for running with threads.
+     * Closes a socket.
+     */
+    public void closeSocket() {
+        socket.close();
+    }
+
+    /**
+     * Run method.
      */
     @Override
     public void run() {
@@ -334,9 +373,5 @@ public class Elevator extends Thread {
                 }
             }
         }
-    }
-
-    public void closeSocket() {
-        socket.close();
     }
 }
