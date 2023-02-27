@@ -2,7 +2,6 @@ import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 
 /**
@@ -20,7 +19,7 @@ public class Scheduler extends Thread {
     private DatagramPacket floorSendPacket, floorReceivePacket, elevatorSendPacket, elevatorReceivePacket;
     private InetAddress floorAddress, elevatorAddress;
     private DatagramSocket floorSocket, elevatorSocket;
-    private static final int FLOOR_PORT = 20, ELEVATOR_PORT = 21;
+    private static final int FLOOR_RECEIVING_PORT = 20, FLOOR_SENDING_PORT = 22, ELEVATOR_SENDING_PORT = 21, ELEVATOR_RECEIVING_PORT = 23;
 
     /**
      * Initializes the controller.
@@ -29,7 +28,7 @@ public class Scheduler extends Thread {
         queue = new HashMap<>();
 
         try {
-            floorSocket = new DatagramSocket(FLOOR_PORT);
+            floorSocket = new DatagramSocket(FLOOR_RECEIVING_PORT);
             elevatorSocket = new DatagramSocket();
             floorAddress = InetAddress.getLocalHost();
             elevatorAddress = InetAddress.getLocalHost();
@@ -49,7 +48,7 @@ public class Scheduler extends Thread {
 
     public void sendToElevator() {
         byte[] data = new byte[3];
-        floorReceivePacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_PORT);
+        floorReceivePacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_RECEIVING_PORT);
 
         try {
             System.out.println("SCHEDULER: Waiting for Packet from Floor...\n");
@@ -62,7 +61,7 @@ public class Scheduler extends Thread {
 
         System.out.println("SCHEDULER: Packet Received from Floor " + ((int) data[0]) + ": " + Arrays.toString(data) + ".\n");
 
-        elevatorSendPacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_PORT);
+        elevatorSendPacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_SENDING_PORT);
 
         try {
             System.out.println("SCHEDULER: Sending Packet to elevator: " + Arrays.toString(data) + "\n");
@@ -85,7 +84,7 @@ public class Scheduler extends Thread {
 
     public void sendToFloor() {
         byte[] data = new byte[3];
-        elevatorReceivePacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_PORT);
+        elevatorReceivePacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_RECEIVING_PORT);
 
         try {
             System.out.println("SCHEDULER: Waiting for Packet from Elevator...\n");
@@ -98,7 +97,7 @@ public class Scheduler extends Thread {
 
         System.out.println("SCHEDULER: Packet Received from Elevator: " + Arrays.toString(data) + ".\n");
 
-        floorSendPacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_PORT);
+        floorSendPacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_SENDING_PORT);
 
         try {
             System.out.println("SCHEDULER: Sending Packet to Floor: " + Arrays.toString(data)+".\n");

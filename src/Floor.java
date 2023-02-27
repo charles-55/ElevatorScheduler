@@ -20,7 +20,7 @@ public class Floor extends Thread {
     private DatagramPacket receivePacket;
     private DatagramSocket socket;
     private InetAddress address;
-    private static final int PORT = 22;
+    private static final int PORT = 23;
 
     /**
      * Constructor for the floor class.
@@ -109,7 +109,7 @@ public class Floor extends Thread {
      */
     public void run() {
         try {
-            Thread.sleep(1000);
+            Thread.sleep(750);
         } catch (InterruptedException e) {
             e.printStackTrace();
             System.exit(1);
