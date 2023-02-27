@@ -125,4 +125,8 @@ public class ElevatorQueue extends Thread {
         while (true)
             respondToCall();
     }
+
+    public void closeSocket() {
+        socket.close();
+    }
 }

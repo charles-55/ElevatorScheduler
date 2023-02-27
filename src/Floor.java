@@ -119,4 +119,8 @@ public class Floor extends Thread {
             readMessage();
         }
     }
+
+    public void closeSocket() {
+        socket.close();
+    }
 }

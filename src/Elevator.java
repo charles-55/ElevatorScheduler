@@ -336,4 +336,8 @@ public class Elevator extends Thread {
             }
         }
     }
+
+    public void closeSocket() {
+        socket.close();
+    }
 }

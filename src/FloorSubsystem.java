@@ -82,18 +82,15 @@ public class FloorSubsystem extends Thread {
                 sendPacket = new DatagramPacket(data, data.length, address, PORT);
 
                 time = LocalTime.now(); // for testing purposes only!
-                System.out.println("FLOOR SUBSYSTEM: Sending Packet: " + Arrays.toString(data) + ".");
-                socket.send(sendPacket);
-                System.out.println("FLOOR SUBSYSTEM: Packet Sent!\n");
-//                if(LocalTime.now().equals(time)) {
-//                    System.out.println("FLOOR SUBSYSTEM: Sending Packet: " + Arrays.toString(info) + ".");
-//                    socket.send(sendPacket);
-//                    System.out.println("FLOOR SUBSYSTEM: Packet Sent!\n");
-//                }
-//                else if (time.isAfter(LocalTime.now())) {
-//                    Thread.sleep((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000);
-//                    socket.send(sendPacket);
-//                }
+                if(LocalTime.now().equals(time)) {
+                    System.out.println("FLOOR SUBSYSTEM: Sending Packet: " + Arrays.toString(data) + ".");
+                    socket.send(sendPacket);
+                    System.out.println("FLOOR SUBSYSTEM: Packet Sent!\n");
+                }
+                else if (time.isAfter(LocalTime.now())) {
+                    Thread.sleep((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000);
+                    socket.send(sendPacket);
+                }
                 Thread.sleep(2500);
             }
         } catch (InterruptedException | IOException e) {
@@ -106,5 +103,9 @@ public class FloorSubsystem extends Thread {
     @Override
     public void run() {
         parseData();
+    }
+
+    public void closeSocket() {
+        socket.close();
     }
 }

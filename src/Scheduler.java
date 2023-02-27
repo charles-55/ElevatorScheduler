@@ -147,4 +147,11 @@ public class Scheduler extends Thread {
         thread1.start();
         thread2.start();
     }
+
+    public void closeSocket() {
+        floorSendingSocket.close();
+        floorReceivingSocket.close();
+        elevatorSendingSocket.close();
+        elevatorReceivingSocket.close();
+    }
 }
