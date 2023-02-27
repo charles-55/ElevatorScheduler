@@ -52,7 +52,7 @@ public class FloorSubsystem extends Thread {
             Scanner sc = new Scanner(file);
             while (sc.hasNextLine()) {
                 String line = sc.nextLine();
-                System.out.println("FLOOR SUBSYSTEM: Line scanned: " + line + ".\n");
+                //System.out.println("FLOOR SUBSYSTEM: Line scanned: " + line + ".\n");
                 String[] splitData = line.split(" ");
 
                 LocalTime time;
