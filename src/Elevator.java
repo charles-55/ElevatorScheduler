@@ -169,7 +169,7 @@ public class Elevator extends Thread {
      * @param direction Direction direction of target floor
      */
     public void moveToFloor(int targetFloor, Direction direction) {
-        System.out.println("ELEVATOR " + elevatorNum + ": Moving from floor " + currentFloor + " to " + targetFloor + ".");
+        System.out.println("ELEVATOR " + elevatorNum + ": Moving from floor " + currentFloor + " to " + targetFloor + ".\n");
         this.direction = direction;
         if(doorOpen)
             closeDoors();
