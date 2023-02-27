@@ -29,6 +29,10 @@ public class ElevatorQueue extends Thread {
         }
     }
 
+    /**
+     * Getter method for the elevator's queue.
+     * @return HashMap<Elevator, ArrayList<Integer>> queue Elevator's queue.
+     */
     public HashMap<Elevator, ArrayList<Integer>> getQueue() {
         return queue;
     }
