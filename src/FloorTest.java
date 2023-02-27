@@ -1,7 +1,5 @@
 import org.junit.*;
-
 import java.util.Arrays;
-
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -28,15 +26,23 @@ public class FloorTest {
 
     @After
     public void tearDown() {
+        scheduler.closeSocket();
+        floor.closeSocket();
+        elevatorQueue.closeSocket();
+        elevator.closeSocket();
+
         scheduler = null;
         floor = null;
+        elevatorQueue = null;
         elevator = null;
     }
 
     @Test
     public void testRun(){
         floor.start();
-        assertEquals(0, scheduler.getQueue().get(elevator).size());
+        scheduler.start();
+        elevatorQueue.start();
+        assertEquals(0, elevatorQueue.getQueue().get(elevator).size());
         floor.stop();
     }
 

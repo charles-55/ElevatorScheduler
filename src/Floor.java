@@ -141,5 +141,6 @@ public class Floor extends Thread {
 
     public void closeSocket() {
         socket.close();
+        floorSubsystem.closeSocket();
     }
 }

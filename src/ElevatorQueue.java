@@ -29,6 +29,10 @@ public class ElevatorQueue extends Thread {
         }
     }
 
+    public HashMap<Elevator, ArrayList<Integer>> getQueue() {
+        return queue;
+    }
+
     /**
      * Getter method for the elevator waiting in a queue.
      * @return boolean waiting variable, true if the elevator is waiting in the queue, false if not.

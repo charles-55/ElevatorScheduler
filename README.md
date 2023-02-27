@@ -66,5 +66,5 @@ InputTable.txt - A text file filled with random data entries to be parsed into t
 Run the Main class.
 
 ## Test Instructions:
-Run the Test methods individually in the test classes (ElevatorTest, FloorTest, SchedulerTest).
+Run the Test methods in the test classes (ElevatorTest, FloorTest, SchedulerTest).
 

@@ -26,8 +26,14 @@ public class ElevatorTest {
 
     @After
     public void tearDown() {
+        scheduler.closeSocket();
+        floor.closeSocket();
+        elevatorQueue.closeSocket();
+        elevator.closeSocket();
+
         scheduler = null;
         floor = null;
+        elevatorQueue = null;
         elevator = null;
     }
 
@@ -61,13 +67,14 @@ public class ElevatorTest {
         assertEquals(3, elevator.getCurrentFloor());
     }
 
-    @Test
-    public void testRun(){
-        scheduler = new Scheduler();
-        elevatorQueue = new ElevatorQueue();
-        elevator = new Elevator(1, NUM_OF_FLOORS, elevatorQueue);
+//    @Test
+//    public void testRun() {
+//        floor.start();
+//        scheduler.start();
+//        elevatorQueue.start();
+//        assertEquals(0, elevatorQueue.getQueue().get(elevator).size());
+//        floor.stop();
+//    }
 
-        //////////////******FIX
-    }
 
 }

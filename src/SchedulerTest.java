@@ -1,6 +1,4 @@
 import org.junit.*;
-
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -32,8 +30,14 @@ public class SchedulerTest {
 
     @After
     public void tearDown() {
+        scheduler.closeSocket();
+        floor.closeSocket();
+        elevatorQueue.closeSocket();
+        elevator.closeSocket();
+
         scheduler = null;
         floor = null;
+        elevatorQueue = null;
         elevator = null;
     }
 
@@ -46,16 +50,25 @@ public class SchedulerTest {
 
     @Test
     public void testAddToQueue(){
-        scheduler.getQueue().put(elevator,new ArrayList<>());
-        assertFalse(scheduler.getQueue().isEmpty());
+        elevatorQueue.getQueue().put(elevator,new ArrayList<>());
+        assertFalse(elevatorQueue.getQueue().isEmpty());
     }
 
     @Test
     public void testGetFromQueue(){
-        scheduler.getQueue().put(elevator,new ArrayList<>());
-        assertEquals(1,scheduler.getQueue().size());
-        scheduler.getQueue().remove(elevator,new ArrayList<>());
-        assertTrue(scheduler.getQueue().isEmpty());
+        elevatorQueue.getQueue().put(elevator,new ArrayList<>());
+        assertEquals(1,elevatorQueue.getQueue().size());
+        elevatorQueue.getQueue().remove(elevator,new ArrayList<>());
+        assertTrue(elevatorQueue.getQueue().isEmpty());
+    }
+
+    @Test
+    public void testRun() {
+        floor.start();
+        scheduler.start();
+        elevatorQueue.start();
+        assertEquals(0, elevatorQueue.getQueue().get(elevator).size());
+        floor.stop();
     }
 
 }

@@ -15,7 +15,6 @@ import java.util.HashMap;
  */
 public class Scheduler extends Thread {
 
-    private final HashMap<Elevator, ArrayList<Integer>> queue;
     private DatagramPacket floorSendPacket, floorReceivePacket, elevatorSendPacket, elevatorReceivePacket;
     private InetAddress floorAddress, elevatorAddress;
     private DatagramSocket floorReceivingSocket, floorSendingSocket, elevatorReceivingSocket, elevatorSendingSocket;
@@ -25,8 +24,6 @@ public class Scheduler extends Thread {
      * Initializes the controller.
      */
     public Scheduler() {
-        queue = new HashMap<>();
-
         try {
             floorReceivingSocket = new DatagramSocket(FLOOR_RECEIVING_PORT);
             floorSendingSocket = new DatagramSocket();
@@ -38,14 +35,6 @@ public class Scheduler extends Thread {
             e.printStackTrace();
             System.exit(1);
         }
-    }
-
-    /**
-     * Gets the queue.
-     * @return Hashmap<Elevator, ArrayList<Integer>>, the queue.
-     */
-    public HashMap<Elevator, ArrayList<Integer>> getQueue() {
-        return queue;
     }
 
     public void sendToElevator() {
