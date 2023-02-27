@@ -37,6 +37,9 @@ public class Scheduler extends Thread {
         }
     }
 
+    /**
+     * Method to send data to the elevator
+     */
     public void sendToElevator() {
         byte[] data = new byte[3];
         floorReceivePacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_RECEIVING_PORT);
@@ -73,6 +76,9 @@ public class Scheduler extends Thread {
         }
     }
 
+    /**
+     * Method to send data to the floor.
+     */
     public void sendToFloor() {
         byte[] data = new byte[4];
         elevatorReceivePacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_RECEIVING_PORT);
@@ -137,6 +143,9 @@ public class Scheduler extends Thread {
         thread2.start();
     }
 
+    /**
+     * Closes the socket
+     */
     public void closeSocket() {
         floorSendingSocket.close();
         floorReceivingSocket.close();
