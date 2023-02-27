@@ -104,6 +104,21 @@ public class Floor extends Thread {
         }
     }
 
+    public void printState() throws Exception {
+        boolean up = this.buttonsAndLamps.get(Elevator.Direction.UP);
+        boolean down = this.buttonsAndLamps.get(Elevator.Direction.DOWN);
+        //If light is up
+        if (up && down) {
+            throw new Exception("Error: The floor lights are both up and down!");
+        } else if (up) {
+            System.out.println("Calling an elevator to go up.");
+        } else if (down) {
+            System.out.println("Calling an elevator to go down.");
+        } else {
+            System.out.println("Idle.");
+        }
+    }
+
     /**
      * This is the section for running with threads.
      */
