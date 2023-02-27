@@ -24,7 +24,7 @@ public class Elevator extends Thread {
     private DatagramPacket sendPacket, receivePacket;
     private DatagramSocket socket;
     private static InetAddress address;
-    private static final int PORT = 69;
+    private static final int PORT = 22;
     public enum Direction {UP, DOWN, STANDBY}
 
     public Elevator(int elevatorNum, int numOfFloors, ElevatorQueue elevatorQueue) {

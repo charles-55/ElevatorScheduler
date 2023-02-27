@@ -20,7 +20,7 @@ public class Floor extends Thread {
     private DatagramPacket receivePacket;
     private DatagramSocket socket;
     private InetAddress address;
-    private static final int PORT = 23;
+    private static final int PORT = 22;
 
     /**
      * Constructor for the floor class.
@@ -39,7 +39,7 @@ public class Floor extends Thread {
             e.printStackTrace();
             System.exit(1);
         }
-        floorSubsystem = new FloorSubsystem(this, address, PORT, "src/InputTable.txt");
+        floorSubsystem = new FloorSubsystem(this, address, "src/InputTable.txt");
     }
 
     public HashMap<Elevator.Direction, Boolean> getButtonsAndLamps() {

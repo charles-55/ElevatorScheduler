@@ -7,7 +7,7 @@ public class ElevatorQueue extends Thread {
     private boolean waiting;
     private DatagramSocket socket;
     private InetAddress address;
-    private static final int PORT = 69;
+    private static final int PORT = 21;
     private final HashMap<Elevator, ArrayList<Integer>> queue;
 
     public ElevatorQueue() {

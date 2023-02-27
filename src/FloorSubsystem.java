@@ -1,5 +1,4 @@
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.*;
 import java.time.LocalTime;
@@ -22,20 +21,18 @@ public class FloorSubsystem extends Thread {
     private DatagramPacket sendPacket;
     private DatagramSocket socket;
     private final InetAddress address;
-    private final int port;
+    private final int PORT = 20;
     private final String fileName;
 
     /**
      * Initialize the FloorSubsystem.
      * @param floor
      * @param address
-     * @param port
      * @param fileName - the name of the input file preferably a .txt file.
      */
-    public FloorSubsystem(Floor floor, InetAddress address, int port, String fileName) {
+    public FloorSubsystem(Floor floor, InetAddress address, String fileName) {
         this.floor = floor;
         this.address = address;
-        this.port = port;
         this.fileName = fileName;
         try {
             socket = new DatagramSocket();
@@ -82,7 +79,7 @@ public class FloorSubsystem extends Thread {
                 else if (direction == Elevator.Direction.DOWN)
                     data[1] = 2;
                 data[2] = (byte) destinationFloor;
-                sendPacket = new DatagramPacket(data, data.length, address, port);
+                sendPacket = new DatagramPacket(data, data.length, address, PORT);
 
                 time = LocalTime.now(); // for testing purposes only!
                 System.out.println("FLOOR SUBSYSTEM: Sending Packet: " + Arrays.toString(data) + ".");
