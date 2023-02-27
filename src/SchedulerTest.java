@@ -1,6 +1,4 @@
 import org.junit.*;
-
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -62,6 +60,15 @@ public class SchedulerTest {
         assertEquals(1,elevatorQueue.getQueue().size());
         elevatorQueue.getQueue().remove(elevator,new ArrayList<>());
         assertTrue(elevatorQueue.getQueue().isEmpty());
+    }
+
+    @Test
+    public void testRun() {
+        floor.start();
+        scheduler.start();
+        elevatorQueue.start();
+        assertEquals(0, elevatorQueue.getQueue().get(elevator).size());
+        floor.stop();
     }
 
 }

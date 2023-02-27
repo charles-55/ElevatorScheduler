@@ -67,10 +67,14 @@ public class ElevatorTest {
         assertEquals(3, elevator.getCurrentFloor());
     }
 
-    @Test
-    public void testRun() {
-
-    }
+//    @Test
+//    public void testRun() {
+//        floor.start();
+//        scheduler.start();
+//        elevatorQueue.start();
+//        assertEquals(0, elevatorQueue.getQueue().get(elevator).size());
+//        floor.stop();
+//    }
 
 
 }
