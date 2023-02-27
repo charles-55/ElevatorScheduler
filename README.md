@@ -25,7 +25,6 @@ Scheduler - Osamudiamen Nwoko, Leslie Ejeh
 
 Elevator - Nicholas Thibault
 
-ElevatorCallEvent - Osamudiamen Nwoko
 
 Main - *
 
@@ -51,8 +50,6 @@ FloorSubsystem class - This is the client class that reads events in the format:
 Scheduler class - This class connects the elevators to the floor. It calls an elevator to a floor and adds the elevator to a queue when there is work to be done. It is only being used as a communication channel from the Floor thread to the Elevator thread and back again.
 
 Elevator class - This class moves elevator between floors based on the data gotten from the Scheduler class.
-
-ElevatorCallEvent class - This class creates an event to call an elevator to a particular floor.
 
 Main class - This class is used to run the program.
 

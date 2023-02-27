@@ -1,3 +1,6 @@
+import java.io.IOException;
+import java.net.*;
+import java.util.Arrays;
 import java.util.HashMap;
 
 /**
@@ -10,10 +13,14 @@ import java.util.HashMap;
  */
 public class Floor extends Thread {
 
+    private final FloorSubsystem floorSubsystem;
     private final int floorNumber;
-    private final HashMap<ElevatorCallEvent.Direction, Boolean> buttonsAndLamps;
-    private boolean lampOn; // checks if floor is ready to receive an elevator
+    private final HashMap<Elevator.Direction, Boolean> buttonsAndLamps;
     private final Scheduler scheduler;
+    private DatagramPacket receivePacket;
+    private DatagramSocket socket;
+    private InetAddress address;
+    private static final int PORT = 23;
 
     /**
      * Constructor for the floor class.
@@ -22,11 +29,20 @@ public class Floor extends Thread {
         this.scheduler = scheduler;
         this.floorNumber = floorNumber;
         buttonsAndLamps = new HashMap<>();
-        buttonsAndLamps.put(ElevatorCallEvent.Direction.UP, false);
-        buttonsAndLamps.put(ElevatorCallEvent.Direction.DOWN, false);
+        buttonsAndLamps.put(Elevator.Direction.UP, false);
+        buttonsAndLamps.put(Elevator.Direction.DOWN, false);
+
+        try {
+            socket = new DatagramSocket();
+            address = InetAddress.getLocalHost();
+        } catch (SocketException | UnknownHostException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+        floorSubsystem = new FloorSubsystem(this, address, PORT, "src/InputTable.txt");
     }
 
-    public HashMap<ElevatorCallEvent.Direction, Boolean> getButtonsAndLamps() {
+    public HashMap<Elevator.Direction, Boolean> getButtonsAndLamps() {
         return buttonsAndLamps;
     }
 
@@ -34,27 +50,73 @@ public class Floor extends Thread {
         return floorNumber;
     }
 
-    public boolean isLampOn() {
-        return lampOn;
-    }
-
     public Scheduler getScheduler() {
         return scheduler;
     }
 
-    public void setButtonDirection(ElevatorCallEvent.Direction direction, boolean state) {
+    public void setButtonDirection(Elevator.Direction direction, boolean state) {
         buttonsAndLamps.put(direction, state);
     }
 
-    public void setLampOn(boolean lampOn) {
-        this.lampOn = lampOn;
+    public void readMessage() {
+        byte[] data = new byte[4];
+        receivePacket = new DatagramPacket(data, data.length, address, PORT);
+
+        try {
+            System.out.println("FLOOR " + floorNumber + ": Waiting for Packet...\n");
+            socket.receive(receivePacket);
+        } catch (IOException e) {
+            System.out.println(" FLOOR Error: Socket Timed Out.\n");
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        System.out.println("FLOOR: Packet received:" + Arrays.toString(data) + "\n");
+
+        if(data[0] == 1) {
+            System.out.println("FLOOR " + data[1] + ": Elevator " + data[2] + " arrived.\n");
+            if (data[1] == (byte) floorNumber) {
+                if (data[3] == 1)
+                    setButtonDirection(Elevator.Direction.UP, false);
+                else if (data[3] == 2)
+                    setButtonDirection(Elevator.Direction.DOWN, false);
+            }
+        }
+        else if(data[0] == 2) {
+            System.out.println("FLOOR " + floorNumber + ":  A delay occurred!\n");
+            try {
+                floorSubsystem.wait();
+            } catch (InterruptedException e) {
+                System.out.println("FLOOR " + floorNumber + ":  A error occurred!\n");
+                e.printStackTrace();
+            }
+        }
+        else if(data[0] == 3) {
+            floorSubsystem.notify();
+            System.out.println("FLOOR " + floorNumber + ":  Delay resolved!\n");
+        }
+
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e ) {
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 
     /**
      * This is the section for running with threads.
      */
     public void run() {
-        FloorSubsystem floorSubsystem = new FloorSubsystem(this, scheduler);
-        floorSubsystem.parseData("src/InputTable.txt"); // edit this to specify the file to read
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+        floorSubsystem.start();
+        while(true) {
+            readMessage();
+        }
     }
 }

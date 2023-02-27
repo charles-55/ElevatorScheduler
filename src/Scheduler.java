@@ -1,4 +1,7 @@
+import java.io.IOException;
+import java.net.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 
@@ -14,12 +17,27 @@ import java.util.HashMap;
 public class Scheduler extends Thread {
 
     private final HashMap<Elevator, ArrayList<Integer>> queue;
+    private final ArrayList<Elevator> elevators;
+    private DatagramPacket floorSendPacket, floorReceivePacket, elevatorSendPacket, elevatorReceivePacket;
+    private InetAddress floorAddress, elevatorAddress;
+    private DatagramSocket floorSocket, elevatorSocket;
+    private static final int FLOOR_PORT = 23, ELEVATOR_PORT = 69;
 
     /**
      * Initializes the controller.
      */
     public Scheduler() {
         queue = new HashMap<>();
+        elevators = new ArrayList<>();
+        try {
+            floorSocket = new DatagramSocket(FLOOR_PORT);
+            elevatorSocket = new DatagramSocket();
+            floorAddress = InetAddress.getLocalHost();
+            elevatorAddress = InetAddress.getLocalHost();
+        } catch (SocketException| UnknownHostException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 
     /**
@@ -36,22 +54,26 @@ public class Scheduler extends Thread {
      */
     public void addElevator(Elevator elevator) {
         queue.put(elevator, new ArrayList<>());
+        elevators.add(elevator);
     }
 
     /**
-     * Adds a stop for an elevator to the queue.
-     * Calls for an elevator to a floor.
-     * @param event ElevatorCallEvent, an event containing details of the elevator call.
+     * Get the closest elevator to a floor and moving in the same direction or on standby.
+     * @param floorNum int, the floor the elevator is bing called to.
+     * @param direction Direction, direction of the elevator.
+     * @return int, the elevator number for the closest elevator.
      */
-    public synchronized void addToQueue(ElevatorCallEvent event) {
+    public synchronized int getClosestElevator(int floorNum, Elevator.Direction direction) {
         Elevator elevator = (Elevator) queue.keySet().toArray()[0];
         for(Elevator e : queue.keySet()) {
-            if ((Math.abs(e.getCurrentFloor() - event.getFloorNumber())
-                    < Math.abs(elevator.getCurrentFloor() - event.getFloorNumber()))
-                    && ((e.getDirection().equals(event.getDirection()))
-                    || (e.getDirection().equals(ElevatorCallEvent.Direction.STANDBY))))
+            if ((Math.abs(e.getCurrentFloor() - floorNum)
+                    < Math.abs(elevator.getCurrentFloor() - floorNum))
+                    && ((e.getDirection().equals(direction))
+                    || (e.getDirection().equals(Elevator.Direction.STANDBY))))
                 elevator = e;
         }
+        return elevator.getElevatorNum();
+        /*
         queue.get(elevator).add(event.getDestinationFloor());
         Collections.sort(queue.get(elevator));
 
@@ -71,6 +93,80 @@ public class Scheduler extends Thread {
         System.out.println("Added to queue.");
 
         notifyAll();
+
+         */
+    }
+
+    public void sendToElevator() {
+        byte[] data = new byte[3];
+        floorReceivePacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_PORT);
+
+        try {
+            System.out.println("SCHEDULER: Waiting for Packet from Floor...\n");
+            floorSocket.receive(floorReceivePacket);
+        } catch (IOException e) {
+            System.out.println("SCHEDULER Error: Floor Socket Timed Out.");
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        System.out.println("SCHEDULER: Packet Received from Floor " + ((int) data[0]) + ": " + Arrays.toString(data) + ".\n");
+
+        elevatorSendPacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_PORT);
+
+        try {
+            System.out.println("SCHEDULER: Sending Packet to elevator: " + Arrays.toString(data) + "\n");
+            elevatorSocket.send(elevatorSendPacket);
+        } catch (IOException e) {
+            System.out.println("SCHEDULER Error: Elevator Socket Timed Out.");
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        System.out.println("SCHEDULER: Packet sent to elevator.\n");
+
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e ) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+
+    public void sendToFloor() {
+        byte[] data = new byte[3];
+        elevatorReceivePacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_PORT);
+
+        try {
+            System.out.println("SCHEDULER: Waiting for Packet from Elevator...\n");
+            elevatorSocket.receive(elevatorReceivePacket);
+        } catch (IOException e) {
+            System.out.println("SCHEDULER Error: Elevator Socket Timed Out.");
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        System.out.println("SCHEDULER: Packet Received from Elevator: " + Arrays.toString(data) + ".\n");
+
+        floorSendPacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_PORT);
+
+        try {
+            System.out.println("SCHEDULER: Sending Packet to Floor: " + Arrays.toString(data)+".\n");
+            floorSocket.send(floorSendPacket);
+        } catch (IOException e) {
+            System.out.println("SCHEDULER Error: Floor Socket Timed Out.");
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        System.out.println("SCHEDULER: Packet sent to floor\n");
+
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e ) {
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 
     /**
@@ -91,5 +187,20 @@ public class Scheduler extends Thread {
             queue.get(elevator).remove(i);
         }
         System.out.println("Got from queue.");
+    }
+
+    @Override
+    public void run() {
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        while(true) {
+            sendToElevator();
+            sendToFloor();
+        }
     }
 }
