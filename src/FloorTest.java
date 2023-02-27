@@ -13,8 +13,8 @@ import static org.junit.Assert.assertEquals;
 public class FloorTest {
     private Scheduler scheduler;
     private Floor floor;
+    private ElevatorQueue elevatorQueue;
     private Elevator elevator;
-    private ElevatorCallEvent event;
     private static int NUM_OF_FLOORS = 5;
 
 
@@ -22,7 +22,8 @@ public class FloorTest {
     public void setUp() {
         scheduler = new Scheduler();
         floor = new Floor(1, scheduler);
-        elevator = new Elevator(NUM_OF_FLOORS, scheduler);
+        elevatorQueue = new ElevatorQueue();
+        elevator = new Elevator(1, NUM_OF_FLOORS, elevatorQueue);
     }
 
     @After

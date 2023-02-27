@@ -11,8 +11,8 @@ import static org.junit.Assert.assertTrue;
 public class ElevatorTest {
     private Scheduler scheduler;
     private Floor floor;
+    private ElevatorQueue elevatorQueue;
     private Elevator elevator;
-    private ElevatorCallEvent event;
     private static int NUM_OF_FLOORS = 5;
 
 
@@ -20,7 +20,8 @@ public class ElevatorTest {
     public void setUp() {
         scheduler = new Scheduler();
         floor = new Floor(1, scheduler);
-        elevator = new Elevator(NUM_OF_FLOORS, scheduler);
+        elevatorQueue = new ElevatorQueue();
+        elevator = new Elevator(1, NUM_OF_FLOORS, elevatorQueue);
     }
 
     @After
@@ -33,7 +34,7 @@ public class ElevatorTest {
     @Test
     public void testIsMoving(){
         assertEquals(1, elevator.getCurrentFloor());
-        elevator.moveToFloor(3, ElevatorCallEvent.Direction.UP);
+        elevator.moveToFloor(3, Elevator.Direction.UP);
         assertEquals(false,elevator.isMoving());
         assertEquals(3, elevator.getCurrentFloor());
     }
@@ -42,30 +43,30 @@ public class ElevatorTest {
     public void testOpenDoors() {
         int targetFloor = 3;
 
-        elevator.moveToFloor(targetFloor, ElevatorCallEvent.Direction.UP);
+        elevator.moveToFloor(targetFloor, Elevator.Direction.UP);
         elevator.setCurrentFloor(targetFloor);
         assertTrue(elevator.isDoorOpen() ==true);
     }
 
     @Test
     public void testCloseDoors(){
-        elevator.moveToFloor(3, ElevatorCallEvent.Direction.UP);
+        elevator.moveToFloor(3, Elevator.Direction.UP);
         assertTrue(elevator.isDoorOpen() != false);
     }
 
     @Test
     public void testMoveToFloor() {
         assertEquals(1, elevator.getCurrentFloor());
-        elevator.moveToFloor(3, ElevatorCallEvent.Direction.UP);
+        elevator.moveToFloor(3, Elevator.Direction.UP);
         assertEquals(3, elevator.getCurrentFloor());
     }
 
     @Test
     public void testRun(){
         scheduler = new Scheduler();
-        elevator = new Elevator(NUM_OF_FLOORS, scheduler);
+        elevatorQueue = new ElevatorQueue();
+        elevator = new Elevator(1, NUM_OF_FLOORS, elevatorQueue);
 
-        scheduler.getFromQueue(elevator);
 
 
 

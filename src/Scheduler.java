@@ -169,26 +169,6 @@ public class Scheduler extends Thread {
         }
     }
 
-    /**
-     * Removes a stop for the elevator from the queue.
-     * @param elevator Elevator, the elevator
-     */
-    public synchronized void getFromQueue(Elevator elevator) {
-        while(queue.get(elevator).size() == 0) {
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
-        for(int i = 0; i < queue.get(elevator).size();) {
-            elevator.put(queue.get(elevator).get(i), true);
-            queue.get(elevator).remove(i);
-        }
-        System.out.println("Got from queue.");
-    }
-
     @Override
     public void run() {
         try {

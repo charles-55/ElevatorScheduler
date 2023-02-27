@@ -13,21 +13,21 @@ import static org.junit.Assert.*;
  * @version 1.0
  */
 public class SchedulerTest {
+
     private Scheduler scheduler;
     private Floor floor;
+    private ElevatorQueue elevatorQueue;
     private Elevator elevator;
-    private ElevatorCallEvent event;
     private static int NUM_OF_FLOORS = 5;
     private HashMap<Elevator, ArrayList<Integer>> queue;
-
 
     @Before
     public void setUp() {
         scheduler = new Scheduler();
         floor = new Floor(1, scheduler);
-        elevator = new Elevator(NUM_OF_FLOORS, scheduler);
+        elevatorQueue = new ElevatorQueue();
+        elevator = new Elevator(1, NUM_OF_FLOORS, elevatorQueue);
         queue = new HashMap<>();
-        event = new ElevatorCallEvent(LocalTime.now(),1, ElevatorCallEvent.Direction.UP,3);
     }
 
     @After
@@ -57,7 +57,4 @@ public class SchedulerTest {
         scheduler.getQueue().remove(elevator,new ArrayList<>());
         assertTrue(scheduler.getQueue().isEmpty());
     }
-
-
-
 }

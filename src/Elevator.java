@@ -306,15 +306,15 @@ public class Elevator extends Thread {
         }
 
         if (this.isMoving()) {
-            if (this.getDirection() == ElevatorCallEvent.Direction.UP) {
+            if (this.getDirection() == Direction.UP) {
                 System.out.println("The elevator is moving up.");
-            } else if (this.getDirection() == ElevatorCallEvent.Direction.DOWN) {
+            } else if (this.getDirection() == Direction.DOWN) {
                 System.out.println("The elevator is moving down.");
             } else {
                 throw new Exception("Error: The elevator is moving but its direction is STANDBY.");
             }
         } else {
-            if (this.getDirection() == ElevatorCallEvent.Direction.STANDBY) {
+            if (this.getDirection() == Direction.STANDBY) {
                 System.out.println("The elevator is stopped.");
             } else {
                 throw new Exception("Error: The elevator is not moving but its direction is not STANDBY.");
