@@ -326,14 +326,29 @@ public class Elevator extends Thread {
      */
     @Override
     public void run() {
-        while(true) {
-            elevatorQueue.getFromQueue(this);
-            for(int destinationFloor : buttonsAndLamps.keySet()) {
-                if(buttonsAndLamps.get(destinationFloor)) {
-                    moveToFloor(destinationFloor, direction);
+        Elevator elevator = this;
+        Thread thread1 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true)
+                    elevatorQueue.getFromQueue(elevator);
+            }
+        });
+        Thread thread2 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    for (int destinationFloor : buttonsAndLamps.keySet()) {
+                        if (buttonsAndLamps.get(destinationFloor)) {
+                            elevator.moveToFloor(destinationFloor, direction);
+                        }
+                    }
                 }
             }
-        }
+        });
+
+        thread1.start();
+        thread2.start();
     }
 
     public void closeSocket() {
