@@ -181,11 +181,10 @@ public class Elevator extends Thread {
             e.printStackTrace();
         }
 
-        System.out.println("ELEVATOR " + elevatorNum + ": At floor " + currentFloor + ".\n");
-
         buttonsAndLamps.put(targetFloor, false);
         this.isMoving = false;
         this.currentFloor = targetFloor;
+        System.out.println("ELEVATOR " + elevatorNum + ": At floor " + currentFloor + ".\n");
         this.openDoors();
     }
 
