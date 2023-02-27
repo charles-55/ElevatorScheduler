@@ -42,22 +42,42 @@ public class Floor extends Thread {
         floorSubsystem = new FloorSubsystem(this, address, "src/InputTable.txt");
     }
 
+    /**
+     * Accessor method for the buttons and lamps
+     * @return buttonsAndLamps
+     */
     public HashMap<Elevator.Direction, Boolean> getButtonsAndLamps() {
         return buttonsAndLamps;
     }
 
+    /**
+     * Returns the floor number
+     * @return floorNumber
+     */
     public int getFloorNumber() {
         return floorNumber;
     }
 
+    /**
+     * Accessor method for the scheduler
+     * @return scheduler
+     */
     public Scheduler getScheduler() {
         return scheduler;
     }
 
+    /**
+     * Mutator method for the button direction.
+     * @param direction
+     * @param state
+     */
     public void setButtonDirection(Elevator.Direction direction, boolean state) {
         buttonsAndLamps.put(direction, state);
     }
 
+    /**
+     * Method to read the message from the datagram
+     */
     public void readMessage() {
         byte[] data = new byte[4];
         receivePacket = new DatagramPacket(data, data.length, address, PORT);
@@ -104,6 +124,10 @@ public class Floor extends Thread {
         }
     }
 
+    /**
+     * Method to print the state of the elevator
+     * @throws Exception
+     */
     public void printState() throws Exception {
         boolean up = this.buttonsAndLamps.get(Elevator.Direction.UP);
         boolean down = this.buttonsAndLamps.get(Elevator.Direction.DOWN);
@@ -135,6 +159,9 @@ public class Floor extends Thread {
         }
     }
 
+    /**
+     * Method to close the socket
+     */
     public void closeSocket() {
         socket.close();
         floorSubsystem.closeSocket();
