@@ -19,7 +19,6 @@ import java.util.Scanner;
 public class FloorSubsystem extends Thread {
 
     private final Floor floor;
-    private final Scheduler scheduler;
     private DatagramPacket sendPacket;
     private DatagramSocket socket;
     private final InetAddress address;
@@ -29,14 +28,12 @@ public class FloorSubsystem extends Thread {
     /**
      * Initialize the FloorSubsystem.
      * @param floor
-     * @param scheduler
      * @param address
      * @param port
      * @param fileName - the name of the input file preferably a .txt file.
      */
-    public FloorSubsystem(Floor floor, Scheduler scheduler, InetAddress address, int port, String fileName) {
+    public FloorSubsystem(Floor floor, InetAddress address, int port, String fileName) {
         this.floor = floor;
-        this.scheduler = scheduler;
         this.address = address;
         this.port = port;
         this.fileName = fileName;
@@ -57,9 +54,9 @@ public class FloorSubsystem extends Thread {
         try {
             Scanner sc = new Scanner(file);
             while (sc.hasNextLine()) {
-                String data = sc.nextLine();
-                System.out.println("FLOOR SUBSYSTEM: Line scanned: " + data + ".\n");
-                String[] splitData = data.split(" ");
+                String line = sc.nextLine();
+                System.out.println("FLOOR SUBSYSTEM: Line scanned: " + line + ".\n");
+                String[] splitData = line.split(" ");
 
                 LocalTime time;
                 int floorNumber, destinationFloor;
@@ -78,17 +75,17 @@ public class FloorSubsystem extends Thread {
                     }
                 }
 
-                byte[] info = new byte[3];
-                info[0] = (byte) floorNumber;
+                byte[] data = new byte[3];
+                data[0] = (byte) floorNumber;
                 if (direction == Elevator.Direction.UP)
-                    info[1] = 1;
+                    data[1] = 1;
                 else if (direction == Elevator.Direction.DOWN)
-                    info[1] = 2;
-                info[2] = (byte) destinationFloor;
-                sendPacket = new DatagramPacket(info, info.length, address, port);
+                    data[1] = 2;
+                data[2] = (byte) destinationFloor;
+                sendPacket = new DatagramPacket(data, data.length, address, port);
 
                 time = LocalTime.now(); // for testing purposes only!
-                System.out.println("FLOOR SUBSYSTEM: Sending Packet: " + Arrays.toString(info) + ".");
+                System.out.println("FLOOR SUBSYSTEM: Sending Packet: " + Arrays.toString(data) + ".");
                 socket.send(sendPacket);
                 System.out.println("FLOOR SUBSYSTEM: Packet Sent!\n");
 //                if(LocalTime.now().equals(time)) {

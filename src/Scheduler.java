@@ -31,7 +31,7 @@ public class Scheduler extends Thread {
         elevators = new ArrayList<>();
         try {
             floorSocket = new DatagramSocket(FLOOR_PORT);
-            elevatorSocket = new DatagramSocket(ELEVATOR_PORT);
+            elevatorSocket = new DatagramSocket();
             floorAddress = InetAddress.getLocalHost();
             elevatorAddress = InetAddress.getLocalHost();
         } catch (SocketException| UnknownHostException e) {
@@ -117,7 +117,6 @@ public class Scheduler extends Thread {
         try {
             System.out.println("SCHEDULER: Sending Packet to elevator: " + Arrays.toString(data) + "\n");
             elevatorSocket.send(elevatorSendPacket);
-            System.out.println("SCHEDULER: Packet Sent!\n");
         } catch (IOException e) {
             System.out.println("SCHEDULER Error: Elevator Socket Timed Out.");
             e.printStackTrace();

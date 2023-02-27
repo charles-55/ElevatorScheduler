@@ -4,22 +4,27 @@ import java.util.*;
 
 public class ElevatorQueue extends Thread {
 
+    private boolean waiting;
     private DatagramSocket socket;
     private InetAddress address;
     private static final int PORT = 69;
     private final HashMap<Elevator, ArrayList<Integer>> queue;
 
-
     public ElevatorQueue() {
+        waiting = false;
         queue = new HashMap<>();
+
         try {
-            socket = new DatagramSocket();
+            socket = new DatagramSocket(PORT);
             address = InetAddress.getLocalHost();
         } catch (SocketException | UnknownHostException e) {
             e.printStackTrace();
             System.exit(1);
         }
+    }
 
+    public boolean isWaiting() {
+        return waiting;
     }
 
     public void addElevator(Elevator elevator) {
@@ -42,7 +47,6 @@ public class ElevatorQueue extends Thread {
                 elevator = e;
         }
 
-
         if(elevator.getDirection().equals(Elevator.Direction.STANDBY)) {
             elevator.moveToFloor(data[0], (elevator.getCurrentFloor() - data[0] > 0) ? Elevator.Direction.DOWN : Elevator.Direction.UP);
             elevator.moveToFloor(data[2], direction);
@@ -58,8 +62,11 @@ public class ElevatorQueue extends Thread {
         }
         else {
             try {
+                System.out.println("ELEVATOR QUEUE: A Delay Occurred!\n");
                 Elevator.alertDelay();
+                waiting = true;
                 this.wait();
+                waiting = false;
                 Elevator.alertDelayResolved();
                 elevator.moveToFloor(data[0], (elevator.getCurrentFloor() - data[0] > 0) ? Elevator.Direction.DOWN : Elevator.Direction.UP);
                 elevator.moveToFloor(data[2], direction);
@@ -72,7 +79,7 @@ public class ElevatorQueue extends Thread {
         Collections.sort(queue.get(elevator));
         System.out.println("ELEVATOR QUEUE: Added to queue.");
 
-        notifyAll();
+        elevator.notify();
     }
 
     public synchronized void getFromQueue(Elevator elevator) {
@@ -91,7 +98,7 @@ public class ElevatorQueue extends Thread {
         System.out.println("ELEVATOR " + elevator.getElevatorNum() + ": Got from queue.\n");
     }
 
-    public void respondToCall(){
+    public void respondToCall() {
         byte[] data = new byte[3];
         DatagramPacket receivePacket = new DatagramPacket(data, data.length, address, PORT);
 

@@ -26,7 +26,6 @@ public class Floor extends Thread {
      * Constructor for the floor class.
      */
     public Floor(int floorNumber, Scheduler scheduler) {
-        floorSubsystem = new FloorSubsystem(this, scheduler, address, PORT, "src/InputTable.txt");
         this.scheduler = scheduler;
         this.floorNumber = floorNumber;
         buttonsAndLamps = new HashMap<>();
@@ -40,6 +39,7 @@ public class Floor extends Thread {
             e.printStackTrace();
             System.exit(1);
         }
+        floorSubsystem = new FloorSubsystem(this, address, PORT, "src/InputTable.txt");
     }
 
     public HashMap<Elevator.Direction, Boolean> getButtonsAndLamps() {
@@ -74,6 +74,7 @@ public class Floor extends Thread {
         System.out.println("FLOOR: Packet received:" + Arrays.toString(data) + "\n");
 
         if(data[0] == 1) {
+            System.out.println("FLOOR " + data[1] + ": Elevator " + data[2] + " arrived.\n");
             if (data[1] == (byte) floorNumber) {
                 if (data[3] == 1)
                     setButtonDirection(Elevator.Direction.UP, false);

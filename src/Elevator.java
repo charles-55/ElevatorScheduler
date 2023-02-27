@@ -152,7 +152,7 @@ public class Elevator extends Thread {
      * @param targetFloor int, the floor to move to.
      */
     public void moveToFloor(int targetFloor, Direction direction) {
-        System.out.println("Moving from floor " + currentFloor + " to " + targetFloor + ".");
+        System.out.println("ELEVATOR " + elevatorNum + ": Moving from floor " + currentFloor + " to " + targetFloor + ".");
         this.direction = direction;
         if(doorOpen)
             closeDoors();
@@ -164,7 +164,7 @@ public class Elevator extends Thread {
             e.printStackTrace();
         }
 
-        System.out.println("At floor " + currentFloor + ".");
+        System.out.println("ELEVATOR " + elevatorNum + ": At floor " + currentFloor + ".\n");
 
         buttonsAndLamps.put(targetFloor, false);
         this.isMoving = false;
@@ -175,57 +175,6 @@ public class Elevator extends Thread {
     public void put(int i, boolean b) {
         buttonsAndLamps.put(i, b);
     }
-
-//    public void respondToCall() {
-//        byte[] data = new byte[4];
-//        receivePacket = new DatagramPacket(data, data.length, address, PORT);
-//
-//        try {
-//            System.out.println("ELEVATOR " + elevatorNum + ": Waiting for Packet...\n");
-//            socket.receive(receivePacket);
-//        } catch (IOException e) {
-//            System.out.println("ELEVATOR " + elevatorNum + " Error: Socket Timed Out.");
-//            e.printStackTrace();
-//            System.exit(1);
-//        }
-//
-//        System.out.println("ELEVATOR " + elevatorNum + ": Packet Received: " + Arrays.toString(data) + ".\n");
-//
-//        if(elevatorNum == (int) data[0]) {
-//            Direction direction = Direction.STANDBY;
-//            if(data[2] == 1)
-//                direction = Elevator.Direction.UP;
-//            else if(data[2] == 2)
-//                direction = Elevator.Direction.DOWN;
-//
-//            if(this.direction.equals(Direction.STANDBY))
-//                moveToFloor(data[1], direction);
-//            else if(direction.equals(Direction.DOWN) && (currentFloor - (int) data[1] >= 0))
-//                buttonsAndLamps.put((int) data[1], true);
-//            else if(direction.equals(Direction.UP) && (currentFloor - (int) data[1] <= 0))
-//                buttonsAndLamps.put((int) data[1], true);
-//            else {
-//                try {
-//                    wait();
-//                    buttonsAndLamps.put((int) data[1], true);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                    System.exit(1);
-//                }
-//            }
-//
-//            // wait till arrived at floor
-//
-//            buttonsAndLamps.put((int) data[3], true);
-//        }
-//
-//        try {
-//            Thread.sleep(50);
-//        } catch (InterruptedException e ) {
-//            e.printStackTrace();
-//            System.exit(1);
-//        }
-//    }
 
     public void alertArrival() {
         byte[] data = new byte[4];
@@ -247,7 +196,8 @@ public class Elevator extends Thread {
         }
         if(done) {
             direction = Direction.STANDBY;
-            elevatorQueue.notify();
+            if(elevatorQueue.isWaiting())
+                elevatorQueue.notify();
         }
 
         sendPacket = new DatagramPacket(data, data.length, address, PORT);
