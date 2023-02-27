@@ -104,6 +104,10 @@ public class Floor extends Thread {
         }
     }
 
+    /**
+     * Method that prints the current state of the floor's buttons.
+     * @throws Exception Happens when both floor lights are on at the same time.
+     */
     public void printState() throws Exception {
         boolean up = this.buttonsAndLamps.get(Elevator.Direction.UP);
         boolean down = this.buttonsAndLamps.get(Elevator.Direction.DOWN);
