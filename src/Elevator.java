@@ -313,7 +313,11 @@ public class Elevator extends Thread {
                 throw new Exception("Error: The elevator is moving but its direction is STANDBY.");
             }
         } else {
-            System.out.println("The elevator is stopped.");
+            if (this.getDirection() != Direction.STANDBY) {
+                System.out.println("The elevator is stopped and is about to go " + this.getDirection().toString() + ".");
+            } else {
+                System.out.println("The elevator is stopped and is on STANDBY.");
+            }
         }
     }
 
