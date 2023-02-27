@@ -2,6 +2,9 @@ import java.io.IOException;
 import java.net.*;
 import java.util.*;
 
+/**
+ * ElevatorQueue class implementing packets.
+ */
 public class ElevatorQueue extends Thread {
 
     private boolean waiting;
@@ -10,6 +13,9 @@ public class ElevatorQueue extends Thread {
     private static final int PORT = 21;
     private final HashMap<Elevator, ArrayList<Integer>> queue;
 
+    /**
+     * Constructor method for ElevatorQueue.
+     */
     public ElevatorQueue() {
         waiting = false;
         queue = new HashMap<>();
@@ -23,18 +29,34 @@ public class ElevatorQueue extends Thread {
         }
     }
 
+    /**
+     * Getter method for the elevator's queue.
+     * @return HashMap<Elevator, ArrayList<Integer>> queue Elevator's queue.
+     */
     public HashMap<Elevator, ArrayList<Integer>> getQueue() {
         return queue;
     }
 
+    /**
+     * Getter method for the elevator waiting in a queue.
+     * @return boolean waiting variable, true if the elevator is waiting in the queue, false if not.
+     */
     public boolean isWaiting() {
         return waiting;
     }
 
+    /**
+     * Add an Elevator object in the queue HashMap.
+     * @param elevator Elevator object.
+     */
     public void addElevator(Elevator elevator) {
         queue.put(elevator, new ArrayList<>());
     }
 
+    /**
+     * Add a call to an elevator's queue.
+     * @param data byte[] An elevator call at floor X for the elevator to go to.
+     */
     public void addToQueue(byte[] data) {
         Elevator.Direction direction = Elevator.Direction.STANDBY;
         if(data[1] == 1)
@@ -86,6 +108,10 @@ public class ElevatorQueue extends Thread {
         notifyAll();
     }
 
+    /**
+     * Gets the queue and lights up the elevator buttons respectively.
+     * @param elevator Elevator object.
+     */
     public synchronized void getFromQueue(Elevator elevator) {
         while(queue.get(elevator).size() == 0) {
             try {
@@ -102,6 +128,9 @@ public class ElevatorQueue extends Thread {
         System.out.println("ELEVATOR " + elevator.getElevatorNum() + ": Got from queue.\n");
     }
 
+    /**
+     * Responds when a packet is received.
+     */
     public void respondToCall() {
         byte[] data = new byte[3];
         DatagramPacket receivePacket = new DatagramPacket(data, data.length, address, PORT);
@@ -119,6 +148,16 @@ public class ElevatorQueue extends Thread {
         addToQueue(data);
     }
 
+    /**
+     * Closes a socket.
+     */
+    public void closeSocket() {
+        socket.close();
+    }
+
+    /**
+     * Run method.
+     */
     @Override
     public void run() {
         try {
@@ -128,9 +167,5 @@ public class ElevatorQueue extends Thread {
         }
         while (true)
             respondToCall();
-    }
-
-    public void closeSocket() {
-        socket.close();
     }
 }

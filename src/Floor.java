@@ -94,7 +94,7 @@ public class Floor extends Thread {
         System.out.println("FLOOR: Packet received: " + Arrays.toString(data) + "\n");
 
         if(data[0] == 1) {
-            System.out.println("FLOOR " + data[1] + ": Elevator " + data[2] + " arrived.\n");
+            System.out.println("FLOOR " + data[1] + ": Elevator " + data[2] + " arrived.\n"); // to be moved when other floors are created
             if (data[1] == (byte) floorNumber) {
                 if (data[3] == 1)
                     setButtonDirection(Elevator.Direction.UP, false);
