@@ -56,7 +56,7 @@ ElevatorQueue class - This class hooks the elevators up to the queue system.
 
 Main class - This class is used to run the program.
 
-FloorTest - This is a test class that tests the methods in the Floor and FloorSubsytem classes.
+FloorTest - This is a test class that tests the methods in the Floor and FloorSubsystem classes.
 
 ElevatorTest - This is a test class that tests the methods in the Elevator class.
 
