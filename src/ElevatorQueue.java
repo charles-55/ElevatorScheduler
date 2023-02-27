@@ -23,6 +23,10 @@ public class ElevatorQueue extends Thread {
         }
     }
 
+    public HashMap<Elevator, ArrayList<Integer>> getQueue() {
+        return queue;
+    }
+
     public boolean isWaiting() {
         return waiting;
     }
