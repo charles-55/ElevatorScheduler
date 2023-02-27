@@ -342,6 +342,18 @@ public class Elevator extends Thread {
                         if (buttonsAndLamps.get(destinationFloor)) {
                             elevator.moveToFloor(destinationFloor, direction);
                         }
+                        for(int[] arr : delayedQueue) {
+                            if((currentFloor > arr[0]) && (direction == Direction.DOWN))
+                                buttonsAndLamps.put(arr[0], true);
+                            else if((currentFloor < arr[0]) && (direction == Direction.UP))
+                                buttonsAndLamps.put(arr[0], true);
+                            else if(currentFloor == arr[0]) {
+                                if((direction == Direction.DOWN) && (arr[0] > arr[1]))
+                                    buttonsAndLamps.put(arr[1], true);
+                                else if((direction == Direction.UP) && (arr[0] < arr[1]))
+                                    buttonsAndLamps.put(arr[1], true);
+                            }
+                        }
                     }
                 }
             }
