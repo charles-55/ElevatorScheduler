@@ -71,3 +71,20 @@ Run the Main class.
 ## Test Instructions:
 Run the Test methods in the test classes (ElevatorTest, FloorTest, SchedulerTest).
 
+## Packet Byte[] Information:
+- Direction values: 1 = UP, 2 = DOWN
+- Wait values: 1 = Success, 2 = Wait, 3 = Notify
+- Floor Subsystem Sent Message: [floorNumber, direction, destinationFloor]
+- Floor Received Message: [wait, floorNumber, elevatorNum, direction]
+- Elevator Sent Message: [wait, floorNumber, elevatorNum, direction]
+- Elevator Queue Received Message: [floorNumber, direction, destinationFloor]
+
+## Port Information:
+- Floor Subsystem Sending: 20
+- Scheduler Floor Receiving: 20
+- Scheduler Elevator Sending: 21
+- Elevator Queue Receiving: 21
+- Elevator Sending: 22
+- Scheduler Elevator Receiving: 22
+- Scheduler Floor Sending: 23
+- Floor Receiving: 23
