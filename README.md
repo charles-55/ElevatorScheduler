@@ -73,7 +73,7 @@ Run the Test methods in the test classes (ElevatorTest, FloorTest, SchedulerTest
 
 ## Packet Byte[] Information:
 - Direction values: 1 = UP, 2 = DOWN
-- Wait values: 1 = Success, 2 = Wait, 3 = Notify
+- Wait values: 1 = Nothing, 2 = Wait, 3 = Notify
 - Floor Subsystem Sent Message: [floorNumber, direction, destinationFloor]
 - Floor Received Message: [wait, floorNumber, elevatorNum, direction]
 - Elevator Sent Message: [wait, floorNumber, elevatorNum, direction]
