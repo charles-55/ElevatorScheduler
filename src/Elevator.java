@@ -21,7 +21,7 @@ public class Elevator extends Thread {
     private final ArrayList<int[]> delayedQueue;
     private Direction direction;
     private final HashMap<Integer, Boolean> buttonsAndLamps;
-    private DatagramPacket sendPacket, receivePacket;
+    private DatagramPacket sendPacket;
     private DatagramSocket socket;
     private static InetAddress address;
     private static final int PORT = 22;
@@ -193,17 +193,47 @@ public class Elevator extends Thread {
             closeDoors();
         this.isMoving = true;
 
+        while(currentFloor != targetFloor) {
+            try {
+                Thread.sleep(4000);
+                if(direction.equals(Direction.UP))
+                    currentFloor++;
+                else if(direction.equals(Direction.DOWN))
+                    currentFloor--;
+
+                if(checkForStop()) {
+                    System.out.println("ELEVATOR " + elevatorNum + ": Made a stop on floor " + currentFloor + ".\n");
+                    this.isMoving = false;
+                    buttonsAndLamps.put(currentFloor, false);
+                    System.out.println();
+                    openDoors();
+                    Thread.sleep(5000);
+                    closeDoors();
+                    this.isMoving = true;
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        this.isMoving = false;
+        buttonsAndLamps.put(targetFloor, false);
+        System.out.println("ELEVATOR " + elevatorNum + ": At floor " + currentFloor + ".\n");
+        for(int[] arr : delayedQueue)
+            System.out.print(Arrays.toString(arr) + ", ");
+        System.out.println();
+
+        this.openDoors();
         try {
-            Thread.sleep((long) Math.abs(targetFloor - this.currentFloor) * 4000); // Arbitrary time for the elevator to move up X floors (X * 4 seconds)
+            Thread.sleep(5000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        closeDoors();
+    }
 
-        buttonsAndLamps.put(targetFloor, false);
-        this.isMoving = false;
-        this.currentFloor = targetFloor;
-        System.out.println("ELEVATOR " + elevatorNum + ": At floor " + currentFloor + ".\n");
-        this.openDoors();
+    private boolean checkForStop() {
+        return buttonsAndLamps.get(currentFloor);
     }
 
     /**
@@ -379,18 +409,43 @@ public class Elevator extends Thread {
                 while (true) {
                     for (int destinationFloor : buttonsAndLamps.keySet()) {
                         if (buttonsAndLamps.get(destinationFloor)) {
-                            elevator.moveToFloor(destinationFloor, direction);
+                            if(direction.equals(Direction.STANDBY)) {
+                                if(currentFloor > destinationFloor)
+                                    direction = Direction.DOWN;
+                                else if(currentFloor < destinationFloor)
+                                    direction = Direction.UP;
+                                elevator.moveToFloor(destinationFloor, direction);
+                            }
+                            else if(direction.equals(Direction.UP)) {
+                                if(destinationFloor > currentFloor)
+                                    put(destinationFloor, true);
+                            }
+                            else if(direction.equals(Direction.DOWN)) {
+                                if(destinationFloor < currentFloor)
+                                    put(destinationFloor, true);
+                            }
                         }
-                        for(int[] arr : delayedQueue) {
-                            if((currentFloor > arr[0]) && (direction == Direction.DOWN))
-                                buttonsAndLamps.put(arr[0], true);
-                            else if((currentFloor < arr[0]) && (direction == Direction.UP))
-                                buttonsAndLamps.put(arr[0], true);
-                            else if(currentFloor == arr[0]) {
-                                if((direction == Direction.DOWN) && (arr[0] > arr[1]))
-                                    buttonsAndLamps.put(arr[1], true);
-                                else if((direction == Direction.UP) && (arr[0] < arr[1]))
-                                    buttonsAndLamps.put(arr[1], true);
+                    }
+                }
+            }
+        });
+        Thread thread3 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    for(int[] arr : delayedQueue) {
+                        if((currentFloor > arr[0]) && (direction == Direction.DOWN))
+                            buttonsAndLamps.put(arr[0], true);
+                        else if((currentFloor < arr[0]) && (direction == Direction.UP))
+                            buttonsAndLamps.put(arr[0], true);
+                        else if(currentFloor == arr[0]) {
+                            if((direction == Direction.DOWN) && (arr[0] > arr[1])) {
+                                buttonsAndLamps.put(arr[1], true);
+                                delayedQueue.remove(arr);
+                            }
+                            else if((direction == Direction.UP) && (arr[0] < arr[1])) {
+                                buttonsAndLamps.put(arr[1], true);
+                                delayedQueue.remove(arr);
                             }
                         }
                     }
@@ -400,5 +455,6 @@ public class Elevator extends Thread {
 
         thread1.start();
         thread2.start();
+        thread3.start();
     }
 }

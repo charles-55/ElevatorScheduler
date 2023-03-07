@@ -74,9 +74,10 @@ public class ElevatorQueue extends Thread {
         }
 
         if(elevator.getDirection().equals(Elevator.Direction.STANDBY)) {
-            elevator.moveToFloor(data[0], (elevator.getCurrentFloor() - data[0] > 0) ? Elevator.Direction.DOWN : Elevator.Direction.UP);
-            elevator.moveToFloor(data[2], direction);
-            return;
+            elevator.moveToFloor(data[0], direction); // (elevator.getCurrentFloor() - data[0] > 0) ? Elevator.Direction.DOWN : Elevator.Direction.UP
+//            elevator.moveToFloor(data[2], direction);
+            elevator.put(data[2], true);
+            //elevator.addToDelayedQueue(data[0], data[2]);
         }
         else if(elevator.getDirection().equals(Elevator.Direction.DOWN) && (elevator.getCurrentFloor() - data[0] >= 0)) {
             elevator.put(data[0], true);
@@ -105,7 +106,7 @@ public class ElevatorQueue extends Thread {
         Collections.sort(queue.get(elevator));
         System.out.println("ELEVATOR QUEUE: Added to queue.");
 
-        notifyAll();
+        //notifyAll();
     }
 
     /**
