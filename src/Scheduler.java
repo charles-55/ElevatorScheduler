@@ -18,7 +18,7 @@ public class Scheduler extends Thread {
     private DatagramPacket floorSendPacket, floorReceivePacket, elevatorSendPacket, elevatorReceivePacket;
     private InetAddress floorAddress, elevatorAddress;
     private DatagramSocket floorReceivingSocket, floorSendingSocket, elevatorReceivingSocket, elevatorSendingSocket;
-    private static final int FLOOR_RECEIVING_PORT = 20, FLOOR_SENDING_PORT = 23, ELEVATOR_SENDING_PORT = 21, ELEVATOR_RECEIVING_PORT = 22;
+    private static final int FLOOR_RECEIVING_PORT = 2000, FLOOR_SENDING_PORT = 2300, ELEVATOR_SENDING_PORT = 2100, ELEVATOR_RECEIVING_PORT = 2200;
 
     /**
      * Initializes the controller.
@@ -94,7 +94,7 @@ public class Scheduler extends Thread {
 
         System.out.println("SCHEDULER: Packet Received from Elevator: " + Arrays.toString(data) + ".\n");
 
-        floorSendPacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_SENDING_PORT);
+        floorSendPacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_SENDING_PORT + ((int) data[1]));
 
         try {
             System.out.println("SCHEDULER: Sending Packet to Floor: " + Arrays.toString(data)+".\n");

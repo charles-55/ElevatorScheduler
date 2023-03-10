@@ -13,14 +13,14 @@ import java.util.HashMap;
  */
 public class Floor extends Thread {
 
-    private final FloorSubsystem floorSubsystem;
+    //private final FloorSubsystem floorSubsystem;
     private final int floorNumber;
     private final HashMap<Elevator.Direction, Boolean> buttonsAndLamps;
     private final Scheduler scheduler;
     private DatagramPacket receivePacket;
     private DatagramSocket socket;
     private InetAddress address;
-    private static final int PORT = 23;
+    private final int PORT;
 
     /**
      * Constructor for the floor class.
@@ -31,6 +31,7 @@ public class Floor extends Thread {
         buttonsAndLamps = new HashMap<>();
         buttonsAndLamps.put(Elevator.Direction.UP, false);
         buttonsAndLamps.put(Elevator.Direction.DOWN, false);
+        PORT = 2300 + floorNumber;
 
         try {
             socket = new DatagramSocket(PORT);
@@ -39,7 +40,7 @@ public class Floor extends Thread {
             e.printStackTrace();
             System.exit(1);
         }
-        floorSubsystem = new FloorSubsystem(this, address, "src/InputTable.txt");
+        //floorSubsystem = new FloorSubsystem(address, "src/InputTable.txt");
     }
 
     /**
@@ -94,27 +95,28 @@ public class Floor extends Thread {
         System.out.println("FLOOR: Packet received: " + Arrays.toString(data) + "\n");
 
         if(data[0] == 1) {
-            System.out.println("FLOOR " + data[1] + ": Elevator " + data[2] + " arrived.\n"); // to be moved when other floors are created
+            //System.out.println("FLOOR " + data[1] + ": Elevator " + data[2] + " arrived.\n"); // to be moved when other floors are created
             if (data[1] == (byte) floorNumber) {
+                System.out.println("FLOOR " + data[1] + ": Elevator " + data[2] + " arrived.\n");
                 if (data[3] == 1)
                     setButtonDirection(Elevator.Direction.UP, false);
                 else if (data[3] == 2)
                     setButtonDirection(Elevator.Direction.DOWN, false);
             }
         }
-        else if(data[0] == 2) {
-            System.out.println("FLOOR " + floorNumber + ":  A delay occurred!\n");
-            try {
-                floorSubsystem.wait();
-            } catch (InterruptedException e) {
-                System.out.println("FLOOR " + floorNumber + ":  A error occurred!\n");
-                e.printStackTrace();
-            }
-        }
-        else if(data[0] == 3) {
-            floorSubsystem.notify();
-            System.out.println("FLOOR " + floorNumber + ":  Delay resolved!\n");
-        }
+//        else if(data[0] == 2) {
+//            System.out.println("FLOOR " + floorNumber + ":  A delay occurred!\n");
+//            try {
+//                floorSubsystem.wait();
+//            } catch (InterruptedException e) {
+//                System.out.println("FLOOR " + floorNumber + ":  A error occurred!\n");
+//                e.printStackTrace();
+//            }
+//        }
+//        else if(data[0] == 3) {
+//            floorSubsystem.notify();
+//            System.out.println("FLOOR " + floorNumber + ":  Delay resolved!\n");
+//        }
 
         try {
             Thread.sleep(50);
@@ -153,7 +155,7 @@ public class Floor extends Thread {
             e.printStackTrace();
             System.exit(1);
         }
-        floorSubsystem.start();
+        //floorSubsystem.start();
         while(true) {
             readMessage();
         }
@@ -164,6 +166,6 @@ public class Floor extends Thread {
      */
     public void closeSocket() {
         socket.close();
-        floorSubsystem.closeSocket();
+        //floorSubsystem.closeSocket();
     }
 }

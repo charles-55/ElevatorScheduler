@@ -29,7 +29,6 @@ public class FloorTest {
         scheduler.closeSocket();
         floor.closeSocket();
         elevatorQueue.closeSocket();
-        elevator.closeSocket();
 
         scheduler = null;
         floor = null;

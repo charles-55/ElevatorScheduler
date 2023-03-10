@@ -17,26 +17,25 @@ import java.util.Scanner;
 
 public class FloorSubsystem extends Thread {
 
-    private final Floor floor;
+    //private final Floor floor;
     private DatagramPacket sendPacket;
     private DatagramSocket socket;
-    private final InetAddress address;
-    private final int PORT = 20;
+    private InetAddress address;
+    private final int PORT = 2000;
     private final String fileName;
 
     /**
      * Initialize the FloorSubsystem.
-     * @param floor
-     * @param address
      * @param fileName - the name of the input file preferably a .txt file.
      */
-    public FloorSubsystem(Floor floor, InetAddress address, String fileName) {
-        this.floor = floor;
-        this.address = address;
+    public FloorSubsystem(String fileName) {
+        //this.floor = floor;
+        //this.address = address;
         this.fileName = fileName;
         try {
             socket = new DatagramSocket();
-        } catch (SocketException e) {
+            address = InetAddress.getLocalHost();
+        } catch (SocketException | UnknownHostException e) {
             e.printStackTrace();
             System.exit(1);
         }

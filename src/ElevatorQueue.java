@@ -10,7 +10,7 @@ public class ElevatorQueue extends Thread {
     private boolean waiting;
     private DatagramSocket socket;
     private InetAddress address;
-    private static final int PORT = 21;
+    private static final int RECEIVING_PORT = 2100, SENDING_PORT = 2200;
     private final HashMap<Elevator, ArrayList<Integer>> queue;
 
     /**
@@ -21,7 +21,7 @@ public class ElevatorQueue extends Thread {
         queue = new HashMap<>();
 
         try {
-            socket = new DatagramSocket(PORT);
+            socket = new DatagramSocket(RECEIVING_PORT);
             address = InetAddress.getLocalHost();
         } catch (SocketException | UnknownHostException e) {
             e.printStackTrace();
@@ -134,7 +134,7 @@ public class ElevatorQueue extends Thread {
      */
     public void respondToCall() {
         byte[] data = new byte[3];
-        DatagramPacket receivePacket = new DatagramPacket(data, data.length, address, PORT);
+        DatagramPacket receivePacket = new DatagramPacket(data, data.length, address, RECEIVING_PORT);
 
         try {
             System.out.println("ELEVATOR QUEUE: Waiting for Packet...\n");
