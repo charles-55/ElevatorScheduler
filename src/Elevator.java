@@ -282,51 +282,6 @@ public class Elevator extends Thread {
         if(state == States.RECEIVING_TASK)
             state = States.IDLE;
     }
-//    public void moveToFloor(int targetFloor, Direction direction) {
-//        System.out.println("ELEVATOR " + elevatorNum + ": Moving from floor " + currentFloor + " to " + targetFloor + ".\n");
-//        this.direction = direction;
-//        if(doorOpen)
-//            closeDoors();
-//        this.isMoving = true;
-//
-//        while(currentFloor != targetFloor) {
-//            try {
-//                Thread.sleep(4000);
-//                if(direction.equals(Direction.UP))
-//                    currentFloor++;
-//                else if(direction.equals(Direction.DOWN))
-//                    currentFloor--;
-//
-//                if(checkForStop()) {
-//                    System.out.println("ELEVATOR " + elevatorNum + ": Made a stop on floor " + currentFloor + ".\n");
-//                    this.isMoving = false;
-//                    buttonsAndLamps.put(currentFloor, false);
-//                    System.out.println();
-//                    openDoors();
-//                    Thread.sleep(5000);
-//                    closeDoors();
-//                    this.isMoving = true;
-//                }
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//
-//        this.isMoving = false;
-//        buttonsAndLamps.put(targetFloor, false);
-//        System.out.println("ELEVATOR " + elevatorNum + ": At floor " + currentFloor + ".\n");
-//        for(int[] arr : delayedQueue)
-//            System.out.print(Arrays.toString(arr) + ", ");
-//        System.out.println();
-//
-//        this.openDoors();
-//        try {
-//            Thread.sleep(5000);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//        closeDoors();
-//    }
 
     private boolean checkForStop() {
         return buttonsAndLamps.get(currentFloor);
@@ -477,22 +432,8 @@ public class Elevator extends Thread {
                     handleTask();
             }
         });
-//        Thread thread3 = new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                while(true) {
-//                    try {
-//                        sleep(500);
-//                    } catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
-//                    handleDelayedTask();
-//                }
-//            }
-//        });
 
         thread1.start();
         thread2.start();
-//        thread3.start();
     }
 }
