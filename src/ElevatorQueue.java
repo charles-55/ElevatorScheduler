@@ -12,7 +12,7 @@ public class ElevatorQueue extends Thread {
     private InetAddress address;
     private States state;
     private static final int RECEIVING_PORT = 2100;
-    private final HashMap<Elevator, ArrayList<Integer>> queue;
+    private final HashMap<Elevator, ArrayList<int[]>> queue;
 
     /**
      * Constructor method for ElevatorQueue.
@@ -35,7 +35,7 @@ public class ElevatorQueue extends Thread {
      * Getter method for the elevator's queue.
      * @return HashMap<Elevator, ArrayList<Integer>> queue Elevator's queue.
      */
-    public HashMap<Elevator, ArrayList<Integer>> getQueue() {
+    public HashMap<Elevator, ArrayList<int[]>> getQueue() {
         return queue;
     }
 
@@ -103,14 +103,12 @@ public class ElevatorQueue extends Thread {
 
         if(elevator.getStates().equals(States.IDLE)) {
             elevator.callElevator(data[0], state);
-            elevator.put(data[2], true);
-            return;
+//            elevator.put(data[2], true);
+//            return;
         }
-        else
-            elevator.addToDelayedQueue(data[0], data[2]);
 
-        queue.get(elevator).add((int) data[2]);
-        Collections.sort(queue.get(elevator));
+        queue.get(elevator).add(new int[] {(int) data[0], (int) data[2]});
+        queue.get(elevator).sort(Comparator.comparingInt(array -> Arrays.stream(array).sum()));
         System.out.println("ELEVATOR QUEUE: Added to queue.");
 
         notifyAll();
@@ -131,7 +129,7 @@ public class ElevatorQueue extends Thread {
         }
 
         for(int i = 0; i < queue.get(elevator).size();) {
-            elevator.put(queue.get(elevator).get(i), true);
+            elevator.addToDelayedQueue(queue.get(elevator).get(i)[0], queue.get(elevator).get(i)[1]);
             queue.get(elevator).remove(i);
         }
         System.out.println("ELEVATOR " + elevator.getElevatorNum() + ": Got from queue.\n");

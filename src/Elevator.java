@@ -22,7 +22,7 @@ public class Elevator extends Thread {
     private final HashMap<Integer, Boolean> buttonsAndLamps;
     private States state;
     private static final int PORT = 2200;
-    public static final int NUM_OF_ELEVATORS = 2;
+    public static final int NUM_OF_ELEVATORS = 1;
 
     /**
      * Constructor method for Elevator initializing the elevator on the first floor.
@@ -155,7 +155,9 @@ public class Elevator extends Thread {
      * @param destinationFloor int destination floor.
      */
     public void addToDelayedQueue(int floorNum, int destinationFloor) {
-        delayedQueue.add(new int[] {floorNum, destinationFloor});
+        synchronized (delayedQueue) {
+            delayedQueue.add(new int[]{floorNum, destinationFloor});
+        }
     }
 
     public void callElevator(int callFloor, States state) {
@@ -181,26 +183,41 @@ public class Elevator extends Thread {
 
     private void handleDelayedTask() {
         if((delayedQueue.size() != 0) && state.equals(States.IDLE)) {
-            if(delayedQueue.get(0)[0] < delayedQueue.get(0)[1])
-                state = States.GOING_UP;
-            else if(delayedQueue.get(0)[0] > delayedQueue.get(0)[1])
-                state = States.GOING_DOWN;
+            if(delayedQueue.get(0)[0] < delayedQueue.get(0)[1]) {
+                if(currentFloor > delayedQueue.get(0)[0])
+                    callElevator(delayedQueue.get(0)[0], States.GOING_UP);
+            }
+            else if(delayedQueue.get(0)[0] > delayedQueue.get(0)[1]) {
+                if(currentFloor < delayedQueue.get(0)[0])
+                    callElevator(delayedQueue.get(0)[0], States.GOING_DOWN);
+            }
         }
-        for(int[] arr : delayedQueue) {
-            if((currentFloor > arr[0]) && (state.equals(States.GOING_DOWN)))
-                buttonsAndLamps.put(arr[0], true);
-            else if((currentFloor < arr[0]) && (state.equals(States.GOING_UP)))
-                buttonsAndLamps.put(arr[0], true);
-            else if(currentFloor == arr[0]) {
-                if((state.equals(States.GOING_DOWN)) && (arr[0] > arr[1])) {
+        synchronized (delayedQueue) {
+            ArrayList<int[]> arrToRemove = new ArrayList<>();
+            for(int[] arr : delayedQueue) {
+                if((currentFloor > arr[0]) && (state.equals(States.GOING_DOWN))) {
+                    buttonsAndLamps.put(arr[0], true);
                     buttonsAndLamps.put(arr[1], true);
-                    delayedQueue.remove(arr);
+                    arrToRemove.add(arr);
                 }
-                else if((state.equals(States.GOING_UP)) && (arr[0] < arr[1])) {
+                else if ((currentFloor < arr[0]) && (state.equals(States.GOING_UP))) {
+                    buttonsAndLamps.put(arr[0], true);
                     buttonsAndLamps.put(arr[1], true);
-                    delayedQueue.remove(arr);
+                    arrToRemove.add(arr);
+                }
+                else if (currentFloor == arr[0]) {
+                    if((state.equals(States.GOING_DOWN)) && (arr[0] > arr[1])) {
+                        buttonsAndLamps.put(arr[1], true);
+                        arrToRemove.add(arr);
+                    } else if ((state.equals(States.GOING_UP)) && (arr[0] < arr[1])) {
+                        buttonsAndLamps.put(arr[1], true);
+                        arrToRemove.add(arr);
+                    }
                 }
             }
+            for(int[] arr : arrToRemove)
+                delayedQueue.remove(arr);
+            handleTask();
         }
     }
 
@@ -222,21 +239,47 @@ public class Elevator extends Thread {
      */
     public void moveToFloor(int targetFloor) {
         System.out.println("ELEVATOR " + elevatorNum + ": " + state.toString().replace('_', ' ').toLowerCase()  + " from floor " + currentFloor + " to " + targetFloor + ".\n");
+
         if(doorOpen)
             closeDoors();
         this.isMoving = true;
 
-        try {
-            sleep((long) Math.abs(targetFloor - this.currentFloor) * 4000); // Arbitrary time for the elevator to move up X floors (X * 4 seconds)
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        States direction = States.IDLE;
+        if(currentFloor < targetFloor)
+            direction = States.GOING_UP;
+        else if(currentFloor > targetFloor)
+            direction = States.GOING_DOWN;
+
+        while(currentFloor != targetFloor) {
+            try {
+                sleep(4000);
+                if(direction.equals(States.GOING_UP))
+                    currentFloor++;
+                else
+                    currentFloor--;
+
+                if(buttonsAndLamps.get(currentFloor)) {
+                    System.out.println("ELEVATOR " + elevatorNum + ": Made a stop on floor " + currentFloor + ".\n");
+                    this.isMoving = false;
+                    buttonsAndLamps.put(currentFloor, false);
+                    openDoors();
+                    Thread.sleep(5000);
+                    closeDoors();
+                    this.isMoving = true;
+                }
+            } catch (InterruptedException e) {
+                state = States.OUT_OF_SERVICE;
+                e.printStackTrace();
+                System.exit(1);
+            }
         }
 
         buttonsAndLamps.put(targetFloor, false);
         this.isMoving = false;
-        this.currentFloor = targetFloor;
         System.out.println("ELEVATOR " + elevatorNum + ": At floor " + currentFloor + ".\n");
         this.openDoors();
+        if(state == States.RECEIVING_TASK)
+            state = States.IDLE;
     }
 
     /**
@@ -371,8 +414,16 @@ public class Elevator extends Thread {
         Thread thread1 = new Thread(new Runnable() {
             @Override
             public void run() {
-                while(true)
+                while(true) {
                     elevatorQueue.getFromQueue(elevator);
+                    System.out.println(state);
+                    handleDelayedTask();
+                    System.out.println(currentFloor);
+                    System.out.println(buttonsAndLamps);
+                    for(int[] arr : delayedQueue)
+                        System.out.print(Arrays.toString(arr) + " ");
+                    System.out.println();
+                }
             }
         });
         Thread thread2 = new Thread(new Runnable() {
@@ -382,16 +433,16 @@ public class Elevator extends Thread {
                     handleTask();
             }
         });
-        Thread thread3 = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while(true)
-                    handleDelayedTask();
-            }
-        });
+//        Thread thread3 = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                while(true)
+//                    handleDelayedTask();
+//            }
+//        });
 
         thread1.start();
         thread2.start();
-        thread3.start();
+        //thread3.start();
     }
 }

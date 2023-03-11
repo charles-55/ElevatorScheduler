@@ -68,16 +68,19 @@ public class FloorSubsystem extends Thread {
                 data[2] = (byte) destinationFloor;
                 sendPacket = new DatagramPacket(data, data.length, address, PORT);
 
-                time = LocalTime.now(); // for testing purposes only!
-                if(LocalTime.now().equals(time)) {
-                    System.out.println("FLOOR SUBSYSTEM: Sending Packet: " + Arrays.toString(data) + ".");
-                    socket.send(sendPacket);
-                    System.out.println("FLOOR SUBSYSTEM: Packet Sent!\n");
-                }
-                else if (time.isAfter(LocalTime.now())) {
-                    Thread.sleep((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000);
-                    socket.send(sendPacket);
-                }
+                System.out.println("FLOOR SUBSYSTEM: Sending Packet: " + Arrays.toString(data) + ".");
+                socket.send(sendPacket);
+                System.out.println("FLOOR SUBSYSTEM: Packet Sent!\n");
+//                time = LocalTime.now(); // for testing purposes only!
+//                if(LocalTime.now().equals(time)) {
+//                    System.out.println("FLOOR SUBSYSTEM: Sending Packet: " + Arrays.toString(data) + ".");
+//                    socket.send(sendPacket);
+//                    System.out.println("FLOOR SUBSYSTEM: Packet Sent!\n");
+//                }
+//                else if (time.isAfter(LocalTime.now())) {
+//                    Thread.sleep((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000);
+//                    socket.send(sendPacket);
+//                }
                 Thread.sleep(2500);
             }
             closeSocket();
