@@ -19,6 +19,7 @@ public class Floor extends Thread {
     private DatagramSocket socket;
     private InetAddress address;
     private final int PORT;
+    public static final int NUM_OF_FLOORS = 5;
 
     /**
      * Constructor for the floor class.

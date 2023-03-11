@@ -22,6 +22,7 @@ public class Elevator extends Thread {
     private Direction direction;
     private final HashMap<Integer, Boolean> buttonsAndLamps;
     private static final int PORT = 2200;
+    public static final int NUM_OF_ELEVATORS = 2;
     public enum Direction {UP, DOWN, STANDBY}
 
     /**
