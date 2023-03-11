@@ -19,10 +19,10 @@ public class Elevator extends Thread {
     private boolean isMoving;
     private final ElevatorQueue elevatorQueue;
     private final ArrayList<int[]> delayedQueue;
-    private Direction direction;
     private final HashMap<Integer, Boolean> buttonsAndLamps;
+    private States state;
     private static final int PORT = 2200;
-    public enum Direction {UP, DOWN, STANDBY}
+    public static final int NUM_OF_ELEVATORS = 2;
 
     /**
      * Constructor method for Elevator initializing the elevator on the first floor.
@@ -51,7 +51,7 @@ public class Elevator extends Thread {
 
         doorOpen = false;
         isMoving = false;
-        direction = Direction.STANDBY;
+        state = States.IDLE;
 
         buttonsAndLamps = new HashMap<>();
         for(int i = 1; i <= numOfFloors; i++)
@@ -108,20 +108,8 @@ public class Elevator extends Thread {
         return isMoving;
     }
 
-    /**
-     * Getter method for the current direction of the elevator.
-     * @return Direction direction of the elevator (up, down, standby)
-     */
-    public Direction getDirection() {
-        return direction;
-    }
-
-    /**
-     * Setter method for the current direction of the elevator.
-     * @param direction Direction direction of the elevator
-     */
-    public void setDirection(Direction direction) {
-        this.direction = direction;
+    public States getStates() {
+        return state;
     }
 
     /**
@@ -170,56 +158,134 @@ public class Elevator extends Thread {
         delayedQueue.add(new int[] {floorNum, destinationFloor});
     }
 
+    public void callElevator(int callFloor, States state) {
+        this.state = States.RECEIVING_TASK;
+        moveToFloor(callFloor);
+        this.state = state;
+    }
+
+    private void handleTask() {
+        if(state.equals(States.GOING_UP)) {
+            for(int i = currentFloor; i <= Floor.NUM_OF_FLOORS; i++) {
+                if(buttonsAndLamps.get(i))
+                    moveToFloor(i);
+            }
+        }
+        else if(state.equals(States.GOING_DOWN)) {
+            for(int i = currentFloor; i > 0; i--) {
+                if(buttonsAndLamps.get(i))
+                    moveToFloor(i);
+            }
+        }
+    }
+
+    private void handleDelayedTask() {
+        if((delayedQueue.size() != 0) && state.equals(States.IDLE)) {
+            if(delayedQueue.get(0)[0] < delayedQueue.get(0)[1])
+                state = States.GOING_UP;
+            else if(delayedQueue.get(0)[0] > delayedQueue.get(0)[1])
+                state = States.GOING_DOWN;
+        }
+        synchronized (delayedQueue) {
+            for (int[] arr : delayedQueue) {
+                if ((currentFloor > arr[0]) && (state.equals(States.GOING_DOWN)))
+                    buttonsAndLamps.put(arr[0], true);
+                else if ((currentFloor < arr[0]) && (state.equals(States.GOING_UP)))
+                    buttonsAndLamps.put(arr[0], true);
+                else if (currentFloor == arr[0]) {
+                    if ((state.equals(States.GOING_DOWN)) && (arr[0] > arr[1])) {
+                        buttonsAndLamps.put(arr[1], true);
+                        delayedQueue.remove(arr);
+                    } else if ((state.equals(States.GOING_UP)) && (arr[0] < arr[1])) {
+                        buttonsAndLamps.put(arr[1], true);
+                        delayedQueue.remove(arr);
+                    }
+                }
+            }
+        }
+    }
+
+    private void checkAllTaskComplete() {
+        boolean done = true;
+        for(int i = 0; i < Floor.NUM_OF_FLOORS; i++) {
+            if(buttonsAndLamps.get(i + 1)) {
+                done = false;
+                break;
+            }
+        }
+        if((delayedQueue.size() == 0) && done) {
+            state = States.IDLE;
+            if(elevatorQueue.isWaiting())
+                elevatorQueue.notify();
+        }
+    }
+
     /**
      * Moves the current elevator to target floor.
      * @param targetFloor int target floor number
-     * @param direction Direction direction of target floor
      */
-    public void moveToFloor(int targetFloor, Direction direction) {
-        System.out.println("ELEVATOR " + elevatorNum + ": Moving from floor " + currentFloor + " to " + targetFloor + ".\n");
-        this.direction = direction;
+    public void moveToFloor(int targetFloor) {
+        System.out.println("ELEVATOR " + elevatorNum + ": " + state.toString().replace('_', ' ').toLowerCase() + " from floor " + currentFloor + " to " + targetFloor + ".\n");
         if(doorOpen)
             closeDoors();
         this.isMoving = true;
 
-        while(currentFloor != targetFloor) {
-            try {
-                Thread.sleep(4000);
-                if(direction.equals(Direction.UP))
-                    currentFloor++;
-                else if(direction.equals(Direction.DOWN))
-                    currentFloor--;
-
-                if(checkForStop()) {
-                    System.out.println("ELEVATOR " + elevatorNum + ": Made a stop on floor " + currentFloor + ".\n");
-                    this.isMoving = false;
-                    buttonsAndLamps.put(currentFloor, false);
-                    System.out.println();
-                    openDoors();
-                    Thread.sleep(5000);
-                    closeDoors();
-                    this.isMoving = true;
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
-        this.isMoving = false;
-        buttonsAndLamps.put(targetFloor, false);
-        System.out.println("ELEVATOR " + elevatorNum + ": At floor " + currentFloor + ".\n");
-        for(int[] arr : delayedQueue)
-            System.out.print(Arrays.toString(arr) + ", ");
-        System.out.println();
-
-        this.openDoors();
         try {
-            Thread.sleep(5000);
+            sleep((long) Math.abs(targetFloor - this.currentFloor) * 4000); // Arbitrary time for the elevator to move up X floors (X * 4 seconds)
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        closeDoors();
+        buttonsAndLamps.put(targetFloor, false);
+        this.isMoving = false;
+        this.currentFloor = targetFloor;
+        System.out.println("ELEVATOR " + elevatorNum + ": At floor " + currentFloor + ".\n");
+        this.openDoors();
     }
+//    public void moveToFloor(int targetFloor, Direction direction) {
+//        System.out.println("ELEVATOR " + elevatorNum + ": Moving from floor " + currentFloor + " to " + targetFloor + ".\n");
+//        this.direction = direction;
+//        if(doorOpen)
+//            closeDoors();
+//        this.isMoving = true;
+//
+//        while(currentFloor != targetFloor) {
+//            try {
+//                Thread.sleep(4000);
+//                if(direction.equals(Direction.UP))
+//                    currentFloor++;
+//                else if(direction.equals(Direction.DOWN))
+//                    currentFloor--;
+//
+//                if(checkForStop()) {
+//                    System.out.println("ELEVATOR " + elevatorNum + ": Made a stop on floor " + currentFloor + ".\n");
+//                    this.isMoving = false;
+//                    buttonsAndLamps.put(currentFloor, false);
+//                    System.out.println();
+//                    openDoors();
+//                    Thread.sleep(5000);
+//                    closeDoors();
+//                    this.isMoving = true;
+//                }
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//
+//        this.isMoving = false;
+//        buttonsAndLamps.put(targetFloor, false);
+//        System.out.println("ELEVATOR " + elevatorNum + ": At floor " + currentFloor + ".\n");
+//        for(int[] arr : delayedQueue)
+//            System.out.print(Arrays.toString(arr) + ", ");
+//        System.out.println();
+//
+//        this.openDoors();
+//        try {
+//            Thread.sleep(5000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//        closeDoors();
+//    }
 
     private boolean checkForStop() {
         return buttonsAndLamps.get(currentFloor);
@@ -243,24 +309,12 @@ public class Elevator extends Thread {
         data[1] = (byte) currentFloor;
         data[2] = (byte) elevatorNum;
 
-        if(direction.equals(Direction.UP))
+        if(state.equals(States.GOING_UP))
             data[3] = 1;
-        else if(direction.equals(Direction.DOWN))
+        else if(state.equals(States.GOING_DOWN))
             data[3] = 2;
 
-        boolean done = true;
-        for(int destinationFloor : buttonsAndLamps.keySet()) {
-            if(buttonsAndLamps.get(destinationFloor)) {
-                done = false;
-                break;
-            }
-        }
-        if(done) {
-            direction = Direction.STANDBY;
-            if(elevatorQueue.isWaiting())
-                elevatorQueue.notify();
-        }
-
+        checkAllTaskComplete();
         sendMessage(data);
     }
 
@@ -326,28 +380,36 @@ public class Elevator extends Thread {
     /**
      * Prints the state of movement of the elevator and the state of its doors.
      */
-    public void printState() throws Exception {
-        //TODO: Once we do multiple instances of elevators, identify which elevator it is in the print.
-        // Also, send error when doors are open but elevator is moving.
-        if (this.isDoorOpen()) {
+    public void printAnalyzedState() {
+        System.out.print("ELEVATOR " + elevatorNum + ": ");
+
+        if(this.isDoorOpen()) {
             System.out.println("The elevator's doors are open.");
         } else {
             System.out.println("The elevator's doors are closed.");
         }
 
-        if (this.isMoving()) {
-            if (this.getDirection() == Direction.UP) {
-                System.out.println("The elevator is moving up.");
-            } else if (this.getDirection() == Direction.DOWN) {
-                System.out.println("The elevator is moving down.");
+        if(isMoving) {
+            if(state.equals(States.GOING_UP)) {
+                System.out.println("The elevator is moving up.\n");
+            } else if(state.equals(States.GOING_DOWN)) {
+                System.out.println("The elevator is moving down.\n");
+            } else if(state.equals(States.RECEIVING_TASK)) {
+                System.out.println("The elevator is receiving a task.\n");
             } else {
-                throw new Exception("Error: The elevator is moving but its direction is STANDBY.");
+                throw new RuntimeException("Error: The elevator is moving when it is not supposed to.\n");
             }
         } else {
-            if (this.getDirection() != Direction.STANDBY) {
-                System.out.println("The elevator is stopped and is about to go " + this.getDirection().toString() + ".");
-            } else {
-                System.out.println("The elevator is stopped and is on STANDBY.");
+            if(state.equals(States.OUT_OF_SERVICE)) {
+                System.out.println("The elevator is out of service!");
+            } else if(state.equals(States.RECEIVING_TASK)) {
+                System.out.println("The elevator is receiving a task.\n");
+            } else if(state.equals(States.GOING_UP)) {
+                System.out.println("The elevator is stopped and is about to go up.\n");
+            } else if(state.equals(States.GOING_DOWN)) {
+                System.out.println("The elevator is stopped and is about to go down.\n");
+            } else if(state.equals(States.IDLE)) {
+                System.out.println("The elevator is stopped and is idle.\n");
             }
         }
     }
@@ -361,56 +423,27 @@ public class Elevator extends Thread {
         Thread thread1 = new Thread(new Runnable() {
             @Override
             public void run() {
-                while (true)
+                while(true)
                     elevatorQueue.getFromQueue(elevator);
             }
         });
         Thread thread2 = new Thread(new Runnable() {
             @Override
             public void run() {
-                while (true) {
-                    for (int destinationFloor : buttonsAndLamps.keySet()) {
-                        if (buttonsAndLamps.get(destinationFloor)) {
-                            if(direction.equals(Direction.STANDBY)) {
-                                if(currentFloor > destinationFloor)
-                                    direction = Direction.DOWN;
-                                else if(currentFloor < destinationFloor)
-                                    direction = Direction.UP;
-                                elevator.moveToFloor(destinationFloor, direction);
-                            }
-                            else if(direction.equals(Direction.UP)) {
-                                if(destinationFloor > currentFloor)
-                                    put(destinationFloor, true);
-                            }
-                            else if(direction.equals(Direction.DOWN)) {
-                                if(destinationFloor < currentFloor)
-                                    put(destinationFloor, true);
-                            }
-                        }
-                    }
-                }
+                while(true)
+                    handleTask();
             }
         });
         Thread thread3 = new Thread(new Runnable() {
             @Override
             public void run() {
-                while (true) {
-                    for(int[] arr : delayedQueue) {
-                        if((currentFloor > arr[0]) && (direction == Direction.DOWN))
-                            buttonsAndLamps.put(arr[0], true);
-                        else if((currentFloor < arr[0]) && (direction == Direction.UP))
-                            buttonsAndLamps.put(arr[0], true);
-                        else if(currentFloor == arr[0]) {
-                            if((direction == Direction.DOWN) && (arr[0] > arr[1])) {
-                                buttonsAndLamps.put(arr[1], true);
-                                delayedQueue.remove(arr);
-                            }
-                            else if((direction == Direction.UP) && (arr[0] < arr[1])) {
-                                buttonsAndLamps.put(arr[1], true);
-                                delayedQueue.remove(arr);
-                            }
-                        }
+                while(true) {
+                    try {
+                        sleep(500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
+                    handleDelayedTask();
                 }
             }
         });

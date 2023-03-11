@@ -10,7 +10,8 @@ public class ElevatorQueue extends Thread {
     private boolean waiting;
     private DatagramSocket socket;
     private InetAddress address;
-    private static final int RECEIVING_PORT = 2100, SENDING_PORT = 2200;
+    private States state;
+    private static final int RECEIVING_PORT = 2100;
     private final HashMap<Elevator, ArrayList<Integer>> queue;
 
     /**
@@ -19,6 +20,7 @@ public class ElevatorQueue extends Thread {
     public ElevatorQueue() {
         waiting = false;
         queue = new HashMap<>();
+        state = States.WAITING_FOR_TASK;
 
         try {
             socket = new DatagramSocket(RECEIVING_PORT);
@@ -41,7 +43,7 @@ public class ElevatorQueue extends Thread {
      * Getter method for the elevator waiting in a queue.
      * @return boolean waiting variable, true if the elevator is waiting in the queue, false if not.
      */
-    public boolean isWaiting() {
+    public synchronized boolean isWaiting() {
         return waiting;
     }
 
@@ -53,80 +55,8 @@ public class ElevatorQueue extends Thread {
         queue.put(elevator, new ArrayList<>());
     }
 
-    /**
-     * Add a call to an elevator's queue.
-     * @param data byte[] An elevator call at floor X for the elevator to go to.
-     */
-    public void addToQueue(byte[] data) {
-        Elevator.Direction direction = Elevator.Direction.STANDBY;
-        if(data[1] == 1)
-            direction = Elevator.Direction.UP;
-        else if(data[1] == 2)
-            direction = Elevator.Direction.DOWN;
-
-        Elevator elevator = (Elevator) queue.keySet().toArray()[0];
-        for(Elevator e : queue.keySet()) {
-            if ((Math.abs(e.getCurrentFloor() - ((int) data[0]))
-                    < Math.abs(elevator.getCurrentFloor() - ((int) data[0])))
-                    && ((e.getDirection().equals(direction))
-                    || (e.getDirection().equals(Elevator.Direction.STANDBY))))
-                elevator = e;
-        }
-
-        if(elevator.getDirection().equals(Elevator.Direction.STANDBY)) {
-            elevator.moveToFloor(data[0], direction); // (elevator.getCurrentFloor() - data[0] > 0) ? Elevator.Direction.DOWN : Elevator.Direction.UP
-//            elevator.moveToFloor(data[2], direction);
-            elevator.put(data[2], true);
-            //elevator.addToDelayedQueue(data[0], data[2]);
-        }
-        else if(elevator.getDirection().equals(Elevator.Direction.DOWN) && (elevator.getCurrentFloor() - data[0] >= 0)) {
-            elevator.put(data[0], true);
-            elevator.addToDelayedQueue(data[0], data[2]);
-        }
-        else if(elevator.getDirection().equals(Elevator.Direction.UP) && (elevator.getCurrentFloor() - data[0] <= 0)) {
-            elevator.put(data[0], true);
-            elevator.addToDelayedQueue(data[0], data[2]);
-        }
-        else {
-            try {
-                System.out.println("ELEVATOR QUEUE: A Delay Occurred!\n");
-                Elevator.alertDelay();
-                waiting = true;
-                this.wait();
-                waiting = false;
-                Elevator.alertDelayResolved();
-                elevator.moveToFloor(data[0], (elevator.getCurrentFloor() - data[0] > 0) ? Elevator.Direction.DOWN : Elevator.Direction.UP);
-                elevator.moveToFloor(data[2], direction);
-                return;
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        queue.get(elevator).add((int) data[2]);
-        Collections.sort(queue.get(elevator));
-        System.out.println("ELEVATOR QUEUE: Added to queue.");
-
-        //notifyAll();
-    }
-
-    /**
-     * Gets the queue and lights up the elevator buttons respectively.
-     * @param elevator Elevator object.
-     */
-    public synchronized void getFromQueue(Elevator elevator) {
-        while(queue.get(elevator).size() == 0) {
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
-        for(int i = 0; i < queue.get(elevator).size();) {
-            elevator.put(queue.get(elevator).get(i), true);
-            queue.get(elevator).remove(i);
-        }
-        System.out.println("ELEVATOR " + elevator.getElevatorNum() + ": Got from queue.\n");
+    public States getStates() {
+        return state;
     }
 
     /**
@@ -147,6 +77,63 @@ public class ElevatorQueue extends Thread {
         System.out.println("ELEVATOR QUEUE: Packet Received: " + Arrays.toString(data) + ".\n");
 
         addToQueue(data);
+    }
+
+    /**
+     * Add a call to an elevator's queue.
+     * @param data byte[] An elevator call at floor X for the elevator to go to.
+     */
+    public synchronized void addToQueue(byte[] data) {
+        States state = States.IDLE;
+
+        if(data[1] == 1)
+            state = States.GOING_UP;
+        else if(data[1] == 2)
+            state = States.GOING_DOWN;
+
+        Elevator elevator = (Elevator) queue.keySet().toArray()[0];
+        for(Elevator e : queue.keySet()) {
+            if ((Math.abs(e.getCurrentFloor() - ((int) data[0]))
+                    < Math.abs(elevator.getCurrentFloor() - ((int) data[0])))
+                    && ((e.getStates().equals(state))
+                    || (e.getStates().equals(States.IDLE))))
+                elevator = e;
+        }
+
+        if(elevator.getStates().equals(States.IDLE)) {
+            elevator.callElevator(data[0], state);
+            elevator.put(data[2], true);
+            return;
+        }
+        else
+            elevator.addToDelayedQueue(data[0], data[2]);
+
+        queue.get(elevator).add((int) data[2]);
+        Collections.sort(queue.get(elevator));
+        System.out.println("ELEVATOR QUEUE: Added to queue.");
+
+        notifyAll();
+        this.state = States.WAITING_FOR_TASK;
+    }
+
+    /**
+     * Gets the queue and lights up the elevator buttons respectively.
+     * @param elevator Elevator object.
+     */
+    public synchronized void getFromQueue(Elevator elevator) {
+        while(queue.get(elevator).size() == 0) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        for(int i = 0; i < queue.get(elevator).size();) {
+            elevator.put(queue.get(elevator).get(i), true);
+            queue.get(elevator).remove(i);
+        }
+        System.out.println("ELEVATOR " + elevator.getElevatorNum() + ": Got from queue.\n");
     }
 
     /**

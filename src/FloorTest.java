@@ -9,28 +9,32 @@ import static org.junit.Assert.assertEquals;
  * @version 1.0
  */
 public class FloorTest {
+
     private Scheduler scheduler;
+    private FloorSubsystem floorSubsystem;
     private Floor floor;
     private ElevatorQueue elevatorQueue;
     private Elevator elevator;
-    private static int NUM_OF_FLOORS = 5;
 
 
     @Before
     public void setUp() {
         scheduler = new Scheduler();
-        floor = new Floor(1, scheduler);
+        floorSubsystem = new FloorSubsystem("src/InputTable.txt");
+        floor = new Floor(1, scheduler, floorSubsystem);
         elevatorQueue = new ElevatorQueue();
-        elevator = new Elevator(1, NUM_OF_FLOORS, elevatorQueue);
+        elevator = new Elevator(1, Floor.NUM_OF_FLOORS, elevatorQueue);
     }
 
     @After
     public void tearDown() {
         scheduler.closeSocket();
+        floorSubsystem.closeSocket();
         floor.closeSocket();
         elevatorQueue.closeSocket();
 
         scheduler = null;
+        floorSubsystem = null;
         floor = null;
         elevatorQueue = null;
         elevator = null;
@@ -38,10 +42,12 @@ public class FloorTest {
 
     @Test
     public void testRun(){
+        floorSubsystem.start();
         floor.start();
         scheduler.start();
         elevatorQueue.start();
         assertEquals(0, elevatorQueue.getQueue().get(elevator).size());
+        floorSubsystem.stop();
         floor.stop();
     }
 
@@ -51,5 +57,4 @@ public class FloorTest {
         String splitData = Arrays.toString(data.split(","));
         assertEquals(splitData,"[" + data + "]");
     }
-
 }

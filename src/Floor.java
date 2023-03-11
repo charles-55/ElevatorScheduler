@@ -13,24 +13,25 @@ import java.util.HashMap;
  */
 public class Floor extends Thread {
 
-    //private final FloorSubsystem floorSubsystem;
     private final int floorNumber;
-    private final HashMap<Elevator.Direction, Boolean> buttonsAndLamps;
+    private final HashMap<Integer, Boolean> buttonsAndLamps;
     private final Scheduler scheduler;
     private DatagramPacket receivePacket;
     private DatagramSocket socket;
     private InetAddress address;
     private final int PORT;
+    public static final int NUM_OF_FLOORS = 5;
 
     /**
      * Constructor for the floor class.
      */
-    public Floor(int floorNumber, Scheduler scheduler) {
+    public Floor(int floorNumber, Scheduler scheduler, FloorSubsystem floorSubsystem) {
         this.scheduler = scheduler;
         this.floorNumber = floorNumber;
+        floorSubsystem.addFloor(this);
         buttonsAndLamps = new HashMap<>();
-        buttonsAndLamps.put(Elevator.Direction.UP, false);
-        buttonsAndLamps.put(Elevator.Direction.DOWN, false);
+        buttonsAndLamps.put(1, false);
+        buttonsAndLamps.put(2, false);
         PORT = 2300 + floorNumber;
 
         try {
@@ -40,14 +41,13 @@ public class Floor extends Thread {
             e.printStackTrace();
             System.exit(1);
         }
-        //floorSubsystem = new FloorSubsystem(address, "src/InputTable.txt");
     }
 
     /**
      * Accessor method for the buttons and lamps
      * @return buttonsAndLamps
      */
-    public HashMap<Elevator.Direction, Boolean> getButtonsAndLamps() {
+    public HashMap<Integer, Boolean> getButtonsAndLamps() {
         return buttonsAndLamps;
     }
 
@@ -72,7 +72,7 @@ public class Floor extends Thread {
      * @param direction
      * @param state
      */
-    public void setButtonDirection(Elevator.Direction direction, boolean state) {
+    public void setButtonDirection(Integer direction, boolean state) {
         buttonsAndLamps.put(direction, state);
     }
 
@@ -99,9 +99,9 @@ public class Floor extends Thread {
             if (data[1] == (byte) floorNumber) {
                 System.out.println("FLOOR " + data[1] + ": Elevator " + data[2] + " arrived.\n");
                 if (data[3] == 1)
-                    setButtonDirection(Elevator.Direction.UP, false);
+                    setButtonDirection(1, false);
                 else if (data[3] == 2)
-                    setButtonDirection(Elevator.Direction.DOWN, false);
+                    setButtonDirection(2, false);
             }
         }
 //        else if(data[0] == 2) {
@@ -128,14 +128,13 @@ public class Floor extends Thread {
 
     /**
      * Method to print the state of the elevator
-     * @throws Exception
      */
-    public void printState() throws Exception {
-        boolean up = this.buttonsAndLamps.get(Elevator.Direction.UP);
-        boolean down = this.buttonsAndLamps.get(Elevator.Direction.DOWN);
+    public void printAnalyzedState() {
+        boolean up = this.buttonsAndLamps.get(1);
+        boolean down = this.buttonsAndLamps.get(2);
         //If light is up
         if (up && down) {
-            throw new Exception("Error: The floor lights are both up and down!");
+            throw new RuntimeException("Error: The floor lights are both up and down!");
         } else if (up) {
             System.out.println("Calling an elevator to go up.");
         } else if (down) {

@@ -21,7 +21,7 @@ public class ProjectModel {
         elevators = new ArrayList<>();
 
         for(int i = 0; i < NUM_OF_FLOORS; i++)
-            floors.add(new Floor(i + 1, scheduler));
+            floors.add(new Floor(i + 1, scheduler, floorSubsystem));
         for(int i = 0; i < NUM_OF_ELEVATORS - 1; i++)
             elevators.add(new Elevator(i + 1, NUM_OF_FLOORS, elevatorQueue));
         elevators.add(new Elevator(NUM_OF_ELEVATORS, NUM_OF_FLOORS, 2, elevatorQueue));

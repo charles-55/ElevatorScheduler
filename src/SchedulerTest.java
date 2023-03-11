@@ -13,6 +13,7 @@ import static org.junit.Assert.*;
 public class SchedulerTest {
 
     private Scheduler scheduler;
+    private FloorSubsystem floorSubsystem;
     private Floor floor;
     private ElevatorQueue elevatorQueue;
     private Elevator elevator;
@@ -22,7 +23,8 @@ public class SchedulerTest {
     @Before
     public void setUp() {
         scheduler = new Scheduler();
-        floor = new Floor(1, scheduler);
+        floorSubsystem = new FloorSubsystem("src/InputTable.txt");
+        floor = new Floor(1, scheduler, floorSubsystem);
         elevatorQueue = new ElevatorQueue();
         elevator = new Elevator(1, NUM_OF_FLOORS, elevatorQueue);
         queue = new HashMap<>();
@@ -31,10 +33,12 @@ public class SchedulerTest {
     @After
     public void tearDown() {
         scheduler.closeSocket();
+        floorSubsystem.closeSocket();
         floor.closeSocket();
         elevatorQueue.closeSocket();
 
         scheduler = null;
+        floorSubsystem = null;
         floor = null;
         elevatorQueue = null;
         elevator = null;
@@ -63,11 +67,12 @@ public class SchedulerTest {
 
     @Test
     public void testRun() {
+        floorSubsystem.start();
         floor.start();
         scheduler.start();
         elevatorQueue.start();
         assertEquals(0, elevatorQueue.getQueue().get(elevator).size());
+        floorSubsystem.stop();
         floor.stop();
     }
-
 }

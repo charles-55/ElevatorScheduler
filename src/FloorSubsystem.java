@@ -2,6 +2,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.*;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -17,7 +18,7 @@ import java.util.Scanner;
 
 public class FloorSubsystem extends Thread {
 
-    //private final Floor floor;
+    private ArrayList<Floor> floors;
     private DatagramPacket sendPacket;
     private DatagramSocket socket;
     private InetAddress address;
@@ -29,8 +30,8 @@ public class FloorSubsystem extends Thread {
      * @param fileName - the name of the input file preferably a .txt file.
      */
     public FloorSubsystem(String fileName) {
-        //this.floor = floor;
-        //this.address = address;
+        floors = new ArrayList<>();
+
         this.fileName = fileName;
         try {
             socket = new DatagramSocket();
@@ -39,6 +40,10 @@ public class FloorSubsystem extends Thread {
             e.printStackTrace();
             System.exit(1);
         }
+    }
+
+    public void addFloor(Floor floor) {
+        floors.add(floor);
     }
 
     /**
@@ -51,12 +56,10 @@ public class FloorSubsystem extends Thread {
             Scanner sc = new Scanner(file);
             while (sc.hasNextLine()) {
                 String line = sc.nextLine();
-                //System.out.println("FLOOR SUBSYSTEM: Line scanned: " + line + ".\n");
                 String[] splitData = line.split(" ");
 
                 LocalTime time;
                 int floorNumber, destinationFloor;
-                Elevator.Direction direction = Elevator.Direction.STANDBY;
 
                 String[] timeInfo = splitData[0].split(":");
                 time = LocalTime.of(Integer.parseInt(timeInfo[0]), Integer.parseInt(timeInfo[1]), Integer.parseInt(timeInfo[2].split("\\.")[0]), Integer.parseInt(timeInfo[2].split("\\.")[1]) * 1000000);
@@ -64,19 +67,17 @@ public class FloorSubsystem extends Thread {
                 floorNumber = Integer.parseInt(splitData[1]);
                 destinationFloor = Integer.parseInt(splitData[3]);
 
-                for (Elevator.Direction d : Elevator.Direction.values()) {
-                    if (splitData[2].equalsIgnoreCase(d.toString())) {
-                        direction = d;
-                        break;
-                    }
-                }
-
                 byte[] data = new byte[3];
                 data[0] = (byte) floorNumber;
-                if (direction == Elevator.Direction.UP)
+                if(splitData[2].equalsIgnoreCase("UP"))
                     data[1] = 1;
-                else if (direction == Elevator.Direction.DOWN)
+                else if(splitData[2].equalsIgnoreCase("DOWN"))
                     data[1] = 2;
+
+                for(Floor floor : floors) {
+                    if(floor.getFloorNumber() == floorNumber)
+                        floor.setButtonDirection((int) data[1], true);
+                }
                 data[2] = (byte) destinationFloor;
                 sendPacket = new DatagramPacket(data, data.length, address, PORT);
 
