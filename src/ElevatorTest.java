@@ -1,6 +1,6 @@
 import org.junit.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+
+import static org.junit.Assert.*;
 
 /**
  * The Elevator Test Class.
@@ -15,7 +15,6 @@ public class ElevatorTest {
     private Floor floor;
     private ElevatorQueue elevatorQueue;
     private Elevator elevator;
-    private static int NUM_OF_FLOORS = 5;
 
 
     @Before
@@ -24,7 +23,7 @@ public class ElevatorTest {
         floorSubsystem = new FloorSubsystem("src/InputTable.txt");
         floor = new Floor(1);
         elevatorQueue = new ElevatorQueue();
-        elevator = new Elevator(1, NUM_OF_FLOORS, elevatorQueue);
+        elevator = new Elevator(1, Floor.NUM_OF_FLOORS, elevatorQueue);
     }
 
     @After
@@ -44,8 +43,8 @@ public class ElevatorTest {
     @Test
     public void testIsMoving(){
         assertEquals(1, elevator.getCurrentFloor());
-        elevator.moveToFloor(3, Elevator.Direction.UP);
-        assertEquals(false,elevator.isMoving());
+        elevator.moveToFloor(3);
+        assertFalse(elevator.isMoving());
         assertEquals(3, elevator.getCurrentFloor());
     }
 
@@ -53,21 +52,21 @@ public class ElevatorTest {
     public void testOpenDoors() {
         int targetFloor = 3;
 
-        elevator.moveToFloor(targetFloor, Elevator.Direction.UP);
+        elevator.moveToFloor(targetFloor);
         elevator.setCurrentFloor(targetFloor);
-        assertTrue(elevator.isDoorOpen() ==true);
+        assertTrue(elevator.isDoorOpen());
     }
 
     @Test
     public void testCloseDoors(){
-        elevator.moveToFloor(3, Elevator.Direction.UP);
-        assertTrue(elevator.isDoorOpen() != false);
+        elevator.moveToFloor(3);
+        assertTrue(elevator.isDoorOpen());
     }
 
     @Test
     public void testMoveToFloor() {
         assertEquals(1, elevator.getCurrentFloor());
-        elevator.moveToFloor(3, Elevator.Direction.UP);
+        elevator.moveToFloor(3);
         assertEquals(3, elevator.getCurrentFloor());
     }
 
