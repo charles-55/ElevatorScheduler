@@ -22,7 +22,7 @@ public class Elevator extends Thread {
     private final HashMap<Integer, Boolean> buttonsAndLamps;
     private States state;
     private static final int PORT = 2200;
-    public static final int NUM_OF_ELEVATORS = 1;
+    public static final int NUM_OF_ELEVATORS = 2;
 
     /**
      * Constructor method for Elevator initializing the elevator on the first floor.
