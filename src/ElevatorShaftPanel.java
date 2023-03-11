@@ -10,13 +10,13 @@ public class ElevatorShaftPanel extends JPanel {
         this.elevatorPanel = elevatorPanel;
 
         initializeShaft();
-        this.setMaximumSize(new Dimension(ElevatorPanel.WIDTH, ElevatorPanel.HEIGHT * ProjectModel.NUM_OF_FLOORS));
+        this.setMaximumSize(new Dimension(ElevatorPanel.WIDTH, ElevatorPanel.HEIGHT * Floor.NUM_OF_FLOORS));
     }
 
     private void initializeShaft() {
-        floors = new JPanel[ProjectModel.NUM_OF_FLOORS];
+        floors = new JPanel[Floor.NUM_OF_FLOORS];
 
-        for(int i = 0; i < ProjectModel.NUM_OF_FLOORS; i++) {
+        for(int i = 0; i < Floor.NUM_OF_FLOORS; i++) {
             JPanel panel = new JPanel();
             panel.setBackground(Color.BLACK);
             panel.setMaximumSize(new Dimension(150, 200));
@@ -26,7 +26,7 @@ public class ElevatorShaftPanel extends JPanel {
         floors[elevatorPanel.getElevator().getCurrentFloor() - 1] = elevatorPanel;
 
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        for(int i = ProjectModel.NUM_OF_FLOORS - 1; i >= 0; i--)
+        for(int i = Floor.NUM_OF_FLOORS - 1; i >= 0; i--)
             this.add(floors[i]);
     }
 
@@ -37,7 +37,7 @@ public class ElevatorShaftPanel extends JPanel {
         if(floors == null)
             return;
 
-        for(int i = ProjectModel.NUM_OF_FLOORS - 1; i >= 0; i--)
+        for(int i = Floor.NUM_OF_FLOORS - 1; i >= 0; i--)
             this.remove(floors[i]);
         elevatorPanel.updateUI();
         initializeShaft();

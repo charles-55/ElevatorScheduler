@@ -87,15 +87,14 @@ public class Floor extends Thread {
             System.out.println("FLOOR " + floorNumber + ": Waiting for Packet...\n");
             socket.receive(receivePacket);
         } catch (IOException e) {
-            System.out.println(" FLOOR Error: Socket Timed Out.\n");
+            System.out.println(" FLOOR " + floorNumber + " Error: Socket Timed Out.\n");
             e.printStackTrace();
             System.exit(1);
         }
 
-        System.out.println("FLOOR: Packet received: " + Arrays.toString(data) + "\n");
+        System.out.println("FLOOR " + data[1] + ": Packet received: " + Arrays.toString(data) + "\n");
 
         if(data[0] == 1) {
-            //System.out.println("FLOOR " + data[1] + ": Elevator " + data[2] + " arrived.\n"); // to be moved when other floors are created
             if (data[1] == (byte) floorNumber) {
                 System.out.println("FLOOR " + data[1] + ": Elevator " + data[2] + " arrived.\n");
                 if (data[3] == 1)
@@ -104,19 +103,6 @@ public class Floor extends Thread {
                     setButtonDirection(2, false);
             }
         }
-//        else if(data[0] == 2) {
-//            System.out.println("FLOOR " + floorNumber + ":  A delay occurred!\n");
-//            try {
-//                floorSubsystem.wait();
-//            } catch (InterruptedException e) {
-//                System.out.println("FLOOR " + floorNumber + ":  A error occurred!\n");
-//                e.printStackTrace();
-//            }
-//        }
-//        else if(data[0] == 3) {
-//            floorSubsystem.notify();
-//            System.out.println("FLOOR " + floorNumber + ":  Delay resolved!\n");
-//        }
 
         try {
             Thread.sleep(50);

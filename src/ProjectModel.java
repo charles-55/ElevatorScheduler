@@ -1,4 +1,3 @@
-import java.net.InetAddress;
 import java.util.ArrayList;
 
 public class ProjectModel {
@@ -10,8 +9,6 @@ public class ProjectModel {
     private final ArrayList<Elevator> elevators;
     private final ProjectFrame projectFrame;
     private final Thread thread;
-    public static final int NUM_OF_FLOORS = 5;
-    public static final int NUM_OF_ELEVATORS = 2;
 
     public ProjectModel() {
         scheduler = new Scheduler();
@@ -20,11 +17,11 @@ public class ProjectModel {
         floors = new ArrayList<>();
         elevators = new ArrayList<>();
 
-        for(int i = 0; i < NUM_OF_FLOORS; i++)
+        for(int i = 0; i < Floor.NUM_OF_FLOORS; i++)
             floors.add(new Floor(i + 1, scheduler, floorSubsystem));
-        for(int i = 0; i < NUM_OF_ELEVATORS - 1; i++)
-            elevators.add(new Elevator(i + 1, NUM_OF_FLOORS, elevatorQueue));
-        elevators.add(new Elevator(NUM_OF_ELEVATORS, NUM_OF_FLOORS, 2, elevatorQueue));
+        for(int i = 0; i < Elevator.NUM_OF_ELEVATORS - 1; i++)
+            elevators.add(new Elevator(i + 1, Floor.NUM_OF_FLOORS, elevatorQueue));
+        elevators.add(new Elevator(Elevator.NUM_OF_ELEVATORS, Floor.NUM_OF_FLOORS, 2, elevatorQueue));
 
 
         projectFrame = new ProjectFrame(this, floors);

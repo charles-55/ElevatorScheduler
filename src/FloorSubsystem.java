@@ -94,8 +94,10 @@ public class FloorSubsystem extends Thread {
 //                    Thread.sleep((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000);
 //                    socket.send(sendPacket);
 //                }
-                Thread.sleep(500);
+                Thread.sleep(2500);
             }
+            System.out.println("FLOOR SUBSYSTEM: All tasks sent!\n");
+            closeSocket();
         } catch (InterruptedException | IOException e) {
             System.out.println("FLOOR SUBSYSTEM Error: Socket Timed Out.\n");
             e.printStackTrace();

@@ -37,10 +37,10 @@ public class FloorPanel extends JPanel {
         if(floor.getButtonsAndLamps().get(1))
             buttons[0].setBackground(ProjectFrame.ON);
         else
-            buttons[0].setBackground(ProjectFrame.ON);
+            buttons[0].setBackground(ProjectFrame.OFF);
         if(floor.getButtonsAndLamps().get(2))
             buttons[1].setBackground(ProjectFrame.ON);
         else
-            buttons[1].setBackground(ProjectFrame.ON);
+            buttons[1].setBackground(ProjectFrame.OFF);
     }
 }
