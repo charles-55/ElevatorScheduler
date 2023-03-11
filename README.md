@@ -37,7 +37,7 @@ SchedulerTest - Oyindamola Taiwo-Olupeka
 
 UML Class & Sequence Diagrams - Sabah Samwatin, Oyindamola Taiwo-Olupeka
 
-State Machine Diagram - Sabah Samwatin
+States Machine Diagram - Sabah Samwatin
 
 README.txt - Oyindamola Taiwo-Olupeka
 
