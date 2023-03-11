@@ -42,6 +42,7 @@ public class Elevator extends Thread {
      * @param elevatorQueue ElevatorQueue queue for the elevator object.
      */
     public Elevator(int elevatorNum, int numOfFloors, int currentFloor, ElevatorQueue elevatorQueue) {
+        super("Elevator " + elevatorNum);
         this.elevatorNum = elevatorNum;
         this.currentFloor = currentFloor;
         this.elevatorQueue = elevatorQueue;
@@ -88,16 +89,6 @@ public class Elevator extends Thread {
      */
     public boolean isDoorOpen() {
         return doorOpen;
-    }
-
-    /**
-     * Setter method to close the doors
-     * @param doorOpen boolean value for state of the doors
-     */
-    public void setDoorOpen(boolean doorOpen) {
-        if(!isMoving) {
-            this.doorOpen = doorOpen;
-        }
     }
 
     /**
@@ -252,12 +243,20 @@ public class Elevator extends Thread {
 
         while(currentFloor != targetFloor) {
             try {
+                System.out.println("ELEVATOR " + elevatorNum + ": Current floor 1: " + currentFloor);
+                System.out.println("ELEVATOR " + elevatorNum + ": Target floor 1: " + targetFloor);
+                System.out.println("ELEVATOR " + elevatorNum + ": Direction 1: " + direction);
+                System.out.println("ELEVATOR " + elevatorNum + ": State 1: " + state);
                 sleep(4000);
                 if(direction.equals(States.GOING_UP))
                     currentFloor++;
                 else
                     currentFloor--;
 
+                System.out.println("ELEVATOR " + elevatorNum + ": Current floor 2: " + currentFloor);
+                System.out.println("ELEVATOR " + elevatorNum + ": Target floor 2: " + targetFloor);
+                System.out.println("ELEVATOR " + elevatorNum + ": Direction 2: " + direction);
+                System.out.println("ELEVATOR " + elevatorNum + ": State 2: " + state);
                 if(buttonsAndLamps.get(currentFloor)) {
                     System.out.println("ELEVATOR " + elevatorNum + ": Made a stop on floor " + currentFloor + ".\n");
                     this.isMoving = false;
@@ -283,18 +282,9 @@ public class Elevator extends Thread {
     }
 
     /**
-     * Puts a new value for a button on the elevator. (on if true, off if false)
-     * @param i int button index.
-     * @param b boolean light state (On if true, Off if false)
-     */
-    public void put(int i, boolean b) {
-        buttonsAndLamps.put(i, b);
-    }
-
-    /**
      * Alerts server once elevator arrives to a floor in its' queue.
      */
-    public void alertArrival() {
+    private void alertArrival() {
         byte[] data = new byte[4];
         data[0] = 1;
         data[1] = (byte) currentFloor;
@@ -309,33 +299,7 @@ public class Elevator extends Thread {
         sendMessage(data);
     }
 
-    /**
-     * Alerts server that an elevator entered a delay.
-     */
-    public static void alertDelay(int currentFloor, int elevatorNum) {
-        byte[] data = new byte[4];
-        data[0] = 2;
-        data[1] = (byte) currentFloor;
-        data[2] = (byte) elevatorNum;
-        data[3] = 0;
-
-        sendMessage(data);
-    }
-
-    /**
-     * Alerts server that the elevator finished its delay.
-     */
-    public static void alertDelayResolved(int currentFloor, int elevatorNum) {
-        byte[] data = new byte[4];
-        data[0] = 3;
-        data[1] = (byte) currentFloor;
-        data[2] = (byte) elevatorNum;
-        data[3] = 0;
-
-        sendMessage(data);
-    }
-
-    public static void sendMessage(byte[] data) {
+    private static void sendMessage(byte[] data) {
         DatagramSocket socket = null;
         InetAddress address = null;
         try {
@@ -416,33 +380,19 @@ public class Elevator extends Thread {
             public void run() {
                 while(true) {
                     elevatorQueue.getFromQueue(elevator);
-                    System.out.println(state);
                     handleDelayedTask();
-                    System.out.println(currentFloor);
-                    System.out.println(buttonsAndLamps);
-                    for(int[] arr : delayedQueue)
-                        System.out.print(Arrays.toString(arr) + " ");
-                    System.out.println();
                 }
             }
-        });
+        }, "ELEVATOR " + elevatorNum + " Thread 1");
         Thread thread2 = new Thread(new Runnable() {
             @Override
             public void run() {
                 while(true)
                     handleTask();
             }
-        });
-//        Thread thread3 = new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                while(true)
-//                    handleDelayedTask();
-//            }
-//        });
+        }, "ELEVATOR " + elevatorNum + " Thread 2");
 
         thread1.start();
         thread2.start();
-        //thread3.start();
     }
 }

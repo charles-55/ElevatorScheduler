@@ -7,7 +7,6 @@ import java.util.*;
  */
 public class ElevatorQueue extends Thread {
 
-    private boolean waiting;
     private DatagramSocket socket;
     private InetAddress address;
     private States state;
@@ -18,7 +17,6 @@ public class ElevatorQueue extends Thread {
      * Constructor method for ElevatorQueue.
      */
     public ElevatorQueue() {
-        waiting = false;
         queue = new HashMap<>();
         state = States.WAITING_FOR_TASK;
 
@@ -37,14 +35,6 @@ public class ElevatorQueue extends Thread {
      */
     public HashMap<Elevator, ArrayList<int[]>> getQueue() {
         return queue;
-    }
-
-    /**
-     * Getter method for the elevator waiting in a queue.
-     * @return boolean waiting variable, true if the elevator is waiting in the queue, false if not.
-     */
-    public synchronized boolean isWaiting() {
-        return waiting;
     }
 
     /**
@@ -103,8 +93,6 @@ public class ElevatorQueue extends Thread {
 
         if(elevator.getStates().equals(States.IDLE)) {
             elevator.callElevator(data[0], state);
-//            elevator.put(data[2], true);
-//            return;
         }
 
         queue.get(elevator).add(new int[] {(int) data[0], (int) data[2]});
