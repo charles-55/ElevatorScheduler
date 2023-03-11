@@ -42,7 +42,6 @@ public class Elevator extends Thread {
      * @param elevatorQueue ElevatorQueue queue for the elevator object.
      */
     public Elevator(int elevatorNum, int numOfFloors, int currentFloor, ElevatorQueue elevatorQueue) {
-        super("Elevator " + elevatorNum);
         this.elevatorNum = elevatorNum;
         this.currentFloor = currentFloor;
         this.elevatorQueue = elevatorQueue;
@@ -268,6 +267,7 @@ public class Elevator extends Thread {
                 }
             } catch (InterruptedException e) {
                 state = States.OUT_OF_SERVICE;
+                printAnalyzedState();
                 e.printStackTrace();
                 System.exit(1);
             }
@@ -383,14 +383,14 @@ public class Elevator extends Thread {
                     handleDelayedTask();
                 }
             }
-        }, "ELEVATOR " + elevatorNum + " Thread 1");
+        });
         Thread thread2 = new Thread(new Runnable() {
             @Override
             public void run() {
                 while(true)
                     handleTask();
             }
-        }, "ELEVATOR " + elevatorNum + " Thread 2");
+        });
 
         thread1.start();
         thread2.start();
