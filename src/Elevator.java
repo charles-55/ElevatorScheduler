@@ -180,6 +180,12 @@ public class Elevator extends Thread {
     }
 
     private void handleDelayedTask() {
+        if((delayedQueue.size() != 0) && state.equals(States.IDLE)) {
+            if(delayedQueue.get(0)[0] < delayedQueue.get(0)[1])
+                state = States.GOING_UP;
+            else if(delayedQueue.get(0)[0] > delayedQueue.get(0)[1])
+                state = States.GOING_DOWN;
+        }
         for(int[] arr : delayedQueue) {
             if((currentFloor > arr[0]) && (state.equals(States.GOING_DOWN)))
                 buttonsAndLamps.put(arr[0], true);
@@ -200,17 +206,14 @@ public class Elevator extends Thread {
 
     private void checkAllTaskComplete() {
         boolean done = true;
-        for(int destinationFloor : buttonsAndLamps.keySet()) {
-            if(buttonsAndLamps.get(destinationFloor)) {
+        for(int i = 0; i < Floor.NUM_OF_FLOORS; i++) {
+            if(buttonsAndLamps.get(i + 1)) {
                 done = false;
                 break;
             }
         }
-        if(done) {
+        if((delayedQueue.size() == 0) && done)
             state = States.IDLE;
-            if(elevatorQueue.isWaiting())
-                elevatorQueue.notify();
-        }
     }
 
     /**
@@ -218,7 +221,7 @@ public class Elevator extends Thread {
      * @param targetFloor int target floor number
      */
     public void moveToFloor(int targetFloor) {
-        System.out.println("ELEVATOR " + elevatorNum + ": Moving from floor " + currentFloor + " to " + targetFloor + ".\n");
+        System.out.println("ELEVATOR " + elevatorNum + ": " + state.toString().replace('_', ' ').toLowerCase()  + " from floor " + currentFloor + " to " + targetFloor + ".\n");
         if(doorOpen)
             closeDoors();
         this.isMoving = true;

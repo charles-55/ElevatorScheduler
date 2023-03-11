@@ -84,7 +84,7 @@ public class ElevatorQueue extends Thread {
      * Add a call to an elevator's queue.
      * @param data byte[] An elevator call at floor X for the elevator to go to.
      */
-    public void addToQueue(byte[] data) {
+    public synchronized void addToQueue(byte[] data) {
         States state = States.IDLE;
 
         if(data[1] == 1)
@@ -109,8 +109,8 @@ public class ElevatorQueue extends Thread {
         else
             elevator.addToDelayedQueue(data[0], data[2]);
 
-//        queue.get(elevator).add((int) data[2]);
-//        Collections.sort(queue.get(elevator));
+        queue.get(elevator).add((int) data[2]);
+        Collections.sort(queue.get(elevator));
         System.out.println("ELEVATOR QUEUE: Added to queue.");
 
         notifyAll();

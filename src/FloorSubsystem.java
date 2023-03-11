@@ -52,7 +52,6 @@ public class FloorSubsystem extends Thread {
 
                 LocalTime time;
                 int floorNumber, destinationFloor;
-                States state = States.IDLE;
 
                 String[] timeInfo = splitData[0].split(":");
                 time = LocalTime.of(Integer.parseInt(timeInfo[0]), Integer.parseInt(timeInfo[1]), Integer.parseInt(timeInfo[2].split("\\.")[0]), Integer.parseInt(timeInfo[2].split("\\.")[1]) * 1000000);
@@ -60,18 +59,11 @@ public class FloorSubsystem extends Thread {
                 floorNumber = Integer.parseInt(splitData[1]);
                 destinationFloor = Integer.parseInt(splitData[3]);
 
-                for (States s : States.values()) {
-                    if (splitData[2].equalsIgnoreCase(s.toString())) {
-                        state = s;
-                        break;
-                    }
-                }
-
                 byte[] data = new byte[3];
                 data[0] = (byte) floorNumber;
-                if (state == States.GOING_UP)
+                if(splitData[2].equalsIgnoreCase("UP"))
                     data[1] = 1;
-                else if (state == States.GOING_DOWN)
+                else if (splitData[2].equalsIgnoreCase("DOWN"))
                     data[1] = 2;
                 data[2] = (byte) destinationFloor;
                 sendPacket = new DatagramPacket(data, data.length, address, PORT);
