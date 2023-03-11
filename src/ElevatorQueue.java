@@ -10,7 +10,7 @@ public class ElevatorQueue extends Thread {
     private boolean waiting;
     private DatagramSocket socket;
     private InetAddress address;
-    private static final int PORT = 21;
+    private static final int RECEIVING_PORT = 2100;
     private final HashMap<Elevator, ArrayList<Integer>> queue;
 
     /**
@@ -21,7 +21,7 @@ public class ElevatorQueue extends Thread {
         queue = new HashMap<>();
 
         try {
-            socket = new DatagramSocket(PORT);
+            socket = new DatagramSocket(RECEIVING_PORT);
             address = InetAddress.getLocalHost();
         } catch (SocketException | UnknownHostException e) {
             e.printStackTrace();
@@ -89,11 +89,11 @@ public class ElevatorQueue extends Thread {
         else {
             try {
                 System.out.println("ELEVATOR QUEUE: A Delay Occurred!\n");
-                Elevator.alertDelay();
+                Elevator.alertDelay(elevator.getCurrentFloor(), elevator.getElevatorNum());
                 waiting = true;
                 this.wait();
                 waiting = false;
-                Elevator.alertDelayResolved();
+                Elevator.alertDelayResolved(elevator.getCurrentFloor(), elevator.getElevatorNum());
                 elevator.moveToFloor(data[0], (elevator.getCurrentFloor() - data[0] > 0) ? Elevator.Direction.DOWN : Elevator.Direction.UP);
                 elevator.moveToFloor(data[2], direction);
                 return;
@@ -133,7 +133,7 @@ public class ElevatorQueue extends Thread {
      */
     public void respondToCall() {
         byte[] data = new byte[3];
-        DatagramPacket receivePacket = new DatagramPacket(data, data.length, address, PORT);
+        DatagramPacket receivePacket = new DatagramPacket(data, data.length, address, RECEIVING_PORT);
 
         try {
             System.out.println("ELEVATOR QUEUE: Waiting for Packet...\n");

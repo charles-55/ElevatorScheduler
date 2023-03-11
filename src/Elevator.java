@@ -21,10 +21,7 @@ public class Elevator extends Thread {
     private final ArrayList<int[]> delayedQueue;
     private Direction direction;
     private final HashMap<Integer, Boolean> buttonsAndLamps;
-    private DatagramPacket sendPacket, receivePacket;
-    private DatagramSocket socket;
-    private static InetAddress address;
-    private static final int PORT = 22;
+    private static final int PORT = 2200;
     public enum Direction {UP, DOWN, STANDBY}
 
     /**
@@ -59,14 +56,6 @@ public class Elevator extends Thread {
         buttonsAndLamps = new HashMap<>();
         for(int i = 1; i <= numOfFloors; i++)
             buttonsAndLamps.put(i, false);
-
-        try {
-            socket = new DatagramSocket();
-            address = InetAddress.getLocalHost();
-        } catch (SocketException | UnknownHostException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
     }
 
     /**
@@ -242,76 +231,54 @@ public class Elevator extends Thread {
                 elevatorQueue.notify();
         }
 
-        sendPacket = new DatagramPacket(data, data.length, address, PORT);
-
-        try {
-            System.out.println("ELEVATOR " + elevatorNum + ": Sending Packet: " + Arrays.toString(data) + "\n");
-            socket.send(sendPacket);
-            System.out.println("ELEVATOR " + elevatorNum + ": Packet Sent!\n");
-        } catch (IOException e) {
-            System.out.println("ELEVATOR " + elevatorNum + " Error: Socket Timed Out.\n");
-            e.printStackTrace();
-            System.exit(1);
-        }
-
-        try {
-            Thread.sleep(50);
-        } catch (InterruptedException e ) {
-            e.printStackTrace();
-            System.exit(1);
-        }
+        sendMessage(data);
     }
 
     /**
      * Alerts server that an elevator entered a delay.
      */
-    public static void alertDelay() {
+    public static void alertDelay(int currentFloor, int elevatorNum) {
         byte[] data = new byte[4];
         data[0] = 2;
-        data[1] = 0;
-        data[2] = 0;
+        data[1] = (byte) currentFloor;
+        data[2] = (byte) elevatorNum;
         data[3] = 0;
 
-         DatagramPacket sendPacket = new DatagramPacket(data, data.length, address, PORT);
-
-        try {
-            System.out.println("ELEVATOR: Alerting Delay: " + Arrays.toString(data) + "\n");
-            DatagramSocket socket = new DatagramSocket();
-            socket.send(sendPacket);
-            System.out.println("ELEVATOR: Packet Sent!\n");
-        } catch (IOException e) {
-            System.out.println("ELEVATOR Error: Socket Timed Out.\n");
-            e.printStackTrace();
-            System.exit(1);
-        }
-
-        try {
-            Thread.sleep(50);
-        } catch (InterruptedException e ) {
-            e.printStackTrace();
-            System.exit(1);
-        }
+        sendMessage(data);
     }
 
     /**
      * Alerts server that the elevator finished its delay.
      */
-    public static void alertDelayResolved() {
+    public static void alertDelayResolved(int currentFloor, int elevatorNum) {
         byte[] data = new byte[4];
         data[0] = 3;
-        data[1] = 0;
-        data[2] = 0;
+        data[1] = (byte) currentFloor;
+        data[2] = (byte) elevatorNum;
         data[3] = 0;
+
+        sendMessage(data);
+    }
+
+    public static void sendMessage(byte[] data) {
+        DatagramSocket socket = null;
+        InetAddress address = null;
+        try {
+            socket = new DatagramSocket();
+            address = InetAddress.getLocalHost();
+        } catch (SocketException | UnknownHostException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
 
         DatagramPacket sendPacket = new DatagramPacket(data, data.length, address, PORT);
 
         try {
-            System.out.println("ELEVATOR: Alerting Delay Resolved: " + Arrays.toString(data) + "\n");
-            DatagramSocket socket = new DatagramSocket();
+            System.out.println("ELEVATOR " + data[2] + ": Sending Packet: " + Arrays.toString(data) + "\n");
             socket.send(sendPacket);
-            System.out.println("ELEVATOR: Packet Sent!\n");
+            System.out.println("ELEVATOR " + data[2] + ": Packet Sent!\n");
         } catch (IOException e) {
-            System.out.println("ELEVATOR Error: Socket Timed Out.\n");
+            System.out.println("ELEVATOR " + data[2] + " Error: Socket Timed Out.\n");
             e.printStackTrace();
             System.exit(1);
         }
@@ -322,6 +289,8 @@ public class Elevator extends Thread {
             e.printStackTrace();
             System.exit(1);
         }
+
+        socket.close();
     }
 
     /**
@@ -351,13 +320,6 @@ public class Elevator extends Thread {
                 System.out.println("The elevator is stopped and is on STANDBY.");
             }
         }
-    }
-
-    /**
-     * Closes a socket.
-     */
-    public void closeSocket() {
-        socket.close();
     }
 
     /**

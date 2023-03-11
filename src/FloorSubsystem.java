@@ -17,26 +17,22 @@ import java.util.Scanner;
 
 public class FloorSubsystem extends Thread {
 
-    private final Floor floor;
     private DatagramPacket sendPacket;
     private DatagramSocket socket;
-    private final InetAddress address;
-    private final int PORT = 20;
+    private InetAddress address;
+    private final int PORT = 2000;
     private final String fileName;
 
     /**
      * Initialize the FloorSubsystem.
-     * @param floor
-     * @param address
      * @param fileName - the name of the input file preferably a .txt file.
      */
-    public FloorSubsystem(Floor floor, InetAddress address, String fileName) {
-        this.floor = floor;
-        this.address = address;
+    public FloorSubsystem(String fileName) {
         this.fileName = fileName;
         try {
             socket = new DatagramSocket();
-        } catch (SocketException e) {
+            this.address = InetAddress.getLocalHost();
+        } catch (SocketException | UnknownHostException e) {
             e.printStackTrace();
             System.exit(1);
         }
@@ -52,7 +48,6 @@ public class FloorSubsystem extends Thread {
             Scanner sc = new Scanner(file);
             while (sc.hasNextLine()) {
                 String line = sc.nextLine();
-                //System.out.println("FLOOR SUBSYSTEM: Line scanned: " + line + ".\n");
                 String[] splitData = line.split(" ");
 
                 LocalTime time;
@@ -93,6 +88,7 @@ public class FloorSubsystem extends Thread {
                 }
                 Thread.sleep(2500);
             }
+            closeSocket();
         } catch (InterruptedException | IOException e) {
             System.out.println("FLOOR SUBSYSTEM Error: Socket Timed Out.\n");
             e.printStackTrace();

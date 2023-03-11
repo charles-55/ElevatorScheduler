@@ -9,7 +9,9 @@ import static org.junit.Assert.assertTrue;
  * @version 1.0
  */
 public class ElevatorTest {
+
     private Scheduler scheduler;
+    private FloorSubsystem floorSubsystem;
     private Floor floor;
     private ElevatorQueue elevatorQueue;
     private Elevator elevator;
@@ -19,7 +21,8 @@ public class ElevatorTest {
     @Before
     public void setUp() {
         scheduler = new Scheduler();
-        floor = new Floor(1, scheduler);
+        floorSubsystem = new FloorSubsystem("src/InputTable.txt");
+        floor = new Floor(1);
         elevatorQueue = new ElevatorQueue();
         elevator = new Elevator(1, NUM_OF_FLOORS, elevatorQueue);
     }
@@ -27,11 +30,12 @@ public class ElevatorTest {
     @After
     public void tearDown() {
         scheduler.closeSocket();
+        floorSubsystem.closeSocket();
         floor.closeSocket();
         elevatorQueue.closeSocket();
-        elevator.closeSocket();
 
         scheduler = null;
+        floorSubsystem = null;
         floor = null;
         elevatorQueue = null;
         elevator = null;
@@ -75,6 +79,4 @@ public class ElevatorTest {
 //        assertEquals(0, elevatorQueue.getQueue().get(elevator).size());
 //        floor.stop();
 //    }
-
-
 }

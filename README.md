@@ -80,11 +80,11 @@ Run the Test methods in the test classes (ElevatorTest, FloorTest, SchedulerTest
 - Elevator Queue Received Message: [floorNumber, direction, destinationFloor]
 
 ## Port Information:
-- Floor Subsystem Sending: 20
-- Scheduler Floor Receiving: 20
-- Scheduler Elevator Sending: 21
-- Elevator Queue Receiving: 21
-- Elevator Sending: 22
-- Scheduler Elevator Receiving: 22
-- Scheduler Floor Sending: 23
-- Floor Receiving: 23
+- Floor Subsystem Sending: 2000
+- Scheduler Floor Receiving: 2000
+- Scheduler Elevator Queue Sending: 2100
+- Elevator Queue Receiving: 2100
+- Elevator Sending: 2200
+- Scheduler Elevator Receiving: 2200
+- Scheduler Floor Sending: 2300 + floorNumber
+- Floor Receiving: 2300 + floorNumber
