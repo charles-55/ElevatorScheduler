@@ -1,27 +1,25 @@
 # SYSC 3303 PROJECT
 
+
 ## Introduction:
-Iteration 2 builds on the concept of concurrency between two or more threads, it also introduces state machines.
-The goal of this iteration is to add the state machines for the scheduler and elevator subsystems assuming that
-there is only one elevator. The elevator subsystem is used to notify the scheduler that an elevator has
-reached a floor, so that once an elevator has been told to move, the elevator subsystem also has to be informed so that it can send out messages back to the scheduler to denote the arrival by an elevator.
+In Iteration 3 we split your system up into three (or more) separate programs that can run on three separate computers and communicate with each other
+using UDP. The Scheduler will now be used to coordinate the movement of cars such that each car carries roughly the same number of passengers as all of the others and so that the waiting time for passengers at floors is minimized. The state machines for each car should execute independently of each other, but they will all have to share their position with the scheduler. The scheduler will choose which elevator will be used to service a given request.
 
 
 ## Team Members:
 #### Osamudiamen Nwoko - 101152520
+#### Oyindamola Taiwo-Olupeka - 101155729
 #### Sabah Samwatin - 101137966
 #### Leslie Ejeh - 101161386
-#### Oyindamola Taiwo-Olupeka - 101155729
 #### Nicholas Thibault - 101172413
 
 
 ## Responsibilities:
-
 Floor Class - Sabah Samwatin
 
 FloorSubsystem - Sabah Samwatin
 
-Scheduler - Osamudiamen Nwoko, Leslie Ejeh
+Scheduler - Osamudiamen Nwoko, Leslie Ejeh, Nicholas Thibault
 
 Elevator - Nicholas Thibault
 
@@ -37,13 +35,12 @@ SchedulerTest - Oyindamola Taiwo-Olupeka
 
 UML Class & Sequence Diagrams - Sabah Samwatin, Oyindamola Taiwo-Olupeka
 
-States Machine Diagram - Sabah Samwatin
+States Machine Diagrams - Sabah Samwatin
 
 README.txt - Oyindamola Taiwo-Olupeka
 
 
 ## File Descriptions:
-
 Floor class - This class represents the current status of the floor. It takes the information from the table of the text file and processes it.
 
 FloorSubsystem class - This is the client class that reads events in the format: Time, floor, floor direction, and elevator button. Each line of input is to be sent to the Scheduler.
@@ -68,8 +65,10 @@ InputTable.txt - A text file filled with random data entries to be parsed into t
 ## Set-up Instructions:
 Run the Main class.
 
+
 ## Test Instructions:
 Run the Test methods in the test classes (ElevatorTest, FloorTest, SchedulerTest).
+
 
 ## Packet Byte[] Information:
 - Direction values: 1 = UP, 2 = DOWN
