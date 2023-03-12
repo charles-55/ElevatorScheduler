@@ -151,9 +151,9 @@ public class Elevator extends Thread {
     }
 
     /**
-     * Sets the state after receiving task
-     * @param callFloor
-     * @param state
+     * Calls the elevator and sets the state after receiving task.
+     * @param callFloor int, the floor calling the elevator.
+     * @param state States, the next state after receiving the call.
      */
     public void callElevator(int callFloor, States state) {
         this.state = States.RECEIVING_TASK;
