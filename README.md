@@ -65,8 +65,10 @@ InputTable.txt - A text file filled with random data entries to be parsed into t
 ## Set-up Instructions:
 Run the Main class.
 
+
 ## Test Instructions:
 Run the Test methods in the test classes (ElevatorTest, FloorTest, SchedulerTest).
+
 
 ## Packet Byte[] Information:
 - Direction values: 1 = UP, 2 = DOWN
