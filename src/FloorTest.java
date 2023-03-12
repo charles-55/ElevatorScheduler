@@ -17,7 +17,9 @@ public class FloorTest {
     private Elevator elevator;
     private static int NUM_OF_FLOORS = 5;
 
-
+    /**
+     * Method that sets up objects before the tests.
+     */
     @Before
     public void setUp() {
         scheduler = new Scheduler();
@@ -27,6 +29,9 @@ public class FloorTest {
         elevator = new Elevator(1, NUM_OF_FLOORS, elevatorQueue);
     }
 
+    /**
+     * Method that closes up everything after the tests.
+     */
     @After
     public void tearDown() {
         scheduler.closeSocket();
@@ -41,8 +46,11 @@ public class FloorTest {
         elevator = null;
     }
 
+    /**
+     * Test method for the threads.
+     */
     @Test
-    public void testRun(){
+    public void testRun() {
         floorSubsystem.start();
         floor.start();
         scheduler.start();
@@ -52,11 +60,13 @@ public class FloorTest {
         floor.stop();
     }
 
+    /**
+     * Test method for parseData() method in Floor.
+     */
     @Test
-    public void testParseData(){
+    public void testParseData() {
         String data = "14:05:15:0 1 Up 4";
         String splitData = Arrays.toString(data.split(","));
         assertEquals(splitData,"[" + data + "]");
     }
-
 }

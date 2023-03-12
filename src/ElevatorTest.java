@@ -20,6 +20,9 @@ public class ElevatorTest {
     private HashMap<Elevator, ArrayList<Integer>> queue;
 
 
+    /**
+     * Method that sets up the objects before the tests.
+     */
     @Before
     public void setUp() {
         scheduler = new Scheduler();
@@ -30,6 +33,9 @@ public class ElevatorTest {
         queue = new HashMap<>();
     }
 
+    /**
+     * Method that closes everything after the tests.
+     */
     @After
     public void tearDown() {
         scheduler.closeSocket();
@@ -46,12 +52,18 @@ public class ElevatorTest {
 
     ///////////////////////////////////////////ELEVATOR CLASS TESTS/////////////////////////////////////////////////////
 
+    /**
+     * Test method for the related method in Elevator.
+     */
     @Test
     public void testIsDoorOpen(){
         elevator.moveToFloor(3);
         assertTrue(elevator.isDoorOpen());
     }
 
+    /**
+     * Test method for the related method in Elevator.
+     */
     @Test
     public void testIsMoving(){
         assertEquals(1, elevator.getCurrentFloor());
@@ -60,6 +72,9 @@ public class ElevatorTest {
         assertEquals(3, elevator.getCurrentFloor());
     }
 
+    /**
+     * Test method for the related method in Elevator.
+     */
     @Test
     public void testOpenDoors() {
         int targetFloor = 3;
@@ -69,12 +84,18 @@ public class ElevatorTest {
         assertTrue(elevator.isDoorOpen());
     }
 
+    /**
+     * Test method for the related method in Elevator.
+     */
     @Test
     public void testCloseDoors(){
         elevator.moveToFloor(3);
         assertTrue(elevator.isDoorOpen());
     }
 
+    /**
+     * Test method for the related method in Elevator.
+     */
     @Test
     public void testAddToDelayedQueue(){
         ArrayList<int[]> delayedQueue = new ArrayList<>();
@@ -82,18 +103,27 @@ public class ElevatorTest {
         assertFalse(elevatorQueue.getQueue().isEmpty());
     }
 
+    /**
+     * Test method for the related method in Elevator.
+     */
     @Test
     public void testCallElevator(){
         elevator.callElevator(3,States.IDLE);
         elevator.getStates().equals(States.GOING_UP);
     }
 
+    /**
+     * Test method for the related method in Elevator.
+     */
     @Test
     public void testHandleTask(){
         elevator.moveToFloor(3);
         elevator.getState().equals(States.GOING_UP);
     }
 
+    /**
+     * Test method for the handleDelayedTask method in Elevator.
+     */
     @Test
     public void testHandleDelayedTask() {
         ArrayList<int[]> delayedQueue = new ArrayList<>();
@@ -101,6 +131,9 @@ public class ElevatorTest {
         elevator.getState().equals(States.GOING_UP);
     }
 
+    /**
+     * Test method to check if a task is successfully completed and if the state of the elevator is idle.
+     */
     @Test
     public void testCheckAllTaskComplete(){
         assertEquals(1, elevator.getCurrentFloor());
@@ -109,6 +142,9 @@ public class ElevatorTest {
         elevator.getStates().equals(States.IDLE);
     }
 
+    /**
+     * Test method for the moveToFloor method in Elevator.
+     */
     @Test
     public void testMoveToFloor() {
         assertEquals(1, elevator.getCurrentFloor());
@@ -128,6 +164,9 @@ public class ElevatorTest {
 
 ///////////////////////////////////////////ELEVATOR QUEUE CLASS TESTS///////////////////////////////////////////////////
 
+    /**
+     * Test method for AddElevator method.
+     */
     @Test
     public void testAddElevator(){
         assertEquals(0, queue.size());
@@ -135,18 +174,27 @@ public class ElevatorTest {
         assertEquals(1, queue.size());
     }
 
+    /**
+     * Test method for respondToCall method.
+     */
     @Test
     public void testRespondToCall(){
         elevator.moveToFloor(3);
         elevator.getState().equals(States.RECEIVING_TASK);
     }
 
+    /**
+     * Test method for addToQueue method.
+     */
     @Test
     public void testAddToQueue(){
         elevatorQueue.getQueue().put(elevator,new ArrayList<>());
         assertFalse(elevatorQueue.getQueue().isEmpty());
     }
 
+    /**
+     * Test method for getFromQueue method.
+     */
     @Test
     public void testGetFromQueue(){
         elevatorQueue.getQueue().put(elevator,new ArrayList<>());

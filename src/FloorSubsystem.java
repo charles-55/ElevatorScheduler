@@ -92,11 +92,17 @@ public class FloorSubsystem extends Thread {
         }
     }
 
+    /**
+     * Run method.
+     */
     @Override
     public void run() {
         parseData();
     }
 
+    /**
+     * Close the Datagram Sockets.
+     */
     public void closeSocket() {
         socket.close();
     }

@@ -41,7 +41,7 @@ public class Scheduler extends Thread {
     }
 
     /**
-     * Method to send data to the elevator
+     * Method to send data to the elevator and update the scheduler's state.
      */
     public void sendToElevator() {
         byte[] data = new byte[3];
@@ -63,6 +63,7 @@ public class Scheduler extends Thread {
         elevatorSendPacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_SENDING_PORT);
 
         try {
+
             System.out.println("SCHEDULER: Sending Packet to elevator: " + Arrays.toString(data) + "\n");
             elevatorSendingSocket.send(elevatorSendPacket);
             state = States.SENDING_TASK;
@@ -75,7 +76,6 @@ public class Scheduler extends Thread {
 
         System.out.println("SCHEDULER: Packet sent to elevator.\n");
         state = States.IDLE;
-
         try {
             Thread.sleep(50);
         } catch (InterruptedException e ) {
@@ -87,7 +87,7 @@ public class Scheduler extends Thread {
     }
 
     /**
-     * Method to send data to the floor.
+     * Method to send data to the floor and update the scheduler's state.
      */
     public void sendToFloor() {
         byte[] data = new byte[4];
@@ -121,7 +121,6 @@ public class Scheduler extends Thread {
 
         System.out.println("SCHEDULER: Packet sent to floor.\n");
         state = States.IDLE;
-
         try {
             Thread.sleep(50);
         } catch (InterruptedException e ) {
@@ -133,7 +132,7 @@ public class Scheduler extends Thread {
     }
 
     /**
-     * Prints the state of movement of the elevator and the state of its doors.
+     * Prints the current state of the scheduler.
      */
     public void printAnalyzedState() {
         System.out.print("SCHEDULER: ");
@@ -153,6 +152,9 @@ public class Scheduler extends Thread {
         }
     }
 
+    /**
+     * Run method.
+     */
     @Override
     public void run() {
         try {
@@ -171,6 +173,7 @@ public class Scheduler extends Thread {
                     sendToElevator();
             }
         });
+
         Thread thread2 = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -184,7 +187,7 @@ public class Scheduler extends Thread {
     }
 
     /**
-     * Closes the socket
+     * Closes the socket.
      */
     public void closeSocket() {
         floorSendingSocket.close();
