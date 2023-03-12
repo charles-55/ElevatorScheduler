@@ -242,20 +242,12 @@ public class Elevator extends Thread {
 
         while(currentFloor != targetFloor) {
             try {
-                System.out.println("ELEVATOR " + elevatorNum + ": Current floor 1: " + currentFloor);
-                System.out.println("ELEVATOR " + elevatorNum + ": Target floor 1: " + targetFloor);
-                System.out.println("ELEVATOR " + elevatorNum + ": Direction 1: " + direction);
-                System.out.println("ELEVATOR " + elevatorNum + ": State 1: " + state);
                 sleep(4000);
                 if(direction.equals(States.GOING_UP))
                     currentFloor++;
                 else
                     currentFloor--;
 
-                System.out.println("ELEVATOR " + elevatorNum + ": Current floor 2: " + currentFloor);
-                System.out.println("ELEVATOR " + elevatorNum + ": Target floor 2: " + targetFloor);
-                System.out.println("ELEVATOR " + elevatorNum + ": Direction 2: " + direction);
-                System.out.println("ELEVATOR " + elevatorNum + ": State 2: " + state);
                 if(buttonsAndLamps.get(currentFloor)) {
                     System.out.println("ELEVATOR " + elevatorNum + ": Made a stop on floor " + currentFloor + ".\n");
                     this.isMoving = false;
