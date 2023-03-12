@@ -47,7 +47,7 @@ public class ElevatorTest {
     ///////////////////////////////////////////ELEVATOR CLASS TESTS/////////////////////////////////////////////////////
 
     @Test
-    public void isDoorOpen(){
+    public void testIsDoorOpen(){
         elevator.moveToFloor(3);
         assertTrue(elevator.isDoorOpen());
     }
