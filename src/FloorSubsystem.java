@@ -17,6 +17,7 @@ import java.util.Scanner;
 
 public class FloorSubsystem extends Thread {
 
+    private States state;
     private DatagramPacket sendPacket;
     private DatagramSocket socket;
     private InetAddress address;
@@ -29,6 +30,7 @@ public class FloorSubsystem extends Thread {
      */
     public FloorSubsystem(String fileName) {
         this.fileName = fileName;
+        state = States.IDLE;
         try {
             socket = new DatagramSocket();
             this.address = InetAddress.getLocalHost();
@@ -68,24 +70,23 @@ public class FloorSubsystem extends Thread {
                 data[2] = (byte) destinationFloor;
                 sendPacket = new DatagramPacket(data, data.length, address, PORT);
 
-                System.out.println("FLOOR SUBSYSTEM: Sending Packet: " + Arrays.toString(data) + ".");
-                socket.send(sendPacket);
-                System.out.println("FLOOR SUBSYSTEM: Packet Sent!\n");
-//                time = LocalTime.now(); // for testing purposes only!
-//                if(LocalTime.now().equals(time)) {
-//                    System.out.println("FLOOR SUBSYSTEM: Sending Packet: " + Arrays.toString(data) + ".");
-//                    socket.send(sendPacket);
-//                    System.out.println("FLOOR SUBSYSTEM: Packet Sent!\n");
-//                }
-//                else if (time.isAfter(LocalTime.now())) {
-//                    Thread.sleep((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000);
-//                    socket.send(sendPacket);
-//                }
+                time = LocalTime.now(); // for testing purposes only!
+                if(LocalTime.now().equals(time)) {
+                    state = States.SENDING_TASK;
+                    System.out.println("FLOOR SUBSYSTEM: Sending Packet: " + Arrays.toString(data) + ".");
+                    socket.send(sendPacket);
+                    System.out.println("FLOOR SUBSYSTEM: Packet Sent!\n");
+                }
+                else if (time.isAfter(LocalTime.now())) {
+                    Thread.sleep((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000);
+                    socket.send(sendPacket);
+                }
+                state = States.IDLE;
                 Thread.sleep(2500);
             }
             closeSocket();
         } catch (InterruptedException | IOException e) {
-            System.out.println("FLOOR SUBSYSTEM Error: Socket Timed Out.\n");
+            state = States.OUT_OF_SERVICE;
             e.printStackTrace();
             System.exit(1);
         }

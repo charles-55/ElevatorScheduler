@@ -24,6 +24,7 @@ public class ElevatorQueue extends Thread {
             socket = new DatagramSocket(RECEIVING_PORT);
             address = InetAddress.getLocalHost();
         } catch (SocketException | UnknownHostException e) {
+            state = States.OUT_OF_SERVICE;
             e.printStackTrace();
             System.exit(1);
         }
@@ -60,6 +61,7 @@ public class ElevatorQueue extends Thread {
             System.out.println("ELEVATOR QUEUE: Waiting for Packet...\n");
             socket.receive(receivePacket);
         } catch (IOException e) {
+            state = States.OUT_OF_SERVICE;
             e.printStackTrace();
             System.exit(1);
         }

@@ -33,6 +33,8 @@ public class Scheduler extends Thread {
             floorAddress = InetAddress.getLocalHost();
             elevatorAddress = InetAddress.getLocalHost();
         } catch (SocketException| UnknownHostException e) {
+            state = States.OUT_OF_SERVICE;
+            printAnalyzedState();
             e.printStackTrace();
             System.exit(1);
         }
@@ -50,7 +52,8 @@ public class Scheduler extends Thread {
             floorReceivingSocket.receive(floorReceivePacket);
             state = States.RECEIVING_TASK;
         } catch (IOException e) {
-            System.out.println("SCHEDULER Error: Floor Socket Timed Out.");
+            state = States.OUT_OF_SERVICE;
+            printAnalyzedState();
             e.printStackTrace();
             System.exit(1);
         }
@@ -64,7 +67,8 @@ public class Scheduler extends Thread {
             elevatorSendingSocket.send(elevatorSendPacket);
             state = States.SENDING_TASK;
         } catch (IOException e) {
-            System.out.println("SCHEDULER Error: Elevator Socket Timed Out.");
+            state = States.OUT_OF_SERVICE;
+            printAnalyzedState();
             e.printStackTrace();
             System.exit(1);
         }
@@ -75,6 +79,8 @@ public class Scheduler extends Thread {
         try {
             Thread.sleep(50);
         } catch (InterruptedException e ) {
+            state = States.OUT_OF_SERVICE;
+            printAnalyzedState();
             e.printStackTrace();
             System.exit(1);
         }
@@ -92,7 +98,8 @@ public class Scheduler extends Thread {
             elevatorReceivingSocket.receive(elevatorReceivePacket);
             state = States.RECEIVING_MESSAGE;
         } catch (IOException e) {
-            System.out.println("SCHEDULER Error: Elevator Socket Timed Out.");
+            state = States.OUT_OF_SERVICE;
+            printAnalyzedState();
             e.printStackTrace();
             System.exit(1);
         }
@@ -106,7 +113,8 @@ public class Scheduler extends Thread {
             floorSendingSocket.send(floorSendPacket);
             state = States.SENDING_MESSAGE;
         } catch (IOException e) {
-            System.out.println("SCHEDULER Error: Floor Socket Timed Out.");
+            state = States.OUT_OF_SERVICE;
+            printAnalyzedState();
             e.printStackTrace();
             System.exit(1);
         }
@@ -117,6 +125,8 @@ public class Scheduler extends Thread {
         try {
             Thread.sleep(50);
         } catch (InterruptedException e ) {
+            state = States.OUT_OF_SERVICE;
+            printAnalyzedState();
             e.printStackTrace();
             System.exit(1);
         }
@@ -148,6 +158,8 @@ public class Scheduler extends Thread {
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {
+            state = States.OUT_OF_SERVICE;
+            printAnalyzedState();
             e.printStackTrace();
             System.exit(1);
         }
