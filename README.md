@@ -64,7 +64,7 @@ InputTable.txt - A text file filled with random data entries to be parsed into t
 
 ## Set-up Instructions:
 - To run the program on a single device, simply run the Main class.
-- To run the program on separate devices, divide into these 3 groups:
+- To run the program on separate devices, divide into these 3 groups and modify their InetAddresses:
   1. Floor, FloorSubsystem, InputTable.txt, States
   2. Scheduler, States
   3. Elevator, ElevatorQueue, States
