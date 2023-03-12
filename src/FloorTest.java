@@ -48,6 +48,9 @@ public class FloorTest {
         elevator = null;
     }
 
+    /**
+     * Test method for the threads.
+     */
     @Test
     public void testAddFloor(){
         final ArrayList<Floor> floors = new ArrayList<>();

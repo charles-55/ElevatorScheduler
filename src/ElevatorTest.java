@@ -142,6 +142,9 @@ public class ElevatorTest {
         elevator.getStates().equals(States.IDLE);
     }
 
+    /**
+     * Test method for the moveToFloor method in Elevator.
+     */
     @Test
     public void testMove(){
 
