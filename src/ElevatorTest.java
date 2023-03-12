@@ -1,6 +1,8 @@
 import org.junit.*;
-
+import java.util.ArrayList;
+import java.util.HashMap;
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
 
 /**
  * The Elevator Test Class.
@@ -15,6 +17,7 @@ public class ElevatorTest {
     private Floor floor;
     private ElevatorQueue elevatorQueue;
     private Elevator elevator;
+    private HashMap<Elevator, ArrayList<Integer>> queue;
 
 
     @Before
@@ -24,6 +27,7 @@ public class ElevatorTest {
         floor = new Floor(1);
         elevatorQueue = new ElevatorQueue();
         elevator = new Elevator(1, Floor.NUM_OF_FLOORS, elevatorQueue);
+        queue = new HashMap<>();
     }
 
     @After
@@ -38,6 +42,14 @@ public class ElevatorTest {
         floor = null;
         elevatorQueue = null;
         elevator = null;
+    }
+
+    ///////////////////////////////////////////ELEVATOR CLASS TESTS/////////////////////////////////////////////////////
+
+    @Test
+    public void isDoorOpen(){
+        elevator.moveToFloor(3);
+        assertTrue(elevator.isDoorOpen());
     }
 
     @Test
@@ -64,6 +76,40 @@ public class ElevatorTest {
     }
 
     @Test
+    public void testAddToDelayedQueue(){
+        ArrayList<int[]> delayedQueue = new ArrayList<>();
+        elevatorQueue.getQueue().put(elevator,delayedQueue);
+        assertFalse(elevatorQueue.getQueue().isEmpty());
+    }
+
+    @Test
+    public void testCallElevator(){
+        elevator.callElevator(3,States.IDLE);
+        elevator.getStates().equals(States.GOING_UP);
+    }
+
+    @Test
+    public void testHandleTask(){
+        elevator.moveToFloor(3);
+        elevator.getState().equals(States.GOING_UP);
+    }
+
+    @Test
+    public void testHandleDelayedTask() {
+        ArrayList<int[]> delayedQueue = new ArrayList<>();
+        elevator.moveToFloor(3);
+        elevator.getState().equals(States.GOING_UP);
+    }
+
+    @Test
+    public void testCheckAllTaskComplete(){
+        assertEquals(1, elevator.getCurrentFloor());
+        elevator.moveToFloor(3);
+        assertEquals(3, elevator.getCurrentFloor());
+        elevator.getStates().equals(States.IDLE);
+    }
+
+    @Test
     public void testMoveToFloor() {
         assertEquals(1, elevator.getCurrentFloor());
         elevator.moveToFloor(3);
@@ -78,4 +124,35 @@ public class ElevatorTest {
 //        assertEquals(0, elevatorQueue.getQueue().get(elevator).size());
 //        floor.stop();
 //    }
+
+
+///////////////////////////////////////////ELEVATOR QUEUE CLASS TESTS///////////////////////////////////////////////////
+
+    @Test
+    public void testAddElevator(){
+        assertEquals(0, queue.size());
+        queue.put(elevator, new ArrayList<>());
+        assertEquals(1, queue.size());
+    }
+
+    @Test
+    public void testRespondToCall(){
+        elevator.moveToFloor(3);
+        elevator.getState().equals(States.RECEIVING_TASK);
+    }
+
+    @Test
+    public void testAddToQueue(){
+        elevatorQueue.getQueue().put(elevator,new ArrayList<>());
+        assertFalse(elevatorQueue.getQueue().isEmpty());
+    }
+
+    @Test
+    public void testGetFromQueue(){
+        elevatorQueue.getQueue().put(elevator,new ArrayList<>());
+        assertEquals(1,elevatorQueue.getQueue().size());
+        elevatorQueue.getQueue().remove(elevator,new ArrayList<>());
+        assertTrue(elevatorQueue.getQueue().isEmpty());
+    }
+
 }
