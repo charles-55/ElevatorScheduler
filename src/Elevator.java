@@ -150,12 +150,20 @@ public class Elevator extends Thread {
         }
     }
 
+    /**
+     * Sets the state after receiving task
+     * @param callFloor
+     * @param state
+     */
     public void callElevator(int callFloor, States state) {
         this.state = States.RECEIVING_TASK;
         moveToFloor(callFloor);
         this.state = state;
     }
 
+    /**
+     * Completes task assigned to the elevator
+     */
     private void handleTask() {
         if(state.equals(States.GOING_UP)) {
             for(int i = currentFloor; i <= Floor.NUM_OF_FLOORS; i++) {
@@ -171,6 +179,9 @@ public class Elevator extends Thread {
         }
     }
 
+    /**
+     * Checks for delayed task to complete
+     */
     private void handleDelayedTask() {
         if((delayedQueue.size() != 0) && state.equals(States.IDLE)) {
             if(delayedQueue.get(0)[0] < delayedQueue.get(0)[1]) {
@@ -210,6 +221,10 @@ public class Elevator extends Thread {
             handleTask();
         }
     }
+
+    /**
+     * Checks if all the task are complete and updates the state
+     */
 
     private void checkAllTaskComplete() {
         boolean done = true;
@@ -291,6 +306,10 @@ public class Elevator extends Thread {
         sendMessage(data);
     }
 
+    /**
+     * Creates datagram socket and a packet then using a socket to send messages
+     * @param data
+     */
     private static void sendMessage(byte[] data) {
         DatagramSocket socket = null;
         InetAddress address = null;
