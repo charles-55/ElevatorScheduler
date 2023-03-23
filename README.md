@@ -67,7 +67,7 @@ InputTable.txt - A text file filled with random data entries to be parsed into t
 - To run the program on separate devices, divide into these 3 groups and modify their InetAddresses:
   1. Floor, FloorSubsystem, InputTable.txt, States
   2. Scheduler, States
-  3. Elevator, ElevatorQueue, States
+  3. Elevator (would also need to access the number of floors from the floor class), ElevatorQueue, States
 
 
 ## Test Instructions:
