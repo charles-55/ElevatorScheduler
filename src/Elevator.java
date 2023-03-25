@@ -99,6 +99,10 @@ public class Elevator extends Thread {
         return state;
     }
 
+    public void setState(States state) {
+        this.state = state;
+    }
+
     /**
      * Getter method for the HashMap of buttons and lamps related to each button.
      * @return HashMap<Integer, Boolean> buttonsAndLamps hashmap of the floor number buttons and state of the lamps (on if true, off if false)
