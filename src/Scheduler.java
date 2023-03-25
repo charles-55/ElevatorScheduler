@@ -17,16 +17,20 @@ public class Scheduler extends Thread {
     private DatagramPacket floorSendPacket, floorReceivePacket, elevatorSendPacket, elevatorReceivePacket;
     private InetAddress floorAddress, elevatorAddress;
     private DatagramSocket floorReceivingSocket, floorSendingSocket, elevatorReceivingSocket, elevatorSendingSocket;
-    private States state;
-    private final ArrayList<int[]> elevatorsInfo;
+    private States floorMessagingState, elevatorMessagingState;
+    private byte[] floorData, elevatorData;
+    private final HashMap<int[], Timer> elevatorsInfoAndTimers;
     private static final int FLOOR_RECEIVING_PORT = 2000, FLOOR_SENDING_PORT = 2300, ELEVATOR_SENDING_PORT = 2100, ELEVATOR_RECEIVING_PORT = 2200;
 
     /**
      * Initializes the controller.
      */
     public Scheduler() {
-        state = States.IDLE;
-        elevatorsInfo = new ArrayList<>();
+        floorMessagingState = States.IDLE;
+        elevatorMessagingState = States.IDLE;
+        floorData = new byte[3];
+        elevatorData = new byte[4];
+        elevatorsInfoAndTimers = new HashMap<>();
         try {
             floorReceivingSocket = new DatagramSocket(FLOOR_RECEIVING_PORT);
             floorSendingSocket = new DatagramSocket();
@@ -35,7 +39,8 @@ public class Scheduler extends Thread {
             floorAddress = InetAddress.getLocalHost();
             elevatorAddress = InetAddress.getLocalHost();
         } catch (SocketException| UnknownHostException e) {
-            state = States.OUT_OF_SERVICE;
+            floorMessagingState = States.OUT_OF_SERVICE;
+            elevatorMessagingState = States.OUT_OF_SERVICE;
             printAnalyzedState();
             e.printStackTrace();
             System.exit(1);
@@ -50,19 +55,19 @@ public class Scheduler extends Thread {
         else if(state == States.GOING_DOWN)
             return 2;
         else if(state == States.OUT_OF_SERVICE)
-            return 404;
+            return 503;
         else
-            return 999;
+            return 404;
     }
 
     public void addElevator(Elevator elevator) {
         int state = getDatagramStateValue(elevator.getStates());
 
-        elevatorsInfo.add(new int[] {elevator.getElevatorNum(), elevator.getCurrentFloor(), state});
+        elevatorsInfoAndTimers.put(new int[] {elevator.getElevatorNum(), elevator.getCurrentFloor(), state}, new Timer());
     }
 
     private void updateElevatorInfo(int elevatorNum, int floorNum, int state) {
-        for(int[] arr : elevatorsInfo) {
+        for(int[] arr : elevatorsInfoAndTimers.keySet()) {
             if(arr[0] == elevatorNum) {
                 arr[1] = floorNum;
                 arr[2] = state;
@@ -71,136 +76,203 @@ public class Scheduler extends Thread {
         }
     }
 
-    public byte scheduleElevator(byte[] data) {
-        int elevatorNum = elevatorsInfo.get(0)[0];
-        for(int[] arr : elevatorsInfo) {
-            if ((Math.abs(arr[1] - ((int) data[0]))
-                    < Math.abs(arr[1] - ((int) data[0])))
-                    && ((arr[2] == data[1])
-                    || (arr[2] == 0)))
-                elevatorNum = arr[0];
+    private void handleElevatorMessagingState() {
+        switch(elevatorMessagingState) {
+            case IDLE -> {
+                elevatorData = receiveTask();
+            }
+            case SCHEDULING -> {
+                elevatorData[3] = scheduleElevator(elevatorData);
+            }
+            case SENDING_TASK -> {
+                sendToElevator(elevatorData);
+            }
+            case OUT_OF_SERVICE -> {
+                printAnalyzedState();
+            }
         }
-        return (byte) elevatorNum;
     }
 
-    /**
-     * Method to send data to the elevator and update the scheduler's state.
-     */
-    public void sendToElevator() {
+    private void handleFloorMessagingState() {
+        switch(floorMessagingState) {
+            case IDLE -> {
+                floorData = receiveMessage();
+            }
+            case HANDLING_RECEIVED_MESSAGE -> {
+                handleElevatorMessage(floorData);
+            }
+            case SENDING_MESSAGE -> {
+                sendToFloor(floorData);
+            }
+        }
+    }
+
+    private void handleElevatorMessage(byte[] data) {
+        if(data[1] == (byte) 1) {
+            startFaultDetection(data[3], Elevator.MOTOR_TIME, false);
+            floorData = Arrays.copyOfRange(data, 2, 6);
+            floorMessagingState = States.SENDING_MESSAGE;
+            updateElevatorInfo(data[3], data[2], data[0]);
+        }
+        else if(data[1] == (byte) 2)
+            startFaultDetection(data[3], Elevator.DOOR_HOLD_TIME, false);
+        else if(data[1] == 3)
+            startFaultDetection(data[3], Elevator.MOTOR_TIME, false);
+        else if(data[1] == 0)
+            stopTimer(data[3]);
+        if((data[0] == getDatagramStateValue(States.GOING_UP)) || (data[0] == getDatagramStateValue(States.GOING_DOWN)))
+            startFaultDetection(data[3], Elevator.TRAVEL_TIME, true);
+        else if(data[0] == getDatagramStateValue(States.IDLE))
+            stopTimer(data[3]);
+    }
+
+    private byte[] receiveTask() {
         byte[] data = new byte[4];
         floorReceivePacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_RECEIVING_PORT);
 
         try {
             System.out.println("SCHEDULER: Waiting for Packet from Floor...\n");
             floorReceivingSocket.receive(floorReceivePacket);
-            state = States.RECEIVING_TASK;
         } catch (IOException e) {
-            state = States.OUT_OF_SERVICE;
+            elevatorMessagingState = States.OUT_OF_SERVICE;
             printAnalyzedState();
             e.printStackTrace();
             System.exit(1);
         }
 
         System.out.println("SCHEDULER: Packet Received from Floor " + ((int) data[0]) + ": " + Arrays.toString(data) + ".\n");
+        elevatorMessagingState = States.SCHEDULING;
+        return data;
+    }
 
-        data[3] = scheduleElevator(data);
+    public byte scheduleElevator(byte[] data) {
+        int elevatorNum = ((int[]) elevatorsInfoAndTimers.keySet().toArray()[0])[0];
+        for(int[] arr : elevatorsInfoAndTimers.keySet()) {
+            if ((Math.abs(arr[1] - ((int) data[0]))
+                    < Math.abs(arr[1] - ((int) data[0])))
+                    && ((arr[2] == data[1])
+                    || (arr[2] == 0)))
+                elevatorNum = arr[0];
+        }
+
+        elevatorMessagingState = States.SENDING_TASK;
+        return (byte) elevatorNum;
+    }
+
+    /**
+     * Method to send data to the elevator and update the scheduler's state.
+     */
+    public void sendToElevator(byte[] data) {
         elevatorSendPacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_SENDING_PORT);
 
         try {
-
             System.out.println("SCHEDULER: Sending Packet to elevator: " + Arrays.toString(data) + "\n");
             elevatorSendingSocket.send(elevatorSendPacket);
-            state = States.SENDING_TASK;
         } catch (IOException e) {
-            state = States.OUT_OF_SERVICE;
-            printAnalyzedState();
+            elevatorMessagingState = States.OUT_OF_SERVICE;
             e.printStackTrace();
             System.exit(1);
         }
 
         System.out.println("SCHEDULER: Packet sent to elevator.\n");
-        state = States.IDLE;
+        elevatorMessagingState = States.IDLE;
 
-        //startFaultDetection(data[3], );
+        updateElevatorInfo(data[3], data[0], data[1]);
+        startFaultDetection(data[3], Elevator.TRAVEL_TIME, true);
 
         try {
             Thread.sleep(50);
         } catch (InterruptedException e ) {
-            state = States.OUT_OF_SERVICE;
+            elevatorMessagingState = States.OUT_OF_SERVICE;
             printAnalyzedState();
             e.printStackTrace();
             System.exit(1);
         }
     }
 
-    private void startFaultDetection(int elevatorNum, int destinationFloor) {
-        int multiplier = 1;
+    private void startFaultDetection(int elevatorNum, int time, boolean floorOrDoorFault) {
+        Timer timer = null;
 
-        for(int[] arr : elevatorsInfo) {
+        for(int[] arr : elevatorsInfoAndTimers.keySet()) {
             if(arr[0] == elevatorNum) {
-                multiplier = destinationFloor - arr[1];
+                timer = elevatorsInfoAndTimers.get(arr);
                 break;
             }
         }
 
-        Timer timer = new Timer();
+        if(timer == null)
+            return;
+
+        timer.cancel();
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                checkElevatorDelay(elevatorNum, destinationFloor);
+                timeout(elevatorNum, floorOrDoorFault);
             }
-        }, (long) multiplier * Elevator.TRAVEL_TIME);
+        }, (long) time + 100);
     }
 
-    private void checkElevatorDelay(int elevatorNum, int destinationFloor) {
-        for(int[] arr : elevatorsInfo) {
+    private void stopTimer(int elevatorNum) {
+        for(int[] arr : elevatorsInfoAndTimers.keySet()) {
             if(arr[0] == elevatorNum) {
-                if(arr[2] != destinationFloor)
+                elevatorsInfoAndTimers.get(arr).cancel();
+                break;
+            }
+        }
+    }
+
+    private void timeout(int elevatorNum, boolean floorOrDoorFault) {
+        // TODO: 2023-03-25 Implement fault handling
+        for(int[] arr : elevatorsInfoAndTimers.keySet()) {
+            if(arr[0] == elevatorNum) {
+                if((arr[2] == 1) && (arr[]))
                     System.out.println("SCHEDULER: Elevator " + elevatorNum + " was delayed!");
                 break;
             }
         }
     }
 
-    /**
-     * Method to send data to the floor and update the scheduler's state.
-     */
-    public void sendToFloor() {
-        byte[] data = new byte[4];
+    private byte[] receiveMessage() {
+        byte[] data = new byte[5];
         elevatorReceivePacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_RECEIVING_PORT);
 
         try {
             System.out.println("SCHEDULER: Waiting for Packet from Elevator...\n");
             elevatorReceivingSocket.receive(elevatorReceivePacket);
-            state = States.RECEIVING_MESSAGE;
         } catch (IOException e) {
-            state = States.OUT_OF_SERVICE;
+            floorMessagingState = States.OUT_OF_SERVICE;
             printAnalyzedState();
             e.printStackTrace();
             System.exit(1);
         }
 
         System.out.println("SCHEDULER: Packet Received from Elevator: " + Arrays.toString(data) + ".\n");
+        floorMessagingState = States.HANDLING_RECEIVED_MESSAGE;
+        return data;
+    }
 
+    /**
+     * Method to send data to the floor and update the scheduler's state.
+     */
+    public void sendToFloor(byte[] data) {
         floorSendPacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_SENDING_PORT + ((int) data[1]));
 
         try {
             System.out.println("SCHEDULER: Sending Packet to Floor: " + Arrays.toString(data)+".\n");
             floorSendingSocket.send(floorSendPacket);
-            state = States.SENDING_MESSAGE;
         } catch (IOException e) {
-            state = States.OUT_OF_SERVICE;
+            floorMessagingState = States.OUT_OF_SERVICE;
             printAnalyzedState();
             e.printStackTrace();
             System.exit(1);
         }
 
         System.out.println("SCHEDULER: Packet sent to floor.\n");
-        state = States.IDLE;
+        floorMessagingState = States.IDLE;
         try {
             Thread.sleep(50);
         } catch (InterruptedException e ) {
-            state = States.OUT_OF_SERVICE;
+            floorMessagingState = States.OUT_OF_SERVICE;
             printAnalyzedState();
             e.printStackTrace();
             System.exit(1);
@@ -211,21 +283,8 @@ public class Scheduler extends Thread {
      * Prints the current state of the scheduler.
      */
     public void printAnalyzedState() {
-        System.out.print("SCHEDULER: ");
-
-        if(state.equals(States.IDLE)) {
-            System.out.println("The scheduler is idle.\n");
-        } else if(state.equals(States.RECEIVING_TASK)) {
-            System.out.println("The scheduler is receiving a task.\n");
-        } else if(state.equals(States.SENDING_TASK)) {
-            System.out.println("The scheduler is sending a task.\n");
-        } else if(state.equals(States.RECEIVING_MESSAGE)) {
-            System.out.println("The scheduler is receiving a message.\n");
-        } else if(state.equals(States.SENDING_MESSAGE)) {
-            System.out.println("The scheduler is sending a message.\n");
-        } else {
-            throw new RuntimeException("Error: The scheduler is in an unknown state.\n");
-        }
+        System.out.print("SCHEDULER: The scheduler-elevator system is " + elevatorMessagingState.toString().toLowerCase().replace('_', ' ') + ".\n");
+        System.out.print("SCHEDULER: The scheduler-floor system is " + floorMessagingState.toString().toLowerCase().replace('_', ' ') + ".\n");
     }
 
     /**
@@ -236,30 +295,31 @@ public class Scheduler extends Thread {
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {
-            state = States.OUT_OF_SERVICE;
+            floorMessagingState = States.OUT_OF_SERVICE;
+            elevatorMessagingState = States.OUT_OF_SERVICE;
             printAnalyzedState();
             e.printStackTrace();
             System.exit(1);
         }
 
-        Thread thread1 = new Thread(new Runnable() {
+        Thread elevatorHandlingThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 while (true)
-                    sendToElevator();
+                    handleElevatorMessagingState();
             }
         });
 
-        Thread thread2 = new Thread(new Runnable() {
+        Thread floorHandlingThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 while (true)
-                    sendToFloor();
+                    handleFloorMessagingState();
             }
         });
 
-        thread1.start();
-        thread2.start();
+        elevatorHandlingThread.start();
+        floorHandlingThread.start();
     }
 
     /**
