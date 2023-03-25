@@ -145,6 +145,10 @@ public class Elevator extends Thread {
             delayedQueue.add(new int[]{floorNum, destinationFloor});
         }
     }
+    public void injectFault(){
+
+    }
+
 
     private void handleState() {
         switch(state) {
