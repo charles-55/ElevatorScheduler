@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.net.*;
+import java.time.LocalTime;
 import java.util.*;
 
 /**
@@ -179,15 +180,6 @@ public class Scheduler extends Thread {
 
         updateElevatorInfo(data[3], data[0], data[1]);
         startFaultDetection(data[3], Elevator.TRAVEL_TIME, true);
-
-        try {
-            Thread.sleep(50);
-        } catch (InterruptedException e ) {
-            elevatorMessagingState = States.OUT_OF_SERVICE;
-            printAnalyzedState();
-            e.printStackTrace();
-            System.exit(1);
-        }
     }
 
     private void startFaultDetection(int elevatorNum, int time, boolean floorOrDoorFault) {
@@ -209,7 +201,7 @@ public class Scheduler extends Thread {
             public void run() {
                 timeout(elevatorNum, floorOrDoorFault);
             }
-        }, (long) time + 100);
+        },   time + 1000);
     }
 
     private void stopTimer(int elevatorNum) {
@@ -258,7 +250,7 @@ public class Scheduler extends Thread {
      * Method to send data to the floor and update the scheduler's state.
      */
     public void sendToFloor(byte[] data) {
-        floorSendPacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_SENDING_PORT + ((int) data[1]));
+        floorSendPacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_SENDING_PORT);
 
         try {
             System.out.println("SCHEDULER: Sending Packet to Floor: " + Arrays.toString(data)+".\n");
@@ -334,5 +326,4 @@ public class Scheduler extends Thread {
         elevatorSendingSocket.close();
         elevatorReceivingSocket.close();
     }
-
 }

@@ -22,7 +22,7 @@ public class Elevator extends Thread {
     private final HashMap<Integer, Boolean> buttonsAndLamps;
     private States state;
     public static final int MOTOR_TIME = 3000, DOOR_HOLD_TIME = 5000, MAX_DOOR_HOLD_TIME = 10000, TRAVEL_TIME = 4000;
-    private static final int PORT = 2200;
+    private static final int PORT = 2100;
     public static final int NUM_OF_ELEVATORS = 2;
 
     /**
@@ -146,26 +146,28 @@ public class Elevator extends Thread {
         }
     }
 
+    public void injectFault(){
+
+    }
+
     private void handleState() {
         switch(state) {
             case GOING_UP, GOING_DOWN -> {
                 move();
-                if(buttonsAndLamps.get(currentFloor)==true){
-
+                if(buttonsAndLamps.get(currentFloor)){
                     sendMessage(new byte[] {(byte) getDatagramStateValue(),1,(byte) currentFloor,(byte) elevatorNum, -1 });
                     openDoors();
                     sendMessage(new byte[] {(byte) getDatagramStateValue(),2,(byte) currentFloor,(byte) elevatorNum, -1 });
+
                     try{
                         Thread.sleep(DOOR_HOLD_TIME);
                     }catch(InterruptedException e){
                         return;
                     }
+
                     sendMessage(new byte[] {(byte) getDatagramStateValue(),3,(byte) currentFloor,(byte) elevatorNum, -1 });
                     closeDoors();
                     sendMessage(new byte[] {(byte) getDatagramStateValue(),0,(byte) currentFloor,(byte) elevatorNum, -1 });
-                }
-                else if(checkAllTaskComplete()==true){
-
                 }
             }
             case OUT_OF_SERVICE -> printAnalyzedState();
@@ -382,13 +384,6 @@ public class Elevator extends Thread {
             System.out.println("ELEVATOR " + data[2] + ": Packet Sent!\n");
         } catch (IOException e) {
             System.out.println("ELEVATOR " + data[2] + " Error: Socket Timed Out.\n");
-            e.printStackTrace();
-            System.exit(1);
-        }
-
-        try {
-            Thread.sleep(50);
-        } catch (InterruptedException e ) {
             e.printStackTrace();
             System.exit(1);
         }

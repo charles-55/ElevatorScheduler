@@ -70,8 +70,8 @@ public class FloorSubsystem extends Thread {
                 throw new RuntimeException(e);
             }
         }
-        state = States.IDLE;
 
+        state = States.IDLE;
     }
 
     private void receiveFromScheduler(){
@@ -101,7 +101,6 @@ public class FloorSubsystem extends Thread {
             e.printStackTrace();
             System.exit(1);
         }
-
     }
 
     private void updateFloor(int floorNumber, int direction, boolean state){
@@ -109,11 +108,8 @@ public class FloorSubsystem extends Thread {
             if (floor.getFloorNumber()==floorNumber){
                 floor.setButtonDirection(direction, state);
                 break;
-
             }
         }
-
-
     }
 
     /**
@@ -161,7 +157,23 @@ public class FloorSubsystem extends Thread {
      */
     @Override
     public void run() {
-        parseData();
+        Thread parseDataThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                parseData();
+            }
+        });
+
+        Thread receiveMessageThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true)
+                    receiveFromScheduler();
+            }
+        });
+
+        parseDataThread.start();
+        receiveMessageThread.start();
     }
 
     /**

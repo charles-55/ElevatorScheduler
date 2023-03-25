@@ -29,7 +29,7 @@ public class FloorTest {
         floorSubsystem = new FloorSubsystem("src/InputTable.txt");
         floor = new Floor(1);
         elevatorQueue = new ElevatorQueue();
-        elevator = new Elevator(1, NUM_OF_FLOORS, elevatorQueue,scheduler);
+        elevator = new Elevator(1, NUM_OF_FLOORS, elevatorQueue, scheduler);
     }
 
     /**
@@ -39,7 +39,6 @@ public class FloorTest {
     public void tearDown() {
         scheduler.closeSocket();
         floorSubsystem.closeSocket();
-        //floor.closeSocket();
         elevatorQueue.closeSocket();
 
         scheduler = null;
