@@ -2,6 +2,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.*;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -17,8 +18,10 @@ import java.util.Scanner;
 
 public class FloorSubsystem extends Thread {
 
+    private final ArrayList<Floor> floors;
     private States state;
     private DatagramPacket sendPacket;
+    private DatagramPacket receivePacket;
     private DatagramSocket socket;
     private InetAddress address;
     private final int PORT = 2000;
@@ -38,6 +41,79 @@ public class FloorSubsystem extends Thread {
             e.printStackTrace();
             System.exit(1);
         }
+        floors = new ArrayList<>();
+    }
+    public void addFloor(Floor floor){
+        floors.add(floor);
+    }
+
+    public void sendToScheduler(byte[] data, LocalTime time) {
+        updateFloor(data[0], data[2], true);
+        sendPacket = new DatagramPacket(data, data.length, address, PORT);
+
+        time = LocalTime.now(); // for testing purposes only!
+        if(LocalTime.now().equals(time)) {
+            state = States.SENDING_TASK;
+            System.out.println("FLOOR SUBSYSTEM: Sending Packet: " + Arrays.toString(data) + ".");
+            try {
+                socket.send(sendPacket);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            System.out.println("FLOOR SUBSYSTEM: Packet Sent!\n");
+        }
+        else if (time.isAfter(LocalTime.now())) {
+            try {
+                Thread.sleep((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000);
+                socket.send(sendPacket);
+            } catch (InterruptedException | IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        state = States.IDLE;
+
+    }
+
+    private void receiveFromScheduler(){
+        byte[] data = new byte[3];
+        receivePacket = new DatagramPacket(data, data.length, address, PORT);
+
+        try {
+            System.out.println("FLOOR SUBSYSTEM: Waiting for Packet...\n");
+            socket.receive(receivePacket);
+        } catch (IOException e) {
+            System.out.println("FLOOR SUBSYSTEM: Error Socket Timed Out.\n");
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        System.out.println("FLOOR SUBSYSTEM: Packet received: " + Arrays.toString(data) + "\n");
+
+        System.out.println("FLOOR " + data[0] + ": Elevator " + data[1] + " arrived.\n");
+        if (data[2] == 1)
+            updateFloor(data[0], 1, false);
+        else if (data[2] == 2)
+            updateFloor(data[0], 2, false);
+
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e ) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+    }
+
+    private void updateFloor(int floorNumber, int direction, boolean state){
+        for(Floor floor:floors){
+            if (floor.getFloorNumber()==floorNumber){
+                floor.setButtonDirection(direction, state);
+                break;
+
+            }
+        }
+
+
     }
 
     /**
@@ -68,21 +144,9 @@ public class FloorSubsystem extends Thread {
                 else if (splitData[2].equalsIgnoreCase("DOWN"))
                     data[1] = 2;
                 data[2] = (byte) destinationFloor;
-                sendPacket = new DatagramPacket(data, data.length, address, PORT);
 
-                time = LocalTime.now(); // for testing purposes only!
-                if(LocalTime.now().equals(time)) {
-                    state = States.SENDING_TASK;
-                    System.out.println("FLOOR SUBSYSTEM: Sending Packet: " + Arrays.toString(data) + ".");
-                    socket.send(sendPacket);
-                    System.out.println("FLOOR SUBSYSTEM: Packet Sent!\n");
-                }
-                else if (time.isAfter(LocalTime.now())) {
-                    Thread.sleep((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000);
-                    socket.send(sendPacket);
-                }
-                state = States.IDLE;
-                Thread.sleep(2500);
+                sendToScheduler(data, time);
+                Thread.sleep(2500); //testing purpose only
             }
             closeSocket();
         } catch (InterruptedException | IOException e) {
