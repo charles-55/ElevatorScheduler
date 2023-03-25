@@ -274,7 +274,7 @@ public class Elevator extends Thread {
      *
      */
     private int getDatagramStateValue(){
-        if(state==States.IDLE){
+        if(state == States.IDLE) {
             return 0;
         } else if (state==States.GOING_UP) {
             return  1;
