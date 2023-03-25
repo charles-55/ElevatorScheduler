@@ -439,7 +439,7 @@ public class Elevator extends Thread {
     @Override
     public void run() {
         Elevator elevator = this;
-        Thread thread1 = new Thread(new Runnable() {
+        Thread taskUpdateThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 while(state != States.OUT_OF_SERVICE) {
@@ -448,7 +448,7 @@ public class Elevator extends Thread {
                 }
             }
         });
-        Thread thread2 = new Thread(new Runnable() {
+        Thread handleStateThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 while(state != States.OUT_OF_SERVICE)
@@ -457,7 +457,7 @@ public class Elevator extends Thread {
             }
         });
 
-        thread1.start();
-        thread2.start();
+        taskUpdateThread.start();
+        handleStateThread.start();
     }
 }
