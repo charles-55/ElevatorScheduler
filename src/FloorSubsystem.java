@@ -157,7 +157,23 @@ public class FloorSubsystem extends Thread {
      */
     @Override
     public void run() {
-        parseData();
+        Thread parseDataThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                parseData();
+            }
+        });
+
+        Thread receiveMessageThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true)
+                    receiveFromScheduler();
+            }
+        });
+
+        parseDataThread.start();
+        receiveMessageThread.start();
     }
 
     /**

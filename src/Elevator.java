@@ -145,10 +145,10 @@ public class Elevator extends Thread {
             delayedQueue.add(new int[]{floorNum, destinationFloor});
         }
     }
+
     public void injectFault(){
 
     }
-
 
     private void handleState() {
         switch(state) {
@@ -384,13 +384,6 @@ public class Elevator extends Thread {
             System.out.println("ELEVATOR " + data[2] + ": Packet Sent!\n");
         } catch (IOException e) {
             System.out.println("ELEVATOR " + data[2] + " Error: Socket Timed Out.\n");
-            e.printStackTrace();
-            System.exit(1);
-        }
-
-        try {
-            Thread.sleep(50);
-        } catch (InterruptedException e ) {
             e.printStackTrace();
             System.exit(1);
         }
