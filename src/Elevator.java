@@ -233,6 +233,30 @@ public class Elevator extends Thread {
             state = States.IDLE;
     }
 
+    public void move() {
+        if(doorOpen)
+            closeDoors();
+        this.isMoving = true;
+
+        try {
+            sleep(TRAVEL_TIME);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        int direction = 0;
+        if(state == States.GOING_UP) {
+            currentFloor++;
+            direction = 1;
+        }
+        else if(state == States.GOING_DOWN) {
+            currentFloor--;
+            direction = 2;
+        }
+
+        sendMessage(new byte[] {1, (byte) currentFloor, (byte) elevatorNum, (byte) direction});
+    }
+
     /**
      * Moves the current elevator to target floor.
      * @param targetFloor int target floor number
@@ -286,7 +310,7 @@ public class Elevator extends Thread {
      */
     private void alertArrival() {
         byte[] data = new byte[4];
-        data[0] = 1;
+        data[0] = 0;
         data[1] = (byte) currentFloor;
         data[2] = (byte) elevatorNum;
 
@@ -311,7 +335,7 @@ public class Elevator extends Thread {
      * Creates datagram socket and a packet then using a socket to send messages
      * @param data
      */
-    private static void sendMessage(byte[] data) {
+    private synchronized static void sendMessage(byte[] data) {
         DatagramSocket socket = null;
         InetAddress address = null;
         try {
