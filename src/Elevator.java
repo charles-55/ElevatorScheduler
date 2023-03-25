@@ -150,22 +150,20 @@ public class Elevator extends Thread {
         switch(state) {
             case GOING_UP, GOING_DOWN -> {
                 move();
-                if(buttonsAndLamps.get(currentFloor)==true){
-
+                if(buttonsAndLamps.get(currentFloor)){
                     sendMessage(new byte[] {(byte) getDatagramStateValue(),1,(byte) currentFloor,(byte) elevatorNum, -1 });
                     openDoors();
                     sendMessage(new byte[] {(byte) getDatagramStateValue(),2,(byte) currentFloor,(byte) elevatorNum, -1 });
+
                     try{
                         Thread.sleep(DOOR_HOLD_TIME);
                     }catch(InterruptedException e){
                         return;
                     }
+
                     sendMessage(new byte[] {(byte) getDatagramStateValue(),3,(byte) currentFloor,(byte) elevatorNum, -1 });
                     closeDoors();
                     sendMessage(new byte[] {(byte) getDatagramStateValue(),0,(byte) currentFloor,(byte) elevatorNum, -1 });
-                }
-                else if(checkAllTaskComplete()==true){
-
                 }
             }
             case OUT_OF_SERVICE -> printAnalyzedState();
