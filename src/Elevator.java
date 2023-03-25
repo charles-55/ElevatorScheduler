@@ -23,7 +23,7 @@ public class Elevator extends Thread {
     private final ArrayList<int[]> delayedQueue;
     private final HashMap<Integer, Boolean> buttonsAndLamps;
     private States state;
-    public static final int MOTOR_TIME = 3000, DOOR_HOLD_TIME = 3000, TRAVEL_TIME = 4000;
+    public static final int MOTOR_TIME = 3000, DOOR_HOLD_TIME = 5000, MAX_DOOR_HOLD_TIME = 10000, TRAVEL_TIME = 4000;
     private static final int PORT = 2200;
     public static final int NUM_OF_ELEVATORS = 2;
 
@@ -115,7 +115,7 @@ public class Elevator extends Thread {
      * Open and close the doors.
      */
     public void openDoors() {
-        if (!this.isMoving && !doorOpen) {
+        if(!this.isMoving && !doorOpen) {
             try {
                 Thread.sleep(MOTOR_TIME); // Arbitrary time for doors to open // implement open door using motors
             } catch (InterruptedException e) {

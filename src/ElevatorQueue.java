@@ -54,7 +54,7 @@ public class ElevatorQueue extends Thread {
      * Responds when a packet is received.
      */
     public void respondToCall() {
-        byte[] data = new byte[3];
+        byte[] data = new byte[4];
         DatagramPacket receivePacket = new DatagramPacket(data, data.length, address, RECEIVING_PORT);
 
         try {
@@ -87,6 +87,16 @@ public class ElevatorQueue extends Thread {
         }
 
         assert elevator != null;
+
+        if(data[1] == (byte) 503) {
+            elevator.setState(States.OUT_OF_SERVICE);
+            return;
+        }
+        else if(data[1] == (byte) 504) {
+            elevator.closeDoors();
+            return;
+        }
+
         if(elevator.getStates().equals(States.IDLE)) {
             elevator.callElevator(data[0], state);
         }

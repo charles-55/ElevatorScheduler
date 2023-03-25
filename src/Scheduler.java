@@ -115,7 +115,7 @@ public class Scheduler extends Thread {
             updateElevatorInfo(data[3], data[2], data[0]);
         }
         else if(data[1] == (byte) 2)
-            startFaultDetection(data[3], Elevator.DOOR_HOLD_TIME, false);
+            startFaultDetection(data[3], Elevator.MAX_DOOR_HOLD_TIME, false);
         else if(data[1] == 3)
             startFaultDetection(data[3], Elevator.MOTOR_TIME, false);
         else if(data[1] == 0)
@@ -222,11 +222,14 @@ public class Scheduler extends Thread {
     }
 
     private void timeout(int elevatorNum, boolean floorOrDoorFault) {
-        // TODO: 2023-03-25 Implement fault handling
         for(int[] arr : elevatorsInfoAndTimers.keySet()) {
             if(arr[0] == elevatorNum) {
-                if((arr[2] == 1) && (arr[]))
-                    System.out.println("SCHEDULER: Elevator " + elevatorNum + " was delayed!");
+                if(floorOrDoorFault) {
+                    arr[2] = 503;
+                    sendToElevator(new byte[] {0, (byte) 503, (byte) arr[0]});
+                }
+                else
+                    sendToElevator(new byte[] {(byte) arr[1], (byte) 504, (byte) arr[0]});
                 break;
             }
         }
