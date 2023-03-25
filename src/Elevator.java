@@ -130,6 +130,7 @@ public class Elevator extends Thread {
             }
             this.doorOpen = false;
         }
+
     }
     
     
@@ -221,7 +222,7 @@ public class Elevator extends Thread {
      * Checks if all the task are complete and updates the state
      */
 
-    private void checkAllTaskComplete() {
+    private boolean checkAllTaskComplete() {
         boolean done = true;
         for(int i = 0; i < Floor.NUM_OF_FLOORS; i++) {
             if(buttonsAndLamps.get(i + 1)) {
@@ -229,8 +230,12 @@ public class Elevator extends Thread {
                 break;
             }
         }
-        if((delayedQueue.size() == 0) && done)
+        if((delayedQueue.size() == 0) && done) {
             state = States.IDLE;
+            return true;
+        }
+
+        return false;
     }
 
     public void move() {
@@ -254,7 +259,16 @@ public class Elevator extends Thread {
             direction = 2;
         }
 
-        sendMessage(new byte[] {1, (byte) currentFloor, (byte) elevatorNum, (byte) direction});
+        sendMessage(new byte[] {(byte) (checkAllTaskComplete() ? 0 : 1), (byte) (buttonsAndLamps.get(currentFloor) ? 1 : 0), (byte) currentFloor, (byte) elevatorNum, (byte) direction});
+    }
+
+    private void handleState() {
+        switch(state) {
+            case IDLE -> {}
+            case GOING_UP -> {}
+            case GOING_DOWN -> {}
+            case OUT_OF_SERVICE -> {}
+        }
     }
 
     /**
