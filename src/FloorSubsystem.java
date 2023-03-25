@@ -24,7 +24,7 @@ public class FloorSubsystem extends Thread {
     private DatagramPacket receivePacket;
     private DatagramSocket socket;
     private InetAddress address;
-    private final int PORT = 2000;
+    private static final int SEND_PORT = 2000, RECEIVE_PORT = 2300;
     private final String fileName;
 
     /**
@@ -49,7 +49,7 @@ public class FloorSubsystem extends Thread {
 
     public void sendToScheduler(byte[] data, LocalTime time) {
         updateFloor(data[0], data[2], true);
-        sendPacket = new DatagramPacket(data, data.length, address, PORT);
+        sendPacket = new DatagramPacket(data, data.length, address, SEND_PORT);
 
         time = LocalTime.now(); // for testing purposes only!
         if(LocalTime.now().equals(time)) {
@@ -76,7 +76,7 @@ public class FloorSubsystem extends Thread {
 
     private void receiveFromScheduler(){
         byte[] data = new byte[3];
-        receivePacket = new DatagramPacket(data, data.length, address, PORT);
+        receivePacket = new DatagramPacket(data, data.length, address, RECEIVE_PORT);
 
         try {
             System.out.println("FLOOR SUBSYSTEM: Waiting for Packet...\n");
@@ -103,7 +103,7 @@ public class FloorSubsystem extends Thread {
         }
     }
 
-    private void updateFloor(int floorNumber, int direction, boolean state){
+    private void updateFloor(int floorNumber, int direction, boolean state) {
         for(Floor floor:floors){
             if (floor.getFloorNumber()==floorNumber){
                 floor.setButtonDirection(direction, state);
