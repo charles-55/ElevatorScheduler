@@ -27,7 +27,7 @@ public class FloorTest {
     public void setUp() {
         scheduler = new Scheduler();
         floorSubsystem = new FloorSubsystem("src/InputTable.txt");
-        floor = new Floor(1);
+        floor = new Floor(1, floorSubsystem);
         elevatorQueue = new ElevatorQueue();
         elevator = new Elevator(1, NUM_OF_FLOORS, elevatorQueue, scheduler);
     }

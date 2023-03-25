@@ -14,7 +14,7 @@ public class Main {
         ArrayList<Elevator> elevators = new ArrayList<>();
 
         for(int i = 0; i < Floor.NUM_OF_FLOORS; i++)
-            floors.add(new Floor(i + 1));
+            floors.add(new Floor(i + 1, floorSubsystem));
         for(int i = 0; i < Elevator.NUM_OF_ELEVATORS; i++)
             elevators.add(new Elevator(i + 1, Floor.NUM_OF_FLOORS, elevatorQueue, scheduler));
 

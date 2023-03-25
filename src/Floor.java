@@ -20,8 +20,9 @@ public class Floor {
     /**
      * Constructor for the floor class.
      */
-    public Floor(int floorNumber) {
+    public Floor(int floorNumber, FloorSubsystem floorSubsystem) {
         this.floorNumber = floorNumber;
+        floorSubsystem.addFloor(this);
         buttonsAndLamps = new HashMap<>();
         buttonsAndLamps.put(1, false);
         buttonsAndLamps.put(2, false);
