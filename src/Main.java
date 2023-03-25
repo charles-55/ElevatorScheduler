@@ -21,8 +21,6 @@ public class Main {
         floorSubsystem.start();
         scheduler.start();
         elevatorQueue.start();
-        for(int i = 0; i < Floor.NUM_OF_FLOORS; i++)
-            floors.get(i).start();
         for(int i = 0; i < Elevator.NUM_OF_ELEVATORS; i++)
             elevators.get(i).start();
     }
