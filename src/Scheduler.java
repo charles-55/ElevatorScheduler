@@ -258,7 +258,7 @@ public class Scheduler extends Thread {
      * Method to send data to the floor and update the scheduler's state.
      */
     public void sendToFloor(byte[] data) {
-        floorSendPacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_SENDING_PORT + ((int) data[1]));
+        floorSendPacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_SENDING_PORT);
 
         try {
             System.out.println("SCHEDULER: Sending Packet to Floor: " + Arrays.toString(data)+".\n");

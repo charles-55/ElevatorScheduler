@@ -22,7 +22,7 @@ public class Elevator extends Thread {
     private final HashMap<Integer, Boolean> buttonsAndLamps;
     private States state;
     public static final int MOTOR_TIME = 3000, DOOR_HOLD_TIME = 5000, MAX_DOOR_HOLD_TIME = 10000, TRAVEL_TIME = 4000;
-    private static final int PORT = 2200;
+    private static final int PORT = 2100;
     public static final int NUM_OF_ELEVATORS = 2;
 
     /**
