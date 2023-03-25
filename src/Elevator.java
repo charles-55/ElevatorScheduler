@@ -18,9 +18,11 @@ public class Elevator extends Thread {
     private boolean doorOpen;
     private boolean isMoving;
     private final ElevatorQueue elevatorQueue;
+    private final ArrayList<Integer> queue;
     private final ArrayList<int[]> delayedQueue;
     private final HashMap<Integer, Boolean> buttonsAndLamps;
     private States state;
+    public static final int MOTOR_TIME = 3000, DOOR_HOLD_TIME = 3000, TRAVEL_TIME = 4000;
     private static final int PORT = 2200;
     public static final int NUM_OF_ELEVATORS = 2;
 
@@ -30,20 +32,10 @@ public class Elevator extends Thread {
      * @param numOfFloors int number of floors in the building.
      * @param elevatorQueue ElevatorQueue queue for the elevator object.
      */
-    public Elevator(int elevatorNum, int numOfFloors, ElevatorQueue elevatorQueue) {
-        this(elevatorNum, numOfFloors, 1, elevatorQueue);
-    }
-
-    /**
-     * Constructor method for Elevator with custom initializing floor.
-     * @param elevatorNum int identifying elevator number.
-     * @param numOfFloors int number of floors in the building.
-     * @param currentFloor int current floor where the elevator object is initially located.
-     * @param elevatorQueue ElevatorQueue queue for the elevator object.
-     */
-    public Elevator(int elevatorNum, int numOfFloors, int currentFloor, ElevatorQueue elevatorQueue) {
+    public Elevator(int elevatorNum, int numOfFloors, ElevatorQueue elevatorQueue, Scheduler scheduler) {
         this.elevatorNum = elevatorNum;
-        this.currentFloor = currentFloor;
+        this.currentFloor = 1;
+        queue = new ArrayList<>();
         this.elevatorQueue = elevatorQueue;
         delayedQueue = new ArrayList<>();
 
@@ -56,6 +48,8 @@ public class Elevator extends Thread {
         buttonsAndLamps = new HashMap<>();
         for(int i = 1; i <= numOfFloors; i++)
             buttonsAndLamps.put(i, false);
+
+        scheduler.addElevator(this);
     }
 
     /**
@@ -114,10 +108,9 @@ public class Elevator extends Thread {
      * Open and close the doors.
      */
     public void openDoors() {
-        alertArrival();
         if (!this.isMoving && !doorOpen) {
             try {
-                Thread.sleep(3000); // Arbitrary time for doors to open // implement open door using motors
+                Thread.sleep(MOTOR_TIME); // Arbitrary time for doors to open // implement open door using motors
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -131,13 +124,15 @@ public class Elevator extends Thread {
     public void closeDoors() {
         if(!this.isMoving && doorOpen) {
             try {
-                Thread.sleep(3000); // Arbitrary time for doors to close // implement close door using motors
+                Thread.sleep(MOTOR_TIME); // Arbitrary time for doors to close // implement close door using motors
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
             this.doorOpen = false;
         }
     }
+    
+    
 
     /**
      * Adds a new destination for the elevator in the delayed queue (different direction than current queue)
@@ -257,7 +252,7 @@ public class Elevator extends Thread {
 
         while(currentFloor != targetFloor) {
             try {
-                sleep(4000);
+                sleep(TRAVEL_TIME);
                 if(direction.equals(States.GOING_UP))
                     currentFloor++;
                 else
@@ -267,9 +262,7 @@ public class Elevator extends Thread {
                     System.out.println("ELEVATOR " + elevatorNum + ": Made a stop on floor " + currentFloor + ".\n");
                     this.isMoving = false;
                     buttonsAndLamps.put(currentFloor, false);
-                    openDoors();
-                    Thread.sleep(5000);
-                    closeDoors();
+                    alertArrival();
                     this.isMoving = true;
                 }
             } catch (InterruptedException e) {
@@ -304,6 +297,14 @@ public class Elevator extends Thread {
 
         checkAllTaskComplete();
         sendMessage(data);
+
+        openDoors();
+        try {
+            Thread.sleep(DOOR_HOLD_TIME);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        closeDoors();
     }
 
     /**

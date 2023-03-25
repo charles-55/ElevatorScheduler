@@ -1,6 +1,6 @@
 import java.io.IOException;
 import java.net.*;
-import java.util.Arrays;
+import java.util.*;
 
 /**
  * The Scheduler Class.
@@ -18,14 +18,16 @@ public class Scheduler extends Thread {
     private InetAddress floorAddress, elevatorAddress;
     private DatagramSocket floorReceivingSocket, floorSendingSocket, elevatorReceivingSocket, elevatorSendingSocket;
     private States state;
+    private final ArrayList<int[]> elevatorsInfo;
     private static final int FLOOR_RECEIVING_PORT = 2000, FLOOR_SENDING_PORT = 2300, ELEVATOR_SENDING_PORT = 2100, ELEVATOR_RECEIVING_PORT = 2200;
 
     /**
      * Initializes the controller.
      */
     public Scheduler() {
+        state = States.IDLE;
+        elevatorsInfo = new ArrayList<>();
         try {
-            state = States.IDLE;
             floorReceivingSocket = new DatagramSocket(FLOOR_RECEIVING_PORT);
             floorSendingSocket = new DatagramSocket();
             elevatorReceivingSocket = new DatagramSocket(ELEVATOR_RECEIVING_PORT);
@@ -40,11 +42,52 @@ public class Scheduler extends Thread {
         }
     }
 
+    private int getDatagramStateValue(States state) {
+        if(state == States.IDLE)
+            return 0;
+        else if(state == States.GOING_UP)
+            return 1;
+        else if(state == States.GOING_DOWN)
+            return 2;
+        else if(state == States.OUT_OF_SERVICE)
+            return 404;
+        else
+            return 999;
+    }
+
+    public void addElevator(Elevator elevator) {
+        int state = getDatagramStateValue(elevator.getStates());
+
+        elevatorsInfo.add(new int[] {elevator.getElevatorNum(), elevator.getCurrentFloor(), state});
+    }
+
+    private void updateElevatorInfo(int elevatorNum, int floorNum, int state) {
+        for(int[] arr : elevatorsInfo) {
+            if(arr[0] == elevatorNum) {
+                arr[1] = floorNum;
+                arr[2] = state;
+                break;
+            }
+        }
+    }
+
+    public byte scheduleElevator(byte[] data) {
+        int elevatorNum = elevatorsInfo.get(0)[0];
+        for(int[] arr : elevatorsInfo) {
+            if ((Math.abs(arr[1] - ((int) data[0]))
+                    < Math.abs(arr[1] - ((int) data[0])))
+                    && ((arr[2] == data[1])
+                    || (arr[2] == 0)))
+                elevatorNum = arr[0];
+        }
+        return (byte) elevatorNum;
+    }
+
     /**
      * Method to send data to the elevator and update the scheduler's state.
      */
     public void sendToElevator() {
-        byte[] data = new byte[3];
+        byte[] data = new byte[4];
         floorReceivePacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_RECEIVING_PORT);
 
         try {
@@ -60,6 +103,7 @@ public class Scheduler extends Thread {
 
         System.out.println("SCHEDULER: Packet Received from Floor " + ((int) data[0]) + ": " + Arrays.toString(data) + ".\n");
 
+        data[3] = scheduleElevator(data);
         elevatorSendPacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_SENDING_PORT);
 
         try {
@@ -76,6 +120,9 @@ public class Scheduler extends Thread {
 
         System.out.println("SCHEDULER: Packet sent to elevator.\n");
         state = States.IDLE;
+
+        //startFaultDetection(data[3], );
+
         try {
             Thread.sleep(50);
         } catch (InterruptedException e ) {
@@ -83,6 +130,35 @@ public class Scheduler extends Thread {
             printAnalyzedState();
             e.printStackTrace();
             System.exit(1);
+        }
+    }
+
+    private void startFaultDetection(int elevatorNum, int destinationFloor) {
+        int multiplier = 1;
+
+        for(int[] arr : elevatorsInfo) {
+            if(arr[0] == elevatorNum) {
+                multiplier = destinationFloor - arr[1];
+                break;
+            }
+        }
+
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                checkElevatorDelay(elevatorNum, destinationFloor);
+            }
+        }, (long) multiplier * Elevator.TRAVEL_TIME);
+    }
+
+    private void checkElevatorDelay(int elevatorNum, int destinationFloor) {
+        for(int[] arr : elevatorsInfo) {
+            if(arr[0] == elevatorNum) {
+                if(arr[2] != destinationFloor)
+                    System.out.println("SCHEDULER: Elevator " + elevatorNum + " was delayed!");
+                break;
+            }
         }
     }
 

@@ -77,22 +77,16 @@ public class ElevatorQueue extends Thread {
      * @param data byte[] An elevator call at floor X for the elevator to go to.
      */
     public synchronized void addToQueue(byte[] data) {
-        States state = States.IDLE;
+        Elevator elevator = null;
 
-        if(data[1] == 1)
-            state = States.GOING_UP;
-        else if(data[1] == 2)
-            state = States.GOING_DOWN;
-
-        Elevator elevator = (Elevator) queue.keySet().toArray()[0];
         for(Elevator e : queue.keySet()) {
-            if ((Math.abs(e.getCurrentFloor() - ((int) data[0]))
-                    < Math.abs(elevator.getCurrentFloor() - ((int) data[0])))
-                    && ((e.getStates().equals(state))
-                    || (e.getStates().equals(States.IDLE))))
+            if(e.getElevatorNum() == (int) data[3]) {
                 elevator = e;
+                break;
+            }
         }
 
+        assert elevator != null;
         if(elevator.getStates().equals(States.IDLE)) {
             elevator.callElevator(data[0], state);
         }
