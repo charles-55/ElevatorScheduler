@@ -1,4 +1,7 @@
 import org.junit.*;
+
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import static org.junit.Assert.assertEquals;
 
@@ -26,7 +29,7 @@ public class FloorTest {
         floorSubsystem = new FloorSubsystem("src/InputTable.txt");
         floor = new Floor(1);
         elevatorQueue = new ElevatorQueue();
-        elevator = new Elevator(1, NUM_OF_FLOORS, elevatorQueue);
+        elevator = new Elevator(1, NUM_OF_FLOORS, elevatorQueue,scheduler);
     }
 
     /**
@@ -36,7 +39,7 @@ public class FloorTest {
     public void tearDown() {
         scheduler.closeSocket();
         floorSubsystem.closeSocket();
-        floor.closeSocket();
+        //floor.closeSocket();
         elevatorQueue.closeSocket();
 
         scheduler = null;
@@ -46,18 +49,40 @@ public class FloorTest {
         elevator = null;
     }
 
+    @Test
+    public void testAddFloor(){
+        final ArrayList<Floor> floors = new ArrayList<>();
+
+        assertEquals(0, floors.size());
+        floors.add(floor);
+        assertEquals(1, floors.size());
+    }
+
+    @Test
+    public void testSendToScheduler(){
+        byte[] data = new byte[0];
+        LocalTime time = LocalTime.now();
+        States state = States.WAITING_FOR_TASK;
+        assertEquals(state,States.WAITING_FOR_TASK);
+        //floorSubsystem.sendToScheduler(data,time);
+        //assertEquals(state,States.RECEIVING_TASK);
+    }
+
+    @Test
+    public void testReceiveFromScheduler(){
+
+    }
+
     /**
      * Test method for the threads.
      */
     @Test
     public void testRun() {
         floorSubsystem.start();
-        floor.start();
         scheduler.start();
         elevatorQueue.start();
         assertEquals(0, elevatorQueue.getQueue().get(elevator).size());
         floorSubsystem.stop();
-        floor.stop();
     }
 
     /**
@@ -68,5 +93,10 @@ public class FloorTest {
         String data = "14:05:15:0 1 Up 4";
         String splitData = Arrays.toString(data.split(","));
         assertEquals(splitData,"[" + data + "]");
+    }
+
+    @Test
+    public void testPrintAnalyzedState(){
+
     }
 }

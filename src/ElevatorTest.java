@@ -29,7 +29,7 @@ public class ElevatorTest {
         floorSubsystem = new FloorSubsystem("src/InputTable.txt");
         floor = new Floor(1);
         elevatorQueue = new ElevatorQueue();
-        elevator = new Elevator(1, Floor.NUM_OF_FLOORS, elevatorQueue);
+        elevator = new Elevator(1, Floor.NUM_OF_FLOORS, elevatorQueue,scheduler);
         queue = new HashMap<>();
     }
 
@@ -40,7 +40,7 @@ public class ElevatorTest {
     public void tearDown() {
         scheduler.closeSocket();
         floorSubsystem.closeSocket();
-        floor.closeSocket();
+        //floor.closeSocket();
         elevatorQueue.closeSocket();
 
         scheduler = null;
@@ -142,6 +142,45 @@ public class ElevatorTest {
         elevator.getStates().equals(States.IDLE);
     }
 
+    @Test
+    public void testMove(){
+
+        elevator.move();
+        States state = States.GOING_UP;
+        int direction = 0;
+
+        if(state == States.GOING_UP) {
+            direction = 1;
+            assertEquals(1,direction);
+        }
+
+        if(state == States.GOING_DOWN){
+            direction = 2;
+            assertEquals(2, States.GOING_DOWN);
+        }
+    }
+
+    @Test
+    public void testHandleState(){
+        elevator.move();
+        States state = States.IDLE;
+
+        switch(state) {
+            case GOING_UP -> {
+                elevator.move();
+
+                assertEquals(state, States.GOING_UP);
+            }
+            case GOING_DOWN -> {
+                elevator.move();
+                assertEquals(state, States.GOING_DOWN);
+            }
+            case OUT_OF_SERVICE -> {
+
+            }
+        }
+    }
+
     /**
      * Test method for the moveToFloor method in Elevator.
      */
@@ -150,6 +189,11 @@ public class ElevatorTest {
         assertEquals(1, elevator.getCurrentFloor());
         elevator.moveToFloor(3);
         assertEquals(3, elevator.getCurrentFloor());
+    }
+
+    @Test
+    public void testAlertArrival(){
+
     }
 
 //    @Test

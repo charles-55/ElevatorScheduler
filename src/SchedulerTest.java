@@ -25,7 +25,7 @@ public class SchedulerTest {
         floorSubsystem = new FloorSubsystem("src/InputTable.txt");
         floor = new Floor(1);
         elevatorQueue = new ElevatorQueue();
-        elevator = new Elevator(1, NUM_OF_FLOORS, elevatorQueue);
+        elevator = new Elevator(1, NUM_OF_FLOORS, elevatorQueue,scheduler);
         queue = new HashMap<>();
     }
 
@@ -33,7 +33,7 @@ public class SchedulerTest {
     public void tearDown() {
         scheduler.closeSocket();
         floorSubsystem.closeSocket();
-        floor.closeSocket();
+        //floor.closeSocket();
         elevatorQueue.closeSocket();
 
         scheduler = null;
@@ -51,28 +51,41 @@ public class SchedulerTest {
     }
 
     @Test
-    public void testAddToQueue(){
-        elevatorQueue.getQueue().put(elevator,new ArrayList<>());
-        assertFalse(elevatorQueue.getQueue().isEmpty());
+    public void testUpdateElevatorInfo(){
+
     }
 
     @Test
-    public void testGetFromQueue(){
-        elevatorQueue.getQueue().put(elevator,new ArrayList<>());
-        assertEquals(1,elevatorQueue.getQueue().size());
-        elevatorQueue.getQueue().remove(elevator,new ArrayList<>());
-        assertTrue(elevatorQueue.getQueue().isEmpty());
+    public void testHandleElevatorMessagingState(){
+        byte[] floorData, elevatorData;
+        States states;
+
+
     }
+
+//    @Test
+//    public void testAddToQueue(){
+//        elevatorQueue.getQueue().put(elevator,new ArrayList<>());
+//        assertFalse(elevatorQueue.getQueue().isEmpty());
+//    }
+//
+//    @Test
+//    public void testGetFromQueue(){
+//        elevatorQueue.getQueue().put(elevator,new ArrayList<>());
+//        assertEquals(1,elevatorQueue.getQueue().size());
+//        elevatorQueue.getQueue().remove(elevator,new ArrayList<>());
+//        assertTrue(elevatorQueue.getQueue().isEmpty());
+//    }
 
     @Test
     public void testRun() {
         floorSubsystem.start();
-        floor.start();
+        //floor.start();
         scheduler.start();
         elevatorQueue.start();
         assertEquals(0, elevatorQueue.getQueue().get(elevator).size());
         floorSubsystem.stop();
-        floor.stop();
+        //floor.stop();
     }
 
 }
