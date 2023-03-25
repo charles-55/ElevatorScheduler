@@ -18,8 +18,6 @@ public class Elevator extends Thread {
     private boolean doorOpen;
     private boolean isMoving;
     private final ElevatorQueue elevatorQueue;
-    private final ArrayList<Integer> upwardQueue, downWardQueue;
-    private final ArrayList<Integer> queue;
     private final ArrayList<int[]> delayedQueue;
     private final HashMap<Integer, Boolean> buttonsAndLamps;
     private States state;
@@ -34,11 +32,8 @@ public class Elevator extends Thread {
      * @param elevatorQueue ElevatorQueue queue for the elevator object.
      */
     public Elevator(int elevatorNum, int numOfFloors, ElevatorQueue elevatorQueue, Scheduler scheduler) {
-        this.upwardQueue=new ArrayList<>();
-        this.downWardQueue=new ArrayList<>();
         this.elevatorNum = elevatorNum;
         this.currentFloor = 1;
-        queue = new ArrayList<>();
         this.elevatorQueue = elevatorQueue;
         delayedQueue = new ArrayList<>();
 
@@ -139,8 +134,6 @@ public class Elevator extends Thread {
         }
 
     }
-    
-    
 
     /**
      * Adds a new destination for the elevator in the delayed queue (different direction than current queue)
@@ -153,33 +146,40 @@ public class Elevator extends Thread {
         }
     }
 
+    private void handleState() {
+        switch(state) {
+            case GOING_UP, GOING_DOWN -> {
+                move();
+                if(buttonsAndLamps.get(currentFloor)==true){
+
+                    sendMessage(new byte[] {(byte) getDatagramStateValue(),1,(byte) currentFloor,(byte) elevatorNum, -1 });
+                    openDoors();
+                    sendMessage(new byte[] {(byte) getDatagramStateValue(),2,(byte) currentFloor,(byte) elevatorNum, -1 });
+                    try{
+                        Thread.sleep(DOOR_HOLD_TIME);
+                    }catch(InterruptedException e){
+                        return;
+                    }
+                    sendMessage(new byte[] {(byte) getDatagramStateValue(),3,(byte) currentFloor,(byte) elevatorNum, -1 });
+                    closeDoors();
+                    sendMessage(new byte[] {(byte) getDatagramStateValue(),0,(byte) currentFloor,(byte) elevatorNum, -1 });
+                }
+                else if(checkAllTaskComplete()==true){
+
+                }
+            }
+            case OUT_OF_SERVICE -> printAnalyzedState();
+        }
+    }
+
     /**
      * Calls the elevator and sets the state after receiving task.
      * @param callFloor int, the floor calling the elevator.
      * @param state States, the next state after receiving the call.
      */
     public void callElevator(int callFloor, States state) {
-        this.state = States.RECEIVING_TASK;
         moveToFloor(callFloor);
         this.state = state;
-    }
-
-    /**
-     * Completes task assigned to the elevator
-     */
-    private void handleTask() {
-        if(state.equals(States.GOING_UP)) {
-            for(int i = currentFloor; i <= Floor.NUM_OF_FLOORS; i++) {
-                if(buttonsAndLamps.get(i))
-                    moveToFloor(i);
-            }
-        }
-        else if(state.equals(States.GOING_DOWN)) {
-            for(int i = currentFloor; i > 0; i--) {
-                if(buttonsAndLamps.get(i))
-                    moveToFloor(i);
-            }
-        }
     }
 
     /**
@@ -221,7 +221,6 @@ public class Elevator extends Thread {
             }
             for(int[] arr : arrToRemove)
                 delayedQueue.remove(arr);
-            handleTask();
         }
     }
 
@@ -283,35 +282,6 @@ public class Elevator extends Thread {
             return 503;
         }else{
             return 404;
-        }
-    }
-
-    private void handleState() {
-        switch(state) {
-            case IDLE -> {
-
-            }
-            case GOING_UP, GOING_DOWN -> {
-                move();
-                if(buttonsAndLamps.get(currentFloor)==true){
-
-                    sendMessage(new byte[] {(byte) getDatagramStateValue(),1,(byte) currentFloor,(byte) elevatorNum, -1 });
-                    openDoors();
-                    sendMessage(new byte[] {(byte) getDatagramStateValue(),2,(byte) currentFloor,(byte) elevatorNum, -1 });
-                    try{
-                        Thread.sleep(DOOR_HOLD_TIME);
-                    }catch(InterruptedException e){
-                        return;
-                    }
-                    sendMessage(new byte[] {(byte) getDatagramStateValue(),3,(byte) currentFloor,(byte) elevatorNum, -1 });
-                    closeDoors();
-                    sendMessage(new byte[] {(byte) getDatagramStateValue(),0,(byte) currentFloor,(byte) elevatorNum, -1 });
-                }
-                else if(checkAllTaskComplete()==true){
-
-                }
-            }
-            case OUT_OF_SERVICE -> {}
         }
     }
 
@@ -472,7 +442,7 @@ public class Elevator extends Thread {
         Thread thread1 = new Thread(new Runnable() {
             @Override
             public void run() {
-                while(true) {
+                while(state != States.OUT_OF_SERVICE) {
                     elevatorQueue.getFromQueue(elevator);
                     handleDelayedTask();
                 }
@@ -481,8 +451,9 @@ public class Elevator extends Thread {
         Thread thread2 = new Thread(new Runnable() {
             @Override
             public void run() {
-                while(true)
-                    handleTask();
+                while(state != States.OUT_OF_SERVICE)
+                    handleState();
+                handleState();
             }
         });
 
