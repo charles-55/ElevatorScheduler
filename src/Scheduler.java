@@ -188,20 +188,17 @@ public class Scheduler extends Thread {
     }
 
     private void startFaultDetection(int elevatorNum, int time, boolean floorOrDoorFault) {
-        Timer timer = null;
+        int[] a = null;
 
         for(int[] arr : elevatorsInfoAndTimers.keySet()) {
             if(arr[0] == elevatorNum) {
-                timer = elevatorsInfoAndTimers.get(arr);
+                a = arr;
                 break;
             }
         }
+        elevatorsInfoAndTimers.replace(a, new Timer());
 
-        if(timer == null)
-            return;
-
-        timer.cancel();
-        timer.schedule(new TimerTask() {
+        elevatorsInfoAndTimers.get(a).schedule(new TimerTask() {
             @Override
             public void run() {
                 timeout(elevatorNum, floorOrDoorFault);
