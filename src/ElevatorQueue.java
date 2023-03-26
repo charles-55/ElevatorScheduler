@@ -77,7 +77,7 @@ public class ElevatorQueue extends Thread {
      * @param data byte[] An elevator call at floor X for the elevator to go to.
      */
     public synchronized void addToQueue(byte[] data) {
-        Elevator elevator = null;
+        Elevator elevator = (Elevator) queue.keySet().toArray()[0];
 
         for(Elevator e : queue.keySet()) {
             if(e.getElevatorNum() == (int) data[3]) {
@@ -86,7 +86,6 @@ public class ElevatorQueue extends Thread {
             }
         }
 
-        assert elevator != null;
         States state = States.IDLE;
 
         if(data[1] == (byte) 503) {

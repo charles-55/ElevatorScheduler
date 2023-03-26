@@ -22,9 +22,8 @@ public class Elevator extends Thread {
     private final HashMap<Integer, Boolean> buttonsAndLamps;
     private States state;
     public static final int MOTOR_TIME = 3000, DOOR_HOLD_TIME = 5000, MAX_DOOR_HOLD_TIME = 10000, TRAVEL_TIME = 4000;
-    private static final int PORT = 2200;
+    private static final int SEND_PORT = 2200, RECEIVE_PORT = 2400;
     public static final int NUM_OF_ELEVATORS = 2;
-    private static DatagramSocket sendReceiveSocket;
 
     /**
      * Constructor method for Elevator initializing the elevator on the first floor.
@@ -36,12 +35,6 @@ public class Elevator extends Thread {
         this.elevatorNum = elevatorNum;
         this.currentFloor = 1;
         this.elevatorQueue = elevatorQueue;
-        try {
-            sendReceiveSocket = new DatagramSocket(PORT);
-        } catch (SocketException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
 
         delayedQueue = new ArrayList<>();
 
@@ -389,16 +382,17 @@ public class Elevator extends Thread {
     private synchronized static void sendMessage(byte[] data) {
         //DatagramSocket socket = null;
         InetAddress address = null;
-        sendReceiveSocket = null;
+        DatagramSocket sendReceiveSocket = null;
         try {
             //socket = new DatagramSocket();
+            sendReceiveSocket = new DatagramSocket();
             address = InetAddress.getLocalHost();
-        } catch (UnknownHostException e) {//(SocketException | UnknownHostException e) {
+        } catch (UnknownHostException | SocketException e) {//(SocketException | UnknownHostException e) {
             e.printStackTrace();
             System.exit(1);
         }
 
-        DatagramPacket sendPacket = new DatagramPacket(data, data.length, address, PORT);
+        DatagramPacket sendPacket = new DatagramPacket(data, data.length, address, SEND_PORT);
 
         try {
             System.out.println("ELEVATOR " + data[3] + ": Sending Packet: " + Arrays.toString(data) + "\n");
@@ -418,12 +412,28 @@ public class Elevator extends Thread {
      */
     private synchronized static void receiveReply() {
         byte[] data = new byte[4];
-        DatagramPacket receivePacket = new DatagramPacket(data, data.length);
+        InetAddress address = null;
+        DatagramSocket sendReceiveSocket = null;
+
+
 
         try {
             System.out.println("ELEVATOR: Waiting for reply packet from Scheduler...\n");
+            sendReceiveSocket = new DatagramSocket(RECEIVE_PORT);
+            address = InetAddress.getLocalHost();
+
+
+
+        } catch (IOException e) {//(SocketException | UnknownHostException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        DatagramPacket receivePacket = new DatagramPacket(data, data.length, address, RECEIVE_PORT);
+
+        try {
             sendReceiveSocket.receive(receivePacket);
-        } catch(IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
         }

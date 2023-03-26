@@ -22,7 +22,7 @@ public class Scheduler extends Thread {
     private States floorMessagingState, elevatorMessagingState;
     private byte[] floorData, elevatorData;
     private final HashMap<int[], Timer> elevatorsInfoAndTimers;
-    private static final int FLOOR_RECEIVING_PORT = 2000, FLOOR_SENDING_PORT = 2300, ELEVATOR_SENDING_PORT = 2100, ELEVATOR_RECEIVING_PORT = 2200;
+    private static final int FLOOR_RECEIVING_PORT = 2000, FLOOR_SENDING_PORT = 2300, ELEVATOR_SENDING_PORT = 2100, ELEVATOR_RECEIVING_PORT = 2200, ELEVATOR_REPLY_PORT = 2400;
 
     /**
      * Initializes the controller.
@@ -260,7 +260,7 @@ public class Scheduler extends Thread {
      */
     private void replyElevatorMessage(String reply) {
         ByteArrayOutputStream answer = new ByteArrayOutputStream();
-        elevatorSendPacket = new DatagramPacket(answer.toByteArray(), answer.toByteArray().length, ELEVATOR_SENDING_PORT);
+        elevatorSendPacket = new DatagramPacket(answer.toByteArray(), answer.toByteArray().length, elevatorAddress, ELEVATOR_SENDING_PORT);
 
         try {
             System.out.println("SCHEDULER: Sending reply packet to Elevator.");
@@ -307,17 +307,28 @@ public class Scheduler extends Thread {
      */
     private void replyFloorMessage(String reply) {
         ByteArrayOutputStream answer = new ByteArrayOutputStream();
-        floorSendPacket = new DatagramPacket(answer.toByteArray(), answer.toByteArray().length, FLOOR_SENDING_PORT);
 
         try {
-            System.out.println("SCHEDULER: Sending reply packet to Floor.");
-            floorSendingSocket.send(floorSendPacket);
             answer.write(reply.getBytes());
         } catch (IOException e) {
             printAnalyzedState();
             e.printStackTrace();
             System.exit(1);
         }
+
+        floorSendPacket = new DatagramPacket(answer.toByteArray(), answer.toByteArray().length, floorAddress, FLOOR_SENDING_PORT);
+
+        try {
+            System.out.println("SCHEDULER: Sending reply packet to Floor.");
+            floorSendingSocket.send(floorSendPacket);
+
+        } catch (IOException e) {
+            printAnalyzedState();
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+
     }
 
 

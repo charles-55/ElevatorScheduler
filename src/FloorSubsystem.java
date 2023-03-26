@@ -51,25 +51,34 @@ public class FloorSubsystem extends Thread {
         updateFloor(data[0], data[2], true);
         sendPacket = new DatagramPacket(data, data.length, address, SEND_PORT);
 
-        time = LocalTime.now(); // for testing purposes only!
-        if(LocalTime.now().equals(time)) {
-            state = States.SENDING_TASK;
-            System.out.println("FLOOR SUBSYSTEM: Sending Packet: " + Arrays.toString(data) + ".");
-            try {
-                socket.send(sendPacket);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            System.out.println("FLOOR SUBSYSTEM: Packet Sent!\n");
+        state = States.SENDING_TASK;
+        System.out.println("FLOOR SUBSYSTEM: Sending Packet: " + Arrays.toString(data) + ".");
+        try {
+            socket.send(sendPacket);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        else if (time.isAfter(LocalTime.now())) {
-            try {
-                Thread.sleep((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000);
-                socket.send(sendPacket);
-            } catch (InterruptedException | IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
+        System.out.println("FLOOR SUBSYSTEM: Packet Sent!\n");
+
+//        time = LocalTime.now(); // for testing purposes only!
+//        if(LocalTime.now().equals(time)) {
+//            state = States.SENDING_TASK;
+//            System.out.println("FLOOR SUBSYSTEM: Sending Packet: " + Arrays.toString(data) + ".");
+//            try {
+//                socket.send(sendPacket);
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//            System.out.println("FLOOR SUBSYSTEM: Packet Sent!\n");
+//        }
+//        else if (time.isAfter(LocalTime.now())) {
+//            try {
+//                Thread.sleep((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000);
+//                socket.send(sendPacket);
+//            } catch (InterruptedException | IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
 
         state = States.IDLE;
         receiveReply();
