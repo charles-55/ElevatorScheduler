@@ -1,6 +1,4 @@
 import org.junit.*;
-
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import static org.junit.Assert.assertEquals;
@@ -59,12 +57,13 @@ public class FloorTest {
 
     @Test
     public void testSendToScheduler(){
-        byte[] data = new byte[0];
-        LocalTime time = LocalTime.now();
-        States state = States.WAITING_FOR_TASK;
-        assertEquals(state,States.WAITING_FOR_TASK);
-        //floorSubsystem.sendToScheduler(data,time);
-        //assertEquals(state,States.RECEIVING_TASK);
+//        byte[] data = new byte[0];
+//        LocalTime time = LocalTime.now();
+//        States state = States.WAITING_FOR_TASK;
+//        assertEquals(state,States.WAITING_FOR_TASK);
+//        //floorSubsystem.sendToScheduler(data,time);
+//        //assertEquals(state,States.RECEIVING_TASK);
+
     }
 
     @Test
@@ -94,8 +93,4 @@ public class FloorTest {
         assertEquals(splitData,"[" + data + "]");
     }
 
-    @Test
-    public void testPrintAnalyzedState(){
-
-    }
 }

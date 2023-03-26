@@ -49,32 +49,20 @@ public class SchedulerTest {
         assertEquals(1, queue.size());
     }
 
-    @Test
-    public void testUpdateElevatorInfo(){
 
+    @Test
+    public void testAddToQueue(){
+        elevatorQueue.getQueue().put(elevator,new ArrayList<>());
+        assertFalse(elevatorQueue.getQueue().isEmpty());
     }
 
     @Test
-    public void testHandleElevatorMessagingState(){
-        byte[] floorData, elevatorData;
-        States states;
-
-
+    public void testGetFromQueue(){
+        elevatorQueue.getQueue().put(elevator,new ArrayList<>());
+        assertEquals(1,elevatorQueue.getQueue().size());
+        elevatorQueue.getQueue().remove(elevator,new ArrayList<>());
+        assertTrue(elevatorQueue.getQueue().isEmpty());
     }
-
-//    @Test
-//    public void testAddToQueue(){
-//        elevatorQueue.getQueue().put(elevator,new ArrayList<>());
-//        assertFalse(elevatorQueue.getQueue().isEmpty());
-//    }
-//
-//    @Test
-//    public void testGetFromQueue(){
-//        elevatorQueue.getQueue().put(elevator,new ArrayList<>());
-//        assertEquals(1,elevatorQueue.getQueue().size());
-//        elevatorQueue.getQueue().remove(elevator,new ArrayList<>());
-//        assertTrue(elevatorQueue.getQueue().isEmpty());
-//    }
 
     @Test
     public void testRun() {
