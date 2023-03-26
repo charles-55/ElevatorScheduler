@@ -404,13 +404,9 @@ public class Elevator extends Thread {
         DatagramSocket sendReceiveSocket = null;
 
         try {
-            System.out.println("ELEVATOR: Waiting for reply packet from Scheduler...\n");
             sendReceiveSocket = new DatagramSocket(RECEIVE_PORT);
             address = InetAddress.getLocalHost();
-
-
-
-        } catch (IOException e) {//(SocketException | UnknownHostException e) {
+        } catch (SocketException | UnknownHostException e) {
             e.printStackTrace();
             System.exit(1);
         }
@@ -418,6 +414,7 @@ public class Elevator extends Thread {
         DatagramPacket receivePacket = new DatagramPacket(data, data.length, address, RECEIVE_PORT);
 
         try {
+            System.out.println("ELEVATOR: Waiting for reply packet from Scheduler...\n");
             sendReceiveSocket.receive(receivePacket);
         } catch (IOException e) {
             e.printStackTrace();
@@ -426,12 +423,7 @@ public class Elevator extends Thread {
 
         System.out.println("ELEVATOR: Reply packet received.\n");
 
-        try {
-            Thread.sleep(50);
-        } catch (InterruptedException e ) {
-            e.printStackTrace();
-            System.exit(1);
-        }
+        sendReceiveSocket.close();
     }
 
     /**

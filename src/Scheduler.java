@@ -288,6 +288,7 @@ public class Scheduler extends Thread {
             e.printStackTrace();
             System.exit(1);
         }
+        System.out.println("SCHEDULER: Sent reply packet to elevator.\n");
     }
 
     /**
