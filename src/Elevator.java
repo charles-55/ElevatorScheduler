@@ -181,9 +181,9 @@ public class Elevator extends Thread {
                 move();
                 if(buttonsAndLamps.get(currentFloor)) {
 
-                    sendMessage(new byte[] {(byte) getDatagramStateValue(), 1, (byte) currentFloor, (byte) elevatorNum, -1});
+                    sendMessageReceiveReply(new byte[] {(byte) getDatagramStateValue(), 1, (byte) currentFloor, (byte) elevatorNum, -1});
                     openDoors();
-                    sendMessage(new byte[] {(byte) getDatagramStateValue(), 2, (byte) currentFloor, (byte) elevatorNum, -1});
+                    sendMessageReceiveReply(new byte[] {(byte) getDatagramStateValue(), 2, (byte) currentFloor, (byte) elevatorNum, -1});
 
                     try {
                         Thread.sleep(DOOR_HOLD_TIME);
@@ -191,7 +191,7 @@ public class Elevator extends Thread {
                         return;
                     }
 
-                    sendMessage(new byte[] {(byte) getDatagramStateValue(), 3, (byte) currentFloor, (byte) elevatorNum, -1});
+                    sendMessageReceiveReply(new byte[] {(byte) getDatagramStateValue(), 3, (byte) currentFloor, (byte) elevatorNum, -1});
                     closeDoors();
                     sendMessage(new byte[] {(byte) getDatagramStateValue(), (byte) (checkAllTaskComplete() ? 0 : 4), (byte) currentFloor, (byte) elevatorNum, -1});
                 }
@@ -277,18 +277,8 @@ public class Elevator extends Thread {
             closeDoors();
         this.isMoving = true;
 
-        sendMessage(new byte[] {(byte) getDatagramStateValue(), (byte) 4, (byte) currentFloor, (byte) elevatorNum, -1});
+        sendMessageReceiveReply(new byte[] {(byte) getDatagramStateValue(), (byte) 4, (byte) currentFloor, (byte) elevatorNum, -1});
 
-        for(int i = 4; i > 0; i--) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            System.out.println(i);
-        }
-
-        System.out.println("moving");
         try {
             sleep(TRAVEL_TIME);
         } catch (InterruptedException e) {
@@ -306,7 +296,7 @@ public class Elevator extends Thread {
         }
         System.out.println("ELEVATOR " + elevatorNum + ": At floor " + currentFloor + ".\n");
 
-        sendMessage(new byte[] {(byte) getDatagramStateValue(), (byte) (buttonsAndLamps.get(currentFloor) ? 1 : 0), (byte) currentFloor, (byte) elevatorNum, (byte) direction});
+        sendMessageReceiveReply(new byte[] {(byte) getDatagramStateValue(), (byte) (buttonsAndLamps.get(currentFloor) ? 1 : 0), (byte) currentFloor, (byte) elevatorNum, (byte) direction});
     }
 
     /**
@@ -349,30 +339,15 @@ public class Elevator extends Thread {
             state = States.IDLE;
     }
 
-    /**
-     * Alerts server once elevator arrives to a floor in its' queue.
-     */
-    private void alertArrival() {
-        byte[] data = new byte[4];
-        data[0] = 0;
-        data[1] = (byte) currentFloor;
-        data[2] = (byte) elevatorNum;
-
-        if(state.equals(States.GOING_UP))
-            data[3] = 1;
-        else if(state.equals(States.GOING_DOWN))
-            data[3] = 2;
-
-        checkAllTaskComplete();
-        sendMessage(data);
-
-        openDoors();
-        try {
-            Thread.sleep(DOOR_HOLD_TIME);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        closeDoors();
+    private void sendMessageReceiveReply(byte[] data) {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                sendMessage(data);
+                receiveReply();
+            }
+        });
+        thread.start();
     }
 
     /**
@@ -380,7 +355,6 @@ public class Elevator extends Thread {
      * @param data
      */
     private synchronized static void sendMessage(byte[] data) {
-        //DatagramSocket socket = null;
         InetAddress address = null;
         DatagramSocket sendReceiveSocket = null;
         try {
@@ -403,7 +377,6 @@ public class Elevator extends Thread {
             e.printStackTrace();
             System.exit(1);
         }
-        receiveReply();
         sendReceiveSocket.close();
     }
 
@@ -414,8 +387,6 @@ public class Elevator extends Thread {
         byte[] data = new byte[4];
         InetAddress address = null;
         DatagramSocket sendReceiveSocket = null;
-
-
 
         try {
             System.out.println("ELEVATOR: Waiting for reply packet from Scheduler...\n");
@@ -438,8 +409,7 @@ public class Elevator extends Thread {
             System.exit(1);
         }
 
-        System.out.println("ELEVATOR: Reply packet received:");
-        System.out.println("ELEVATOR: Packet to strings: " + new String(receivePacket.getData(), 0, receivePacket.getLength()));
+        System.out.println("ELEVATOR: Reply packet received.\n");
 
         try {
             Thread.sleep(50);
@@ -498,7 +468,6 @@ public class Elevator extends Thread {
                 while(state != States.OUT_OF_SERVICE) {
                     elevatorQueue.getFromQueue(elevator);
                     handleDelayedTask();
-                    System.out.println(state);
                 }
             }
         });

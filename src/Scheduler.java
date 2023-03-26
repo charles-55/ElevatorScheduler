@@ -18,7 +18,7 @@ public class Scheduler extends Thread {
 
     private DatagramPacket floorSendPacket, floorReceivePacket, elevatorSendPacket, elevatorReceivePacket;
     private InetAddress floorAddress, elevatorAddress;
-    private DatagramSocket floorReceivingSocket, floorSendingSocket, elevatorReceivingSocket, elevatorSendingSocket;
+    private DatagramSocket floorReceivingSocket, floorSendingSocket, elevatorReceivingSocket, elevatorSendingSocket, elevatorReplySocket;
     private States floorMessagingState, elevatorMessagingState;
     private byte[] floorData, elevatorData;
     private final HashMap<int[], Timer> elevatorsInfoAndTimers;
@@ -38,6 +38,7 @@ public class Scheduler extends Thread {
             floorSendingSocket = new DatagramSocket();
             elevatorReceivingSocket = new DatagramSocket(ELEVATOR_RECEIVING_PORT);
             elevatorSendingSocket = new DatagramSocket();
+            elevatorReplySocket = new DatagramSocket();
             floorAddress = InetAddress.getLocalHost();
             elevatorAddress = InetAddress.getLocalHost();
         } catch (SocketException| UnknownHostException e) {
@@ -137,10 +138,9 @@ public class Scheduler extends Thread {
         try {
             System.out.println("SCHEDULER: Waiting for Packet from Floor...\n");
             floorReceivingSocket.receive(floorReceivePacket);
-            replyFloorMessage("Correctly received message packet.");
+            replyFloorMessage(new byte[3]);
         } catch (IOException e) {
             elevatorMessagingState = States.OUT_OF_SERVICE;
-            replyFloorMessage("Received an incorrect packet.");
             printAnalyzedState();
             e.printStackTrace();
             System.exit(1);
@@ -170,6 +170,12 @@ public class Scheduler extends Thread {
      * Method to send data to the elevator and update the scheduler's state.
      */
     public void sendToElevator(byte[] data) {
+        System.out.println(Arrays.toString(data));
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         elevatorSendPacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_SENDING_PORT);
 
         try {
@@ -192,6 +198,7 @@ public class Scheduler extends Thread {
 
         for(int[] arr : elevatorsInfoAndTimers.keySet()) {
             if(arr[0] == elevatorNum) {
+                elevatorsInfoAndTimers.get(arr).cancel();
                 a = arr;
                 break;
             }
@@ -236,16 +243,15 @@ public class Scheduler extends Thread {
         try {
             System.out.println("SCHEDULER: Waiting for Packet from Elevator...\n");
             elevatorReceivingSocket.receive(elevatorReceivePacket);
-            replyElevatorMessage("Correctly received message packet.");
         } catch (IOException e) {
             floorMessagingState = States.OUT_OF_SERVICE;
-            replyElevatorMessage("Received an incorrect packet.");
             printAnalyzedState();
             e.printStackTrace();
             System.exit(1);
         }
 
         System.out.println("SCHEDULER: Packet Received from Elevator: " + Arrays.toString(data) + ".\n");
+        replyElevatorMessage(new byte[4]);
         floorMessagingState = States.HANDLING_RECEIVED_MESSAGE;
 
         return data;
@@ -253,16 +259,14 @@ public class Scheduler extends Thread {
 
     /**
      * Reply to Elevator's message acknowledging its receipt.
-     * @param reply String message saying if the packet was correct or not.
+     * @param data reply message .
      */
-    private void replyElevatorMessage(String reply) {
-        ByteArrayOutputStream answer = new ByteArrayOutputStream();
-        elevatorSendPacket = new DatagramPacket(answer.toByteArray(), answer.toByteArray().length, elevatorAddress, ELEVATOR_SENDING_PORT);
+    private void replyElevatorMessage(byte[] data) {
+        elevatorSendPacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_REPLY_PORT);
 
         try {
-            System.out.println("SCHEDULER: Sending reply packet to Elevator.");
-            elevatorSendingSocket.send(elevatorSendPacket);
-            answer.write(reply.getBytes());
+            System.out.println("SCHEDULER: Sending reply packet to elevator.\n");
+            elevatorReplySocket.send(elevatorSendPacket);
         } catch (IOException e) {
             printAnalyzedState();
             e.printStackTrace();
@@ -300,32 +304,19 @@ public class Scheduler extends Thread {
 
     /**
      * Reply to Floor's message acknowledging its receipt.
-     * @param reply String message saying if the packet was correct or not.
+     * @param data reply message.
      */
-    private void replyFloorMessage(String reply) {
-        ByteArrayOutputStream answer = new ByteArrayOutputStream();
-
-        try {
-            answer.write(reply.getBytes());
-        } catch (IOException e) {
-            printAnalyzedState();
-            e.printStackTrace();
-            System.exit(1);
-        }
-
-        floorSendPacket = new DatagramPacket(answer.toByteArray(), answer.toByteArray().length, floorAddress, FLOOR_SENDING_PORT);
+    private void replyFloorMessage(byte[] data) {
+        floorSendPacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_SENDING_PORT);
 
         try {
             System.out.println("SCHEDULER: Sending reply packet to Floor.");
             floorSendingSocket.send(floorSendPacket);
-
         } catch (IOException e) {
             printAnalyzedState();
             e.printStackTrace();
             System.exit(1);
         }
-
-
     }
 
 
