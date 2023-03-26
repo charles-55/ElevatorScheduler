@@ -75,11 +75,13 @@ Run the Test methods in the test classes all on a single device (ElevatorTest, F
 
 ## Packet Byte[] Information:
 - Direction values: 1 = UP, 2 = DOWN
-- Wait values: 1 = Nothing, 2 = Wait, 3 = Notify
+- elevatorState values: 0 = IDLE, 1 = UP, 2 = DOWN, 503 = OUT OF SERVICE, 404 = UNKNOWN STATE, 504 = FORCE DOOR CLOSE
+- stillTasking/makingStop values: 1 = Yes, 0 = No
+- handlingDoor values: 1 = opening, 2 = holding, 3 = closing, 4 = moving, 0 = closed
 - Floor Subsystem Sent Message: [floorNumber, direction, destinationFloor]
-- Floor Received Message: [wait, floorNumber, elevatorNum, direction]
-- Elevator Sent Message: [wait, floorNumber, elevatorNum, direction]
-- Elevator Queue Received Message: [floorNumber, direction, destinationFloor]
+- Floor Received Message: [floorNumber, elevatorNum, direction]
+- Elevator Sent Message: [elevatorState, handlingDoor, floorNumber, elevatorNum, direction]
+- Elevator Queue Received Message: [floorNumber, direction, destinationFloor, elevatorNum]
 
 ## Port Information:
 - Floor Subsystem Sending: 2000

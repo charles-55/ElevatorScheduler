@@ -170,7 +170,6 @@ public class Scheduler extends Thread {
      * Method to send data to the elevator and update the scheduler's state.
      */
     public void sendToElevator(byte[] data) {
-        System.out.println(Arrays.toString(data));
         try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
