@@ -164,8 +164,14 @@ public class Elevator extends Thread {
         }
     }
 
-    public void injectFault(){
-
+    public void injectFault(boolean floorOrDoorFault) {
+        if(floorOrDoorFault) {
+            sendMessage(new byte[] {(byte) getDatagramStateValue(), (byte) 4, (byte) currentFloor, (byte) elevatorNum, -1});
+        }
+        else {
+            openDoors();
+            sendMessageReceiveReply(new byte[] {(byte) getDatagramStateValue(), 2, (byte) currentFloor, (byte) elevatorNum, -1});
+        }
     }
 
     private void handleState() {
@@ -180,7 +186,6 @@ public class Elevator extends Thread {
             case GOING_UP, GOING_DOWN -> {
                 move();
                 if(buttonsAndLamps.get(currentFloor)) {
-
                     sendMessageReceiveReply(new byte[] {(byte) getDatagramStateValue(), 1, (byte) currentFloor, (byte) elevatorNum, -1});
                     openDoors();
                     sendMessageReceiveReply(new byte[] {(byte) getDatagramStateValue(), 2, (byte) currentFloor, (byte) elevatorNum, -1});
@@ -358,10 +363,9 @@ public class Elevator extends Thread {
         InetAddress address = null;
         DatagramSocket sendReceiveSocket = null;
         try {
-            //socket = new DatagramSocket();
             sendReceiveSocket = new DatagramSocket();
             address = InetAddress.getLocalHost();
-        } catch (UnknownHostException | SocketException e) {//(SocketException | UnknownHostException e) {
+        } catch (UnknownHostException | SocketException e) {
             e.printStackTrace();
             System.exit(1);
         }
