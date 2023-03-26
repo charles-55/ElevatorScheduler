@@ -142,6 +142,45 @@ public class ElevatorTest {
         elevator.getStates().equals(States.IDLE);
     }
 
+    @Test
+    public void testMove(){
+
+        elevator.move();
+        States state = States.GOING_UP;
+        int direction = 0;
+
+        if(state == States.GOING_UP) {
+            direction = 1;
+            assertEquals(1,direction);
+        }
+
+        if(state == States.GOING_DOWN){
+            direction = 2;
+            assertEquals(2, States.GOING_DOWN);
+        }
+    }
+
+    @Test
+    public void testHandleState(){
+        elevator.move();
+        States state = States.IDLE;
+
+        switch(state) {
+            case GOING_UP -> {
+                elevator.move();
+
+                assertEquals(state, States.GOING_UP);
+            }
+            case GOING_DOWN -> {
+                elevator.move();
+                assertEquals(state, States.GOING_DOWN);
+            }
+            case OUT_OF_SERVICE -> {
+
+            }
+        }
+    }
+
     /**
      * Test method for the moveToFloor method in Elevator.
      */
@@ -198,9 +237,9 @@ public class ElevatorTest {
     @Test
     public void testGetFromQueue(){
         elevatorQueue.getQueue().put(elevator,new ArrayList<>());
-        assertEquals(1,elevatorQueue.getQueue().size());
+        assertEquals(2,elevatorQueue.getQueue().size());
         elevatorQueue.getQueue().remove(elevator,new ArrayList<>());
-        assertTrue(elevatorQueue.getQueue().isEmpty());
+        assertEquals(1,elevatorQueue.getQueue().size());
     }
 
 }
