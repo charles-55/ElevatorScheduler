@@ -2,8 +2,7 @@
 
 
 ## Introduction:
-In Iteration 3 we split your system up into three (or more) separate programs that can run on three separate computers and communicate with each other
-using UDP. The Scheduler will now be used to coordinate the movement of cars such that each car carries roughly the same number of passengers as all of the others and so that the waiting time for passengers at floors is minimized. The state machines for each car should execute independently of each other, but they will all have to share their position with the scheduler. The scheduler will choose which elevator will be used to service a given request.
+In Iteration 4 we added code for detecting and handling faults. To this end, we added timing events so that if the timer goes off before an elevator reaches a floor, then our system should assume a fault (either, the elevator is stuck between floors, or the arrival sensor at a floor has failed). We should detect whether a door opens or not, or is stuck open.
 
 
 ## Team Members:
