@@ -144,7 +144,6 @@ public class FloorSubsystem extends Thread {
                 sendToScheduler(data, time);
                 Thread.sleep(2500); //testing purpose only
             }
-            closeSocket();
         } catch (InterruptedException | IOException e) {
             state = States.OUT_OF_SERVICE;
             e.printStackTrace();

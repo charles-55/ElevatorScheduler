@@ -87,6 +87,7 @@ public class ElevatorQueue extends Thread {
         }
 
         assert elevator != null;
+        States state = States.IDLE;
 
         if(data[1] == (byte) 503) {
             elevator.setState(States.OUT_OF_SERVICE);
@@ -96,6 +97,10 @@ public class ElevatorQueue extends Thread {
             elevator.closeDoors();
             return;
         }
+        else if(data[1] == (byte) 1)
+            state = States.GOING_UP;
+        else if(data[1] == (byte) 2)
+            state = States.GOING_DOWN;
 
         if(elevator.getStates().equals(States.IDLE)) {
             elevator.callElevator(data[0], state);

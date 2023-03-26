@@ -119,6 +119,8 @@ public class Scheduler extends Thread {
             startFaultDetection(data[3], Elevator.MAX_DOOR_HOLD_TIME, false);
         else if(data[1] == 3)
             startFaultDetection(data[3], Elevator.MOTOR_TIME, false);
+        else if(data[1] == 4)
+            startFaultDetection(data[3], Elevator.TRAVEL_TIME, true);
         else if(data[1] == 0)
             stopTimer(data[3]);
         if((data[0] == getDatagramStateValue(States.GOING_UP)) || (data[0] == getDatagramStateValue(States.GOING_DOWN)))
@@ -179,7 +181,6 @@ public class Scheduler extends Thread {
         elevatorMessagingState = States.IDLE;
 
         updateElevatorInfo(data[3], data[0], data[1]);
-        startFaultDetection(data[3], Elevator.TRAVEL_TIME, true);
     }
 
     private void startFaultDetection(int elevatorNum, int time, boolean floorOrDoorFault) {
