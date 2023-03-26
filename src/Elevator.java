@@ -146,7 +146,12 @@ public class Elevator extends Thread {
         }
     }
 
-    public void injectFault(){
+    public boolean injectFault(boolean floorOrDoorFault){
+        if(floorOrDoorFault) {
+            closeDoors();
+            return  true;
+        }
+
 
     }
 
