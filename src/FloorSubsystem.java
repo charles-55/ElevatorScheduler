@@ -72,6 +72,33 @@ public class FloorSubsystem extends Thread {
         }
 
         state = States.IDLE;
+        receiveReply();
+    }
+
+    /**
+     * Receive the response from Scheduler.
+     */
+    private synchronized void receiveReply() {
+        byte[] data = new byte[4];
+        receivePacket = new DatagramPacket(data, data.length);
+
+        try {
+            System.out.println("ELEVATOR: Waiting for reply packet from Scheduler...\n");
+            socket.receive(receivePacket);
+        } catch(IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        System.out.println("ELEVATOR: Reply packet received:");
+        System.out.println("ELEVATOR: Packet to strings: " + new String(receivePacket.getData(), 0, receivePacket.getLength()));
+
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e ) {
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 
     private void receiveFromScheduler(){

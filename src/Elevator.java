@@ -24,6 +24,7 @@ public class Elevator extends Thread {
     public static final int MOTOR_TIME = 3000, DOOR_HOLD_TIME = 5000, MAX_DOOR_HOLD_TIME = 10000, TRAVEL_TIME = 4000;
     private static final int PORT = 2200;
     public static final int NUM_OF_ELEVATORS = 2;
+    private static DatagramSocket sendReceiveSocket;
 
     /**
      * Constructor method for Elevator initializing the elevator on the first floor.
@@ -35,6 +36,13 @@ public class Elevator extends Thread {
         this.elevatorNum = elevatorNum;
         this.currentFloor = 1;
         this.elevatorQueue = elevatorQueue;
+        try {
+            sendReceiveSocket = new DatagramSocket(PORT);
+        } catch (SocketException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
         delayedQueue = new ArrayList<>();
 
         elevatorQueue.addElevator(this);
@@ -375,16 +383,17 @@ public class Elevator extends Thread {
     }
 
     /**
-     * Creates datagram socket and a packet then using a socket to send messages
+     * Creates datagram socket and a packet then using a socket to send and receive messages
      * @param data
      */
     private synchronized static void sendMessage(byte[] data) {
-        DatagramSocket socket = null;
+        //DatagramSocket socket = null;
         InetAddress address = null;
+        sendReceiveSocket = null;
         try {
-            socket = new DatagramSocket();
+            //socket = new DatagramSocket();
             address = InetAddress.getLocalHost();
-        } catch (SocketException | UnknownHostException e) {
+        } catch (UnknownHostException e) {//(SocketException | UnknownHostException e) {
             e.printStackTrace();
             System.exit(1);
         }
@@ -393,15 +402,41 @@ public class Elevator extends Thread {
 
         try {
             System.out.println("ELEVATOR " + data[3] + ": Sending Packet: " + Arrays.toString(data) + "\n");
-            socket.send(sendPacket);
+            sendReceiveSocket.send(sendPacket);
             System.out.println("ELEVATOR " + data[3] + ": Packet Sent!\n");
         } catch (IOException e) {
             System.out.println("ELEVATOR " + data[3] + " Error: Socket Timed Out.\n");
             e.printStackTrace();
             System.exit(1);
         }
+        receiveReply();
+        sendReceiveSocket.close();
+    }
 
-        socket.close();
+    /**
+     * Receive the response from Scheduler.
+     */
+    private synchronized static void receiveReply() {
+        byte[] data = new byte[4];
+        DatagramPacket receivePacket = new DatagramPacket(data, data.length);
+
+        try {
+            System.out.println("ELEVATOR: Waiting for reply packet from Scheduler...\n");
+            sendReceiveSocket.receive(receivePacket);
+        } catch(IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        System.out.println("ELEVATOR: Reply packet received:");
+        System.out.println("ELEVATOR: Packet to strings: " + new String(receivePacket.getData(), 0, receivePacket.getLength()));
+
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e ) {
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 
     /**
