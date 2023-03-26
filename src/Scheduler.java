@@ -96,6 +96,9 @@ public class Scheduler extends Thread {
         }
     }
 
+    /**
+     * Decides what to do with the message gotten from the floorsubsystem
+     */
     private void handleFloorMessagingState() {
         switch(floorMessagingState) {
             case IDLE -> {
@@ -109,6 +112,11 @@ public class Scheduler extends Thread {
             }
         }
     }
+
+    /**
+     * Decides what to do with the message gotten from the elevator
+     * @param data takes in a parameter to decrypt the message received
+     */
 
     private void handleElevatorMessage(byte[] data) {
         if(data[1] == (byte) 1) {
@@ -131,6 +139,10 @@ public class Scheduler extends Thread {
             stopTimer(data[3]);
     }
 
+    /**
+     * waits to recevie packet then passes the packet to the reply method to respond
+     * @return
+     */
     private byte[] receiveTask() {
         byte[] data = new byte[4];
         floorReceivePacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_RECEIVING_PORT);
@@ -152,6 +164,11 @@ public class Scheduler extends Thread {
         return data;
     }
 
+    /**
+     * Assigns task to each elevator accordingly
+     * @param data
+     * @return
+     */
     public byte scheduleElevator(byte[] data) {
         int elevatorNum = ((int[]) elevatorsInfoAndTimers.keySet().toArray()[0])[0];
         for(int[] arr : elevatorsInfoAndTimers.keySet()) {
