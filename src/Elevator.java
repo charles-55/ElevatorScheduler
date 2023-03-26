@@ -100,7 +100,8 @@ public class Elevator extends Thread {
     }
 
     /**
-     *
+     * Provides direct number which signifies different states
+     * @return  int which signify  state
      */
     private int getDatagramStateValue() {
         if(state == States.IDLE) {
@@ -164,6 +165,12 @@ public class Elevator extends Thread {
         }
     }
 
+    /**
+     * Tries to cause a fault in the elevator for testing purposes
+     * @param floorOrDoorFault Decides which fault it should be either floor fault or door fault
+     */
+
+
     public void injectFault(boolean floorOrDoorFault) {
         if(floorOrDoorFault) {
             sendMessage(new byte[] {(byte) getDatagramStateValue(), (byte) 4, (byte) currentFloor, (byte) elevatorNum, -1});
@@ -173,6 +180,10 @@ public class Elevator extends Thread {
             sendMessageReceiveReply(new byte[] {(byte) getDatagramStateValue(), 2, (byte) currentFloor, (byte) elevatorNum, -1});
         }
     }
+
+    /**
+     * Starts the fault detection for each state the elevator class moves into
+     */
 
     private void handleState() {
         switch(state) {
