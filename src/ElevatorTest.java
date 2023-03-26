@@ -184,6 +184,11 @@ public class ElevatorTest {
         }
     }
 
+    @Test
+    public void testInjectFault() {
+        elevator.injectFault(true);
+    }
+
     /**
      * Test method for the moveToFloor method in Elevator.
      */
