@@ -220,10 +220,10 @@ public class Scheduler extends Thread {
             if(arr[0] == elevatorNum) {
                 if(floorOrDoorFault) {
                     arr[2] = 503;
-                    sendToElevator(new byte[] {0, (byte) 503, (byte) arr[0]});
+                    sendToElevator(new byte[] {0, (byte) 503, 0, (byte) arr[0]});
                 }
                 else
-                    sendToElevator(new byte[] {(byte) arr[1], (byte) 504, (byte) arr[0]});
+                    sendToElevator(new byte[] {(byte) arr[1], (byte) 504, (byte) arr[1], (byte) arr[0]});
                 break;
             }
         }
