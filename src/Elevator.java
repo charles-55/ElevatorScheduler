@@ -193,7 +193,7 @@ public class Elevator extends Thread {
 
                     sendMessage(new byte[] {(byte) getDatagramStateValue(), 3, (byte) currentFloor, (byte) elevatorNum, -1});
                     closeDoors();
-                    sendMessage(new byte[] {(byte) getDatagramStateValue(), (byte) (checkAllTaskComplete() ? 0 : 1), (byte) currentFloor, (byte) elevatorNum, -1});
+                    sendMessage(new byte[] {(byte) getDatagramStateValue(), (byte) (checkAllTaskComplete() ? 0 : 4), (byte) currentFloor, (byte) elevatorNum, -1});
                 }
             }
             case OUT_OF_SERVICE -> printAnalyzedState();
