@@ -284,6 +284,7 @@ public class Elevator extends Thread {
      * @param state States, the next state after receiving the call.
      */
     public void callElevator(int callFloor, States state) {
+        this.state = States.RECEIVING_TASK;
         moveToFloor(callFloor);
         this.state = state;
     }
@@ -351,8 +352,6 @@ public class Elevator extends Thread {
         this.isMoving = false;
         System.out.println("ELEVATOR " + elevatorNum + ": At floor " + currentFloor + ".\n");
         this.openDoors();
-        if(state == States.RECEIVING_TASK)
-            state = States.IDLE;
     }
 
     private void sendMessageReceiveReply(byte[] data) {

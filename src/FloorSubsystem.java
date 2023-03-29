@@ -19,7 +19,7 @@ import java.util.Scanner;
 public class FloorSubsystem extends Thread {
 
     private final ArrayList<Floor> floors;
-    private States state;
+    private States state, parseState, receiveState;
     private DatagramPacket sendPacket;
     private DatagramPacket receivePacket;
     private DatagramSocket socket;
@@ -34,6 +34,8 @@ public class FloorSubsystem extends Thread {
     public FloorSubsystem(String fileName) {
         this.fileName = fileName;
         state = States.IDLE;
+        parseState = States.IDLE;
+        receiveState = States.IDLE;
         try {
             socket = new DatagramSocket();
             this.address = InetAddress.getLocalHost();
@@ -47,103 +49,10 @@ public class FloorSubsystem extends Thread {
         floors.add(floor);
     }
 
-    public void sendToScheduler(byte[] data, LocalTime time) {
-        updateFloor(data[0], data[2], true);
-        sendPacket = new DatagramPacket(data, data.length, address, SEND_PORT);
-
-        state = States.SENDING_TASK;
-        System.out.println("FLOOR SUBSYSTEM: Sending Packet: " + Arrays.toString(data) + ".");
-        try {
-            socket.send(sendPacket);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        System.out.println("FLOOR SUBSYSTEM: Packet Sent!\n");
-
-//        time = LocalTime.now(); // for testing purposes only!
-//        if(LocalTime.now().equals(time)) {
-//            state = States.SENDING_TASK;
-//            System.out.println("FLOOR SUBSYSTEM: Sending Packet: " + Arrays.toString(data) + ".");
-//            try {
-//                socket.send(sendPacket);
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//            System.out.println("FLOOR SUBSYSTEM: Packet Sent!\n");
-//        }
-//        else if (time.isAfter(LocalTime.now())) {
-//            try {
-//                Thread.sleep((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000);
-//                socket.send(sendPacket);
-//            } catch (InterruptedException | IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//        }
-
-        state = States.IDLE;
-        receiveReply();
-    }
-
-    /**
-     * Receive the response from Scheduler.
-     */
-    private synchronized void receiveReply() {
-        byte[] data = new byte[4];
-        receivePacket = new DatagramPacket(data, data.length);
-
-        try {
-            System.out.println("ELEVATOR: Waiting for reply packet from Scheduler...\n");
-            socket.receive(receivePacket);
-        } catch(IOException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
-
-        System.out.println("ELEVATOR: Reply packet received:");
-        System.out.println("ELEVATOR: Packet to strings: " + new String(receivePacket.getData(), 0, receivePacket.getLength()));
-
-        try {
-            Thread.sleep(50);
-        } catch (InterruptedException e ) {
-            e.printStackTrace();
-            System.exit(1);
-        }
-    }
-
-    private void receiveFromScheduler(){
-        byte[] data = new byte[3];
-        receivePacket = new DatagramPacket(data, data.length, address, RECEIVE_PORT);
-
-        try {
-            System.out.println("FLOOR SUBSYSTEM: Waiting for Packet...\n");
-            socket.receive(receivePacket);
-        } catch (IOException e) {
-            System.out.println("FLOOR SUBSYSTEM: Error Socket Timed Out.\n");
-            e.printStackTrace();
-            System.exit(1);
-        }
-
-        System.out.println("FLOOR SUBSYSTEM: Packet received: " + Arrays.toString(data) + "\n");
-
-        System.out.println("FLOOR " + data[0] + ": Elevator " + data[1] + " arrived.\n");
-        if (data[2] == 1)
-            updateFloor(data[0], 1, false);
-        else if (data[2] == 2)
-            updateFloor(data[0], 2, false);
-
-        try {
-            Thread.sleep(50);
-        } catch (InterruptedException e ) {
-            e.printStackTrace();
-            System.exit(1);
-        }
-    }
-
-    private void updateFloor(int floorNumber, int direction, boolean state) {
-        for(Floor floor:floors){
-            if (floor.getFloorNumber()==floorNumber){
-                floor.setButtonDirection(direction, state);
-                break;
+    private void handleParseState() {
+        switch (parseState) {
+            case IDLE ->  {
+                parseData();
             }
         }
     }
@@ -184,6 +93,89 @@ public class FloorSubsystem extends Thread {
             state = States.OUT_OF_SERVICE;
             e.printStackTrace();
             System.exit(1);
+        }
+    }
+
+    public void sendToScheduler(byte[] data, LocalTime time) {
+        updateFloor(data[0], data[2], true);
+        sendPacket = new DatagramPacket(data, data.length, address, SEND_PORT);
+
+        System.out.println("FLOOR SUBSYSTEM: Sending Packet: " + Arrays.toString(data) + ".");
+        try {
+            socket.send(sendPacket);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println("FLOOR SUBSYSTEM: Packet Sent!\n");
+
+//        time = LocalTime.now(); // for testing purposes only!
+//        if(LocalTime.now().equals(time)) {
+//            System.out.println("FLOOR SUBSYSTEM: Sending Packet: " + Arrays.toString(data) + ".");
+//            try {
+//                socket.send(sendPacket);
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//            System.out.println("FLOOR SUBSYSTEM: Packet Sent!\n");
+//        }
+//        else if (time.isAfter(LocalTime.now())) {
+//            try {
+//                Thread.sleep((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000);
+//                socket.send(sendPacket);
+//            } catch (InterruptedException | IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
+
+        state = States.IDLE;
+        receiveFromScheduler();
+    }
+
+    private void receiveFromScheduler(){
+        byte[] data = new byte[3];
+        receivePacket = new DatagramPacket(data, data.length, address, RECEIVE_PORT);
+
+        try {
+            System.out.println("FLOOR SUBSYSTEM: Waiting for Packet...\n");
+            socket.receive(receivePacket);
+        } catch (IOException e) {
+            System.out.println("FLOOR SUBSYSTEM: Error Socket Timed Out.\n");
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        if(data[1] == 0) {
+            String direction = "";
+            if(data[2] == 1)
+                direction = "up";
+            else if(data[2] == 2)
+                direction = "down";
+            System.out.println("FLOOR SUBSYSTEM: Reply received to floor " + data[0] + " going " + direction + ".\n");
+            return;
+        }
+
+        System.out.println("FLOOR SUBSYSTEM: Packet received: " + Arrays.toString(data) + "\n");
+
+        System.out.println("FLOOR " + data[0] + ": Elevator " + data[1] + " arrived.\n");
+        if (data[2] == 1)
+            updateFloor(data[0], 1, false);
+        else if (data[2] == 2)
+            updateFloor(data[0], 2, false);
+
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e ) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+
+    private void updateFloor(int floorNumber, int direction, boolean state) {
+        for(Floor floor:floors){
+            if (floor.getFloorNumber()==floorNumber){
+                floor.setButtonDirection(direction, state);
+                break;
+            }
         }
     }
 

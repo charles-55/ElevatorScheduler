@@ -84,10 +84,8 @@ public class Scheduler extends Thread {
             case IDLE -> {
                 elevatorData = receiveTask();
             }
-            case SCHEDULING -> {
-                elevatorData[3] = scheduleElevator(elevatorData);
-            }
             case SENDING_TASK -> {
+                elevatorData[3] = scheduleElevator(elevatorData);
                 sendToElevator(elevatorData);
             }
             case OUT_OF_SERVICE -> {
@@ -110,6 +108,9 @@ public class Scheduler extends Thread {
             case SENDING_MESSAGE -> {
                 sendToFloor(floorData);
             }
+            case OUT_OF_SERVICE -> {
+                printAnalyzedState();
+            }
         }
     }
 
@@ -117,13 +118,13 @@ public class Scheduler extends Thread {
      * Decides what to do with the message gotten from the elevator
      * @param data takes in a parameter to decrypt the message received
      */
-
     private void handleElevatorMessage(byte[] data) {
         if(data[1] == (byte) 1) {
             startFaultDetection(data[3], Elevator.MOTOR_TIME, false);
             floorData = Arrays.copyOfRange(data, 2, 6);
             floorMessagingState = States.SENDING_MESSAGE;
             updateElevatorInfo(data[3], data[2], data[0]);
+            return;
         }
         else if(data[1] == (byte) 2)
             startFaultDetection(data[3], Elevator.MAX_DOOR_HOLD_TIME, false);
@@ -137,10 +138,11 @@ public class Scheduler extends Thread {
             startFaultDetection(data[3], Elevator.TRAVEL_TIME, true);
         else if(data[0] == getDatagramStateValue(States.IDLE))
             stopTimer(data[3]);
+        floorMessagingState = States.IDLE;
     }
 
     /**
-     * waits to recevie packet then passes the packet to the reply method to respond
+     * Waits to receive packet then passes the packet to the reply method to respond
      * @return
      */
     private byte[] receiveTask() {
@@ -150,7 +152,6 @@ public class Scheduler extends Thread {
         try {
             System.out.println("SCHEDULER: Waiting for Packet from Floor...\n");
             floorReceivingSocket.receive(floorReceivePacket);
-            replyFloorMessage(new byte[3]);
         } catch (IOException e) {
             elevatorMessagingState = States.OUT_OF_SERVICE;
             printAnalyzedState();
@@ -159,7 +160,29 @@ public class Scheduler extends Thread {
         }
 
         System.out.println("SCHEDULER: Packet Received from Floor " + ((int) data[0]) + ": " + Arrays.toString(data) + ".\n");
-        elevatorMessagingState = States.SCHEDULING;
+        sendToFloor(new byte[] {data[0], 0, data[1]});
+        elevatorMessagingState = States.SENDING_TASK;
+
+        return data;
+    }
+
+    private byte[] receiveMessage() {
+        byte[] data = new byte[5];
+        elevatorReceivePacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_RECEIVING_PORT);
+
+        try {
+            System.out.println("SCHEDULER: Waiting for Packet from Elevator...\n");
+            elevatorReceivingSocket.receive(elevatorReceivePacket);
+        } catch (IOException e) {
+            floorMessagingState = States.OUT_OF_SERVICE;
+            printAnalyzedState();
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        System.out.println("SCHEDULER: Packet Received from Elevator: " + Arrays.toString(data) + ".\n");
+        sendToElevator(new byte[5]);
+        floorMessagingState = States.HANDLING_RECEIVED_MESSAGE;
 
         return data;
     }
@@ -187,11 +210,6 @@ public class Scheduler extends Thread {
      * Method to send data to the elevator and update the scheduler's state.
      */
     public void sendToElevator(byte[] data) {
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
         elevatorSendPacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_SENDING_PORT);
 
         try {
@@ -252,27 +270,6 @@ public class Scheduler extends Thread {
         }
     }
 
-    private byte[] receiveMessage() {
-        byte[] data = new byte[5];
-        elevatorReceivePacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_RECEIVING_PORT);
-
-        try {
-            System.out.println("SCHEDULER: Waiting for Packet from Elevator...\n");
-            elevatorReceivingSocket.receive(elevatorReceivePacket);
-        } catch (IOException e) {
-            floorMessagingState = States.OUT_OF_SERVICE;
-            printAnalyzedState();
-            e.printStackTrace();
-            System.exit(1);
-        }
-
-        System.out.println("SCHEDULER: Packet Received from Elevator: " + Arrays.toString(data) + ".\n");
-        replyElevatorMessage(new byte[4]);
-        floorMessagingState = States.HANDLING_RECEIVED_MESSAGE;
-
-        return data;
-    }
-
     /**
      * Reply to Elevator's message acknowledging its receipt.
      * @param data reply message .
@@ -318,24 +315,6 @@ public class Scheduler extends Thread {
             System.exit(1);
         }
     }
-
-    /**
-     * Reply to Floor's message acknowledging its receipt.
-     * @param data reply message.
-     */
-    private void replyFloorMessage(byte[] data) {
-        floorSendPacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_SENDING_PORT);
-
-        try {
-            System.out.println("SCHEDULER: Sending reply packet to Floor.");
-            floorSendingSocket.send(floorSendPacket);
-        } catch (IOException e) {
-            printAnalyzedState();
-            e.printStackTrace();
-            System.exit(1);
-        }
-    }
-
 
     /**
      * Prints the current state of the scheduler.
