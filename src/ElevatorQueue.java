@@ -107,7 +107,7 @@ public class ElevatorQueue extends Thread {
 
         queue.get(elevator).add(new int[] {(int) data[0], (int) data[2]});
         queue.get(elevator).sort(Comparator.comparingInt(array -> Arrays.stream(array).sum()));
-        System.out.println("ELEVATOR QUEUE: Added to queue.");
+//        System.out.println("ELEVATOR QUEUE: Added to queue.");
 
         notifyAll();
         this.state = States.WAITING_FOR_TASK;

@@ -383,9 +383,8 @@ public class Elevator extends Thread {
         DatagramPacket sendPacket = new DatagramPacket(data, data.length, address, SEND_PORT);
 
         try {
-            System.out.println("ELEVATOR " + data[3] + ": Sending Packet: " + Arrays.toString(data) + "\n");
             sendReceiveSocket.send(sendPacket);
-            System.out.println("ELEVATOR " + data[3] + ": Packet Sent!\n");
+            System.out.println("ELEVATOR " + data[3] + ": Packet Sent: " + Arrays.toString(data) + "\n");
         } catch (IOException e) {
             System.out.println("ELEVATOR " + data[3] + " Error: Socket Timed Out.\n");
             e.printStackTrace();

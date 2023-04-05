@@ -100,23 +100,23 @@ public class FloorSubsystem extends Thread {
         updateFloor(data[0], data[2], true);
         sendPacket = new DatagramPacket(data, data.length, address, SEND_PORT);
 
-        System.out.println("FLOOR SUBSYSTEM: Sending Packet: " + Arrays.toString(data) + ".");
         try {
             socket.send(sendPacket);
         } catch (IOException e) {
+            System.out.println("FLOOR SUBSYSTEM: Send Packet Error: " + Arrays.toString(data) + "\n");
             throw new RuntimeException(e);
         }
-        System.out.println("FLOOR SUBSYSTEM: Packet Sent!\n");
+        System.out.println("FLOOR SUBSYSTEM: Sent Packet: " + Arrays.toString(data) + "\n");
 
 //        time = LocalTime.now(); // for testing purposes only!
 //        if(LocalTime.now().equals(time)) {
-//            System.out.println("FLOOR SUBSYSTEM: Sending Packet: " + Arrays.toString(data) + ".");
 //            try {
 //                socket.send(sendPacket);
 //            } catch (IOException e) {
+//        System.out.println("FLOOR SUBSYSTEM: Send Packet Error: " + Arrays.toString(data) + "\n");
 //                throw new RuntimeException(e);
 //            }
-//            System.out.println("FLOOR SUBSYSTEM: Packet Sent!\n");
+//        System.out.println("FLOOR SUBSYSTEM: Sent Packet: " + Arrays.toString(data) + "\n");
 //        }
 //        else if (time.isAfter(LocalTime.now())) {
 //            try {

@@ -213,7 +213,6 @@ public class Scheduler extends Thread {
         elevatorSendPacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_SENDING_PORT);
 
         try {
-            System.out.println("SCHEDULER: Sending Packet to elevator: " + Arrays.toString(data) + "\n");
             elevatorSendingSocket.send(elevatorSendPacket);
         } catch (IOException e) {
             elevatorMessagingState = States.OUT_OF_SERVICE;
@@ -221,7 +220,7 @@ public class Scheduler extends Thread {
             System.exit(1);
         }
 
-        System.out.println("SCHEDULER: Packet sent to elevator.\n");
+        System.out.println("SCHEDULER: Packet sent to elevator: " + Arrays.toString(data) + "\n");
         elevatorMessagingState = States.IDLE;
 
         updateElevatorInfo(data[3], data[0], data[1]);
@@ -278,7 +277,6 @@ public class Scheduler extends Thread {
         elevatorSendPacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_REPLY_PORT);
 
         try {
-            System.out.println("SCHEDULER: Sending reply packet to elevator.\n");
             elevatorReplySocket.send(elevatorSendPacket);
         } catch (IOException e) {
             printAnalyzedState();
@@ -295,7 +293,6 @@ public class Scheduler extends Thread {
         floorSendPacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_SENDING_PORT);
 
         try {
-            System.out.println("SCHEDULER: Sending Packet to Floor: " + Arrays.toString(data)+".\n");
             floorSendingSocket.send(floorSendPacket);
         } catch (IOException e) {
             floorMessagingState = States.OUT_OF_SERVICE;
@@ -304,7 +301,7 @@ public class Scheduler extends Thread {
             System.exit(1);
         }
 
-        System.out.println("SCHEDULER: Packet sent to floor.\n");
+        System.out.println("SCHEDULER: Packet sent to floor: " + Arrays.toString(data) + "\n");
         floorMessagingState = States.IDLE;
         try {
             Thread.sleep(50);
