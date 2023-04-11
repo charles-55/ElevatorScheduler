@@ -21,8 +21,12 @@ public class Elevator extends Thread {
     private final ArrayList<int[]> delayedQueue;
     private final HashMap<Integer, Boolean> buttonsAndLamps;
     private States state;
+    private DatagramPacket sendPacket, receivePacket;
+    private DatagramSocket socket;
+    private InetAddress address;
+
     public static final int MOTOR_TIME = 3000, DOOR_HOLD_TIME = 5000, MAX_DOOR_HOLD_TIME = 10000, TRAVEL_TIME = 4000;
-    private static final int SEND_PORT = 2200, RECEIVE_PORT = 2400;
+    private static final int SEND_PORT = 2300, RECEIVE_PORT = 2200, REPLY_PORT = 2400;
     public static final int NUM_OF_ELEVATORS = 2;
 
     /**
@@ -49,6 +53,14 @@ public class Elevator extends Thread {
             buttonsAndLamps.put(i, false);
 
         scheduler.addElevator(this);
+
+        try {
+            socket = new DatagramSocket();
+            this.address = InetAddress.getLocalHost();
+        } catch (SocketException | UnknownHostException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 
     /**
@@ -169,8 +181,6 @@ public class Elevator extends Thread {
      * Tries to cause a fault in the elevator for testing purposes
      * @param floorOrDoorFault Decides which fault it should be either floor fault or door fault
      */
-
-
     public void injectFault(boolean floorOrDoorFault) {
         if(floorOrDoorFault) {
             sendMessage(new byte[] {(byte) getDatagramStateValue(), (byte) 4, (byte) currentFloor, (byte) elevatorNum, -1});
@@ -188,28 +198,12 @@ public class Elevator extends Thread {
     private void handleState() {
         switch(state) {
             case IDLE -> {
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+                implementTask(receiveTask());
             }
             case GOING_UP, GOING_DOWN -> {
                 move();
                 if(buttonsAndLamps.get(currentFloor)) {
-                    sendMessageReceiveReply(new byte[] {(byte) getDatagramStateValue(), 1, (byte) currentFloor, (byte) elevatorNum, -1});
-                    openDoors();
-                    sendMessageReceiveReply(new byte[] {(byte) getDatagramStateValue(), 2, (byte) currentFloor, (byte) elevatorNum, -1});
-
-                    try {
-                        Thread.sleep(DOOR_HOLD_TIME);
-                    } catch(InterruptedException e){
-                        return;
-                    }
-
-                    sendMessageReceiveReply(new byte[] {(byte) getDatagramStateValue(), 3, (byte) currentFloor, (byte) elevatorNum, -1});
-                    closeDoors();
-                    sendMessage(new byte[] {(byte) getDatagramStateValue(), (byte) (checkAllTaskComplete() ? 0 : 4), (byte) currentFloor, (byte) elevatorNum, -1});
+                    arrivalSequence();
                 }
             }
             case OUT_OF_SERVICE -> printAnalyzedState();
@@ -354,15 +348,62 @@ public class Elevator extends Thread {
         this.openDoors();
     }
 
-    private void sendMessageReceiveReply(byte[] data) {
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                sendMessage(data);
-                receiveReply();
+    public byte[] receiveTask() {
+        byte[] data = new byte[4];
+        receivePacket = new DatagramPacket(data, data.length, address, RECEIVE_PORT + elevatorNum);
+
+        try {
+            System.out.println("ELEVATOR " + elevatorNum + ": Waiting for Packet...\n");
+            socket.receive(receivePacket);
+        } catch (IOException e) {
+            System.out.println("ELEVATOR " + elevatorNum + ": Error Socket Timed Out.\n");
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        System.out.println("ELEVATOR " + elevatorNum + ": Packet received: " + Arrays.toString(data) + "\n");
+
+        sendMessage(new byte[5]); // send reply
+
+        return data;
+    }
+
+    private void implementTask(byte[] data) {
+        if(state == States.IDLE) {
+            if (currentFloor < data[0])
+                state = States.GOING_UP;
+            else if (currentFloor > data[0])
+                state = States.GOING_DOWN;
+            while(currentFloor != data[0]) {
+                sendMessageReceiveReply(new byte[] {data[1], 4, (byte) currentFloor, (byte) elevatorNum, -1});
+                move();
             }
-        });
-        thread.start();
+            arrivalSequence();
+        }
+        else if((state == States.GOING_UP) || (state == States.GOING_DOWN)) {
+            buttonsAndLamps.put((int) data[2], true);
+        }
+    }
+
+    private void arrivalSequence() {
+        sendMessageReceiveReply(new byte[] {(byte) getDatagramStateValue(), 1, (byte) currentFloor, (byte) elevatorNum, -1});
+        openDoors();
+        sendMessageReceiveReply(new byte[] {(byte) getDatagramStateValue(), 2, (byte) currentFloor, (byte) elevatorNum, -1});
+
+        try {
+            Thread.sleep(DOOR_HOLD_TIME);
+        } catch(InterruptedException e){
+            return;
+        }
+
+        sendMessageReceiveReply(new byte[] {(byte) getDatagramStateValue(), 3, (byte) currentFloor, (byte) elevatorNum, -1});
+        closeDoors();
+        sendMessage(new byte[] {(byte) getDatagramStateValue(), (byte) (checkAllTaskComplete() ? 0 : 4), (byte) currentFloor, (byte) elevatorNum, -1});
+    }
+
+    private void sendMessageReceiveReply(byte[] data) {
+        sendMessage(data);
+        receiveReply();
     }
 
     /**

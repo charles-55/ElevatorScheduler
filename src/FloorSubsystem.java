@@ -20,11 +20,10 @@ public class FloorSubsystem extends Thread {
 
     private final ArrayList<Floor> floors;
     private States state, parseState, receiveState;
-    private DatagramPacket sendPacket;
-    private DatagramPacket receivePacket;
+    private DatagramPacket sendPacket, receivePacket;
     private DatagramSocket socket;
     private InetAddress address;
-    private static final int SEND_PORT = 2000, RECEIVE_PORT = 2300;
+    private static final int SEND_PORT = 2000, RECEIVE_PORT = 2100, REPLY_PORT = 2110;
     private final String fileName;
 
     /**
@@ -45,6 +44,7 @@ public class FloorSubsystem extends Thread {
         }
         floors = new ArrayList<>();
     }
+
     public void addFloor(Floor floor){
         floors.add(floor);
     }
@@ -96,7 +96,7 @@ public class FloorSubsystem extends Thread {
         }
     }
 
-    public void sendToScheduler(byte[] data, LocalTime time) {
+    public synchronized void sendToScheduler(byte[] data, LocalTime time) {
         updateFloor(data[0], data[2], true);
         sendPacket = new DatagramPacket(data, data.length, address, SEND_PORT);
 
@@ -127,11 +127,35 @@ public class FloorSubsystem extends Thread {
 //            }
 //        }
 
-        state = States.IDLE;
-        receiveFromScheduler();
+        receiveReply();
     }
 
-    private void receiveFromScheduler(){
+    private synchronized void receiveReply() {
+        byte[] data = new byte[3];
+        DatagramPacket replyPacket = new DatagramPacket(data, data.length, address, REPLY_PORT);
+        DatagramSocket replySocket;
+
+        try {
+            replySocket = new DatagramSocket(REPLY_PORT);
+            replySocket.receive(replyPacket);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        if(data[1] == 0) {
+            String direction = "";
+            if(data[2] == 1)
+                direction = "up";
+            else if(data[2] == 2)
+                direction = "down";
+            System.out.println("FLOOR SUBSYSTEM: Reply received to floor " + data[0] + " going " + direction + ".\n");
+        }
+
+        replySocket.close();
+        state = States.IDLE;
+    }
+
+    private synchronized void receiveFromScheduler() {
         byte[] data = new byte[3];
         receivePacket = new DatagramPacket(data, data.length, address, RECEIVE_PORT);
 
@@ -142,16 +166,6 @@ public class FloorSubsystem extends Thread {
             System.out.println("FLOOR SUBSYSTEM: Error Socket Timed Out.\n");
             e.printStackTrace();
             System.exit(1);
-        }
-
-        if(data[1] == 0) {
-            String direction = "";
-            if(data[2] == 1)
-                direction = "up";
-            else if(data[2] == 2)
-                direction = "down";
-            System.out.println("FLOOR SUBSYSTEM: Reply received to floor " + data[0] + " going " + direction + ".\n");
-            return;
         }
 
         System.out.println("FLOOR SUBSYSTEM: Packet received: " + Arrays.toString(data) + "\n");
