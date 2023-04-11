@@ -10,7 +10,7 @@ public class ElevatorQueue extends Thread {
     private DatagramSocket socket;
     private InetAddress address;
     private States state;
-    private static final int RECEIVING_PORT = 2100;
+    private static final int RECEIVING_PORT = 100;
     private final HashMap<Elevator, ArrayList<int[]>> queue;
 
     /**
