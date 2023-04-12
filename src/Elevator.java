@@ -47,8 +47,8 @@ public class Elevator extends Thread {
 
         try {
             sendSocket = new DatagramSocket();
-            receiveSocket = new DatagramSocket();
-            replySocket = new DatagramSocket(REPLY_PORT + elevatorNum);
+            receiveSocket = new DatagramSocket(RECEIVE_PORT + elevatorNum);
+            replySocket = new DatagramSocket();
             address = InetAddress.getLocalHost();
         } catch (SocketException | UnknownHostException e) {
             e.printStackTrace();
@@ -204,7 +204,7 @@ public class Elevator extends Thread {
             closeDoors();
         this.isMoving = true;
 
-        sendToScheduler(new byte[] {(byte) currentFloor, (byte) States.getDatagramStateValue(state), (byte) elevatorNum, (byte) States.getDatagramStateValue(state), 4}, false);
+        sendToScheduler(new byte[] {(byte) currentFloor, (byte) States.getStateDatagramValue(state), (byte) elevatorNum, (byte) States.getStateDatagramValue(state), 4}, false);
         receiveReply();
 
         try {
@@ -221,11 +221,11 @@ public class Elevator extends Thread {
     }
 
     private void arrivalSequence(int direction) {
-        sendToScheduler(new byte[] {(byte) currentFloor, (byte) direction, (byte) elevatorNum, (byte) States.getDatagramStateValue(state), 1}, false);
+        sendToScheduler(new byte[] {(byte) currentFloor, (byte) direction, (byte) elevatorNum, (byte) States.getStateDatagramValue(state), 1}, false);
         receiveReply();
         openDoors();
 
-        sendToScheduler(new byte[] {(byte) currentFloor, (byte) direction, (byte) elevatorNum, (byte) States.getDatagramStateValue(States.DOOR_OPEN), 2}, false);
+        sendToScheduler(new byte[] {(byte) currentFloor, (byte) direction, (byte) elevatorNum, (byte) States.getStateDatagramValue(States.DOOR_OPEN), 2}, false);
         receiveReply();
         try {
             Thread.sleep(DOOR_HOLD_TIME);
@@ -233,12 +233,12 @@ public class Elevator extends Thread {
             return;
         }
 
-        sendToScheduler(new byte[] {(byte) currentFloor, (byte) direction, (byte) elevatorNum, (byte) States.getDatagramStateValue(States.DOOR_OPEN), 3}, false);
+        sendToScheduler(new byte[] {(byte) currentFloor, (byte) direction, (byte) elevatorNum, (byte) States.getStateDatagramValue(States.DOOR_OPEN), 3}, false);
         receiveReply();
         closeDoors();
 
         checkForStateUpdate();
-        sendToScheduler(new byte[] {(byte) currentFloor, (byte) direction, (byte) elevatorNum, (byte) States.getDatagramStateValue(state), 0}, false);
+        sendToScheduler(new byte[] {(byte) currentFloor, (byte) direction, (byte) elevatorNum, (byte) States.getStateDatagramValue(state), 0}, false);
         receiveReply();
     }
 
@@ -251,18 +251,21 @@ public class Elevator extends Thread {
 
         try {
             sendSocket.send(sendPacket);
-            System.out.println("ELEVATOR " + data[3] + ": Packet Sent: " + Arrays.toString(data) + "\n");
         } catch (IOException e) {
             System.out.println("ELEVATOR " + data[3] + " Error: Socket Timed Out.\n");
             e.printStackTrace();
             System.exit(1);
         }
 
-        if(!reply)
+        if(reply)
+            System.out.println("ELEVATOR " + elevatorNum + ": Reply sent to scheduler.\n");
+        else {
+            System.out.println("ELEVATOR " + elevatorNum + ": Packet Sent: " + Arrays.toString(data) + "\n");
             receiveReply();
+        }
     }
 
-    public synchronized byte[] receiveFromScheduler() {
+    public byte[] receiveFromScheduler() {
         byte[] data = new byte[2];
         receivePacket = new DatagramPacket(data, data.length, address, RECEIVE_PORT + elevatorNum);
 
@@ -292,7 +295,9 @@ public class Elevator extends Thread {
 
         try {
             System.out.println("ELEVATOR: Waiting for reply packet from Scheduler...\n");
+            replySocket = new DatagramSocket(REPLY_PORT + elevatorNum);
             replySocket.receive(replyPacket);
+            replySocket = new DatagramSocket();
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);

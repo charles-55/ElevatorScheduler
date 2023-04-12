@@ -44,7 +44,7 @@ public class FloorSubsystem extends Thread {
         try {
             sendSocket = new DatagramSocket();
             receiveSocket = new DatagramSocket();
-            replySocket = new DatagramSocket(REPLY_PORT);
+            replySocket = new DatagramSocket();
             address = InetAddress.getLocalHost();
         } catch (SocketException | UnknownHostException e) {
             e.printStackTrace();
@@ -64,8 +64,8 @@ public class FloorSubsystem extends Thread {
         return elevatorInfo;
     }
 
-    public void callElevator(int floorNum, Integer direction) {
-        sendToScheduler(new byte[] {(byte) floorNum, direction.byteValue(), 0});
+    public void callElevator(int floorNum, int direction) {
+        sendToScheduler(new byte[] {(byte) floorNum, (byte) direction, 0});
         receiveReply();
     }
 
@@ -74,7 +74,7 @@ public class FloorSubsystem extends Thread {
         receiveReply();
     }
 
-    public synchronized void sendToScheduler(byte[] data) {
+    private void sendToScheduler(byte[] data) {
         sendPacket = new DatagramPacket(data, data.length, address, SEND_PORT);
 
         try {
@@ -84,11 +84,9 @@ public class FloorSubsystem extends Thread {
             throw new RuntimeException(e);
         }
         System.out.println("FLOOR SUBSYSTEM: Sent Packet: " + Arrays.toString(data) + "\n");
-
-        receiveReply();
     }
 
-    private synchronized void receiveFromScheduler() {
+    private void receiveFromScheduler() {
         byte[] data = new byte[4];
         receivePacket = new DatagramPacket(data, data.length, address, RECEIVE_PORT);
 
@@ -111,24 +109,19 @@ public class FloorSubsystem extends Thread {
             System.out.println("FLOOR SUBSYSTEM: Failed to update floor!\n");
     }
 
-    private synchronized void receiveReply() {
-        byte[] data = new byte[3];
+    private void receiveReply() {
+        byte[] data = new byte[4];
         replyPacket = new DatagramPacket(data, data.length, address, REPLY_PORT);
 
         try {
+            replySocket = new DatagramSocket(REPLY_PORT);
             replySocket.receive(replyPacket);
+            replySocket = new DatagramSocket();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        if(data[1] == 0) {
-            String direction = "";
-            if(data[2] == 1)
-                direction = "up";
-            else if(data[2] == 2)
-                direction = "down";
-            System.out.println("FLOOR SUBSYSTEM: Reply received to floor " + data[0] + " going " + direction + ".\n");
-        }
+        System.out.println("FLOOR SUBSYSTEM: Reply received for floor " + data[0] + ".\n");
 
         state = States.IDLE;
     }
