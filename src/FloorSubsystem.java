@@ -15,7 +15,8 @@ import java.util.HashMap;
  * */
 
 public class FloorSubsystem extends Thread {
-
+    //private final Thread thread;
+    private final Frame frame;
     private final ArrayList<Floor> floors;
     private final HashMap<Integer, int[]> elevatorInfo; // map elevatorNum to [currentFloor, direction, state]
     private States state, parseState, receiveState;
@@ -39,6 +40,24 @@ public class FloorSubsystem extends Thread {
         state = States.IDLE;
         parseState = States.IDLE;
         receiveState = States.IDLE;
+
+        frame = new Frame(this);
+
+//        thread = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                while (true){
+//                    try {
+//                        Thread.sleep(1000);
+//                    }
+//                    catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//                    frame.updateUI();
+//                }
+//            }
+//        });
+
 
         try {
             sendSocket = new DatagramSocket();
@@ -153,7 +172,9 @@ public class FloorSubsystem extends Thread {
         }
     }
 
-    private void updateFrame() {}
+    private void updateFrame() {
+
+    }
 
     /**
      * Run method.
