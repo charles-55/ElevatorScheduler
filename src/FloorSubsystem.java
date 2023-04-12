@@ -34,7 +34,7 @@ public class FloorSubsystem extends Thread {
         for(int i = 0; i < Floor.NUM_OF_FLOORS; i++)
             new Floor(i + 1, this);
         for(int i = 0; i < Elevator.NUM_OF_ELEVATORS; i++)
-            elevatorInfo.put(i + 1, new int[3]);
+            elevatorInfo.put(i + 1, new int[] {1, 0, 0});
 
         state = States.IDLE;
         parseState = States.IDLE;

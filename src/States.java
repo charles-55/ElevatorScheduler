@@ -18,7 +18,7 @@ public enum States {
         else if(state == States.DOOR_CLOSED)
             return 4;
         else if(state == States.OUT_OF_SERVICE)
-            return 503;
+            return 103;
         else
             return 404;
     }
@@ -37,7 +37,7 @@ public enum States {
             return DOOR_OPEN;
         else if(datagramValue == 4)
             return DOOR_CLOSED;
-        else if(datagramValue == 503)
+        else if(datagramValue == 103)
             return OUT_OF_SERVICE;
         else
             return UNKNOWN;

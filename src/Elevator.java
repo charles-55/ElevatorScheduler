@@ -206,7 +206,7 @@ public class Elevator extends Thread {
         this.isMoving = true;
 
         sendToScheduler(new byte[] {(byte) currentFloor, (byte) States.getStateDatagramValue(state), (byte) elevatorNum, (byte) States.getStateDatagramValue(state), 4}, false);
-        receiveReply();
+        //receiveReply();
 
         try {
             Thread.sleep(TRAVEL_TIME);
@@ -247,7 +247,7 @@ public class Elevator extends Thread {
      * Creates datagram socket and a packet then using a socket to send and receive messages
      * @param data
      */
-    private synchronized void sendToScheduler(byte[] data, boolean reply) {
+    private void sendToScheduler(byte[] data, boolean reply) {
         sendPacket = new DatagramPacket(data, data.length, address, (reply ? SEND_REPLY_PORT + elevatorNum : SEND_PORT));
 
         try {
@@ -291,7 +291,6 @@ public class Elevator extends Thread {
      */
     private void receiveReply() {
         byte[] data = new byte[4];
-
         replyPacket = new DatagramPacket(data, data.length, address, RECEIVE_REPLY_PORT + elevatorNum);
 
         try {
@@ -301,9 +300,7 @@ public class Elevator extends Thread {
             System.exit(1);
         }
 
-        System.out.println("ELEVATOR: Reply received from scheduler.\n");
-
-        // TODO: 2023-04-12 process reply
+        System.out.println("ELEVATOR " + elevatorNum + ": Reply received from scheduler.\n");
     }
 
     /**
