@@ -65,7 +65,12 @@ public class FloorSubsystem extends Thread {
     }
 
     public void callElevator(int floorNum, Integer direction) {
-        sendToScheduler(new byte[] {(byte) floorNum, direction.byteValue()});
+        sendToScheduler(new byte[] {(byte) floorNum, direction.byteValue(), 0});
+        receiveReply();
+    }
+
+    public void elevatorPress(int floorNum, int elevatorNum) {
+        sendToScheduler(new byte[] {(byte) floorNum, 0, (byte) elevatorNum});
         receiveReply();
     }
 
