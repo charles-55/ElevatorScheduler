@@ -19,7 +19,7 @@ public class Scheduler extends Thread {
     private DatagramSocket floorReceivingSocket, floorSendingSocket, floorReceiveReplySocket, floorSendReplySocket, elevatorReceivingSocket, elevatorSendingSocket, elevatorReceiveReplySocket, elevatorSendReplySocket;
     private States floorMessagingState, elevatorMessagingState;
     private byte[] floorData, elevatorData;
-    private final HashMap<int[], Timer> elevatorsInfoAndTimers;
+    private final HashMap<int[], Timer> elevatorsInfoAndTimers; // map [elevatorNum, floorNum, state] to timers
     private static final int FLOOR_RECEIVING_PORT = 2000, FLOOR_SENDING_PORT = 2100, FLOOR_RECEIVE_REPLY_PORT = 2110, FLOOR_SEND_REPLY_PORT = 2120, ELEVATOR_SENDING_PORT = 2200, ELEVATOR_RECEIVING_PORT = 2300, ELEVATOR_SEND_REPLY_PORT = 2400, ELEVATOR_RECEIVE_REPLY_PORT = 2500;
 
     /**
@@ -131,25 +131,33 @@ public class Scheduler extends Thread {
      * @param data takes in a parameter to decrypt the message received
      */
     private void handleElevatorMessage(byte[] data) {
-        if(data[1] == (byte) 1) {
-            startFaultDetection(data[3], Elevator.MOTOR_TIME, false);
-            floorData = Arrays.copyOfRange(data, 2, 6);
+        if(data[4] == (byte) 1) {
+            startFaultDetection(data[2], Elevator.MOTOR_TIME, false);
+            floorData = new byte[] {data[0], data[1], data[2], (byte) States.getStateDatagramValue(States.DOOR_OPEN)}; // update the floor subsystem
             floorMessagingState = States.SENDING_MESSAGE;
-            updateElevatorInfo(data[3], data[2], data[0]);
+            updateElevatorInfo(data[2], data[0], data[3]);
             return;
         }
-        else if(data[1] == (byte) 2)
-            startFaultDetection(data[3], Elevator.MAX_DOOR_HOLD_TIME, false);
-        else if(data[1] == 3)
-            startFaultDetection(data[3], Elevator.MOTOR_TIME, false);
-        else if(data[1] == 4)
-            startFaultDetection(data[3], Elevator.TRAVEL_TIME, true);
-        else if(data[1] == 0)
+        else if(data[4] == (byte) 2)
+            startFaultDetection(data[2], Elevator.MAX_DOOR_HOLD_TIME, false);
+        else if(data[4] == 3)
+            startFaultDetection(data[2], Elevator.MOTOR_TIME, false);
+        else if(data[4] == 4) {
+            startFaultDetection(data[2], Elevator.TRAVEL_TIME, true);
+            floorData = new byte[] {data[0], data[1], data[2], data[3]}; // update floor subsystem
+            floorMessagingState = States.SENDING_MESSAGE;
+            return;
+        }
+        else if(data[4] == 0) {
             stopTimer(data[3]);
-        if((data[0] == States.getStateDatagramValue(States.GOING_UP)) || (data[0] == States.getStateDatagramValue(States.GOING_DOWN)))
-            startFaultDetection(data[3], Elevator.TRAVEL_TIME, true);
-        else if(data[0] == States.getStateDatagramValue(States.IDLE))
-            stopTimer(data[3]);
+            floorData = new byte[] {data[0], data[1], data[2], data[3]}; // update floor subsystem
+            floorMessagingState = States.SENDING_MESSAGE;
+            return;
+        }
+//        if((data[3] == States.getStateDatagramValue(States.GOING_UP)) || (data[3] == States.getStateDatagramValue(States.GOING_DOWN)))
+//            startFaultDetection(data[2], Elevator.TRAVEL_TIME, true);
+//        else if(data[3] == States.getStateDatagramValue(States.IDLE))
+//            stopTimer(data[2]);
         floorMessagingState = States.IDLE;
     }
 
@@ -218,7 +226,7 @@ public class Scheduler extends Thread {
 
         System.out.println("SCHEDULER: Packet Received from Elevator: " + Arrays.toString(data) + ".\n");
 
-        sendToElevator(new byte[2], data[2], true);
+        sendToElevator(new byte[2], data[2], true); // send reply
 
         floorMessagingState = States.HANDLING_RECEIVED_MESSAGE;
 
@@ -260,10 +268,9 @@ public class Scheduler extends Thread {
             e.printStackTrace();
             System.exit(1);
         }
+        //System.out.println("Test");
 
         System.out.println("SCHEDULER: Received reply from elevator " + elevatorNum + ".\n");
-
-        // TODO: 2023-04-12 process reply
     }
 
     private void receiveFloorSubsystemReply() {
@@ -278,9 +285,7 @@ public class Scheduler extends Thread {
             System.exit(1);
         }
 
-        System.out.println("SCHEDULER: Packet Received reply from Floor Subsystem: " + Arrays.toString(data) + ".\n");
-
-        // TODO: 2023-04-12 process reply
+        System.out.println("SCHEDULER: Received reply from floor " + data[0] + ".\n");
     }
 
     private void startFaultDetection(int elevatorNum, int time, boolean floorOrDoorFault) {
@@ -316,11 +321,11 @@ public class Scheduler extends Thread {
         for(int[] arr : elevatorsInfoAndTimers.keySet()) {
             if(arr[0] == elevatorNum) {
                 if(floorOrDoorFault) {
-                    arr[2] = 503;
-                    sendToElevator(new byte[] {0, (byte) 503, 0}, arr[0], false);
+                    arr[2] = 103;
+                    sendToElevator(new byte[] {0, (byte) 103, 0}, arr[0], false);
                 }
                 else
-                    sendToElevator(new byte[] {(byte) arr[1], (byte) 504, (byte) arr[1]}, arr[0], false);
+                    sendToElevator(new byte[] {(byte) arr[1], (byte) 104, (byte) arr[1]}, arr[0], false);
                 break;
             }
         }
