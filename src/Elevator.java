@@ -308,13 +308,13 @@ public class Elevator extends Thread {
      * @param floorOrDoorFault Decides which fault it should be either floor fault or door fault
      */
     public void injectFault(boolean floorOrDoorFault) {
-        if(floorOrDoorFault) {
-            sendToScheduler(new byte[] {(byte) States.getDatagramStateValue(state), (byte) 4, (byte) currentFloor, (byte) elevatorNum, -1});
-        }
-        else {
-            openDoors();
-            sendMessageReceiveReply(new byte[] {(byte) States.getDatagramStateValue(state), 2, (byte) currentFloor, (byte) elevatorNum, -1});
-        }
+//        if(floorOrDoorFault) {
+//            sendToScheduler(new byte[] {(byte) States.getDatagramStateValue(state), (byte) 4, (byte) currentFloor, (byte) elevatorNum, -1});
+//        }
+//        else {
+//            openDoors();
+//            sendMessageReceiveReply(new byte[] {(byte) States.getDatagramStateValue(state), 2, (byte) currentFloor, (byte) elevatorNum, -1});
+//        }
     }
 
     /**
