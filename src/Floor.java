@@ -1,6 +1,3 @@
-import java.io.IOException;
-import java.net.*;
-import java.util.Arrays;
 import java.util.HashMap;
 
 /**
@@ -58,7 +55,7 @@ public class Floor {
 
     public void callElevator(Integer direction) {
         buttonsAndLamps.put(direction, true);
-        floorSubsystem.callElevator(floorNumber);
+        floorSubsystem.callElevator(floorNumber, direction);
     }
 
     /**
