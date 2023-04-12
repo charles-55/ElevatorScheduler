@@ -3,7 +3,6 @@ import java.awt.*;
 import java.util.ArrayList;
 
 public class Frame extends JFrame {
-
     private final FloorSubsystem floorSubsystem;
     private final ArrayList<FloorPanel> floorPanels;
     private final ArrayList<ElevatorShaftPanel> shaftPanels;
@@ -19,7 +18,7 @@ public class Frame extends JFrame {
         for(Floor floor : floors)
             floorPanels.add(new FloorPanel(floor));
 
-        //generateElevatorShaftPanels();
+        generateElevatorShaftPanels();
 
         JScrollPane scrollPane = new JScrollPane(generateFrameContent());
         JScrollBar scrollBar = new JScrollBar(JScrollBar.VERTICAL, 0, 10, 0, 100);
@@ -33,22 +32,9 @@ public class Frame extends JFrame {
         this.setVisible(true);
     }
 
-//    private void generateElevatorShaftPanels() {
-//        for(Elevator elevator : floorSubsystem.getElevators())
-//            shaftPanels.add(new ElevatorShaftPanel(new ElevatorPanel(elevator)));
-//    }
-    private final ElevatorPanel
-
-        for(int i = floorPanels.size() - 1; i >= 0; i--)
-            panel.add(floorPanels.get(i));
-        for(ElevatorShaftPanel shaftPanel : shaftPanels)
-            mainFramePanel.add(shaftPanel);
-        mainFramePanel.add(panel);
-
-    public Frame(){
-        super("Elevator");
-        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
-
+    private void generateElevatorShaftPanels() {
+        for(Elevator elevator : floorSubsystem.getElevators())
+            shaftPanels.add(new ElevatorShaftPanel(new ElevatorPanel(elevator)));
     }
 
     private JPanel generateFrameContent() {
@@ -57,6 +43,11 @@ public class Frame extends JFrame {
         mainFramePanel.setLayout(new BoxLayout(mainFramePanel, BoxLayout.X_AXIS));
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
+        for(int i = floorPanels.size() - 1; i >= 0; i--)
+            panel.add(floorPanels.get(i));
+        for(ElevatorShaftPanel shaftPanel : shaftPanels)
+            mainFramePanel.add(shaftPanel);
+        mainFramePanel.add(panel);
 
         return mainFramePanel;
     }
