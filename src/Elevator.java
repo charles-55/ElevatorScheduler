@@ -19,11 +19,11 @@ public class Elevator extends Thread {
     private final HashMap<Integer, Boolean> buttonsAndLamps;
     private States state;
     private DatagramPacket sendPacket, receivePacket, replyPacket;
-    private DatagramSocket sendSocket, receiveSocket, replySocket;
+    private DatagramSocket sendSocket, receiveSocket, sendReplySocket, receiveReplySocket;
     private InetAddress address;
 
     public static final int MOTOR_TIME = 3000, DOOR_HOLD_TIME = 5000, MAX_DOOR_HOLD_TIME = 10000, TRAVEL_TIME = 4000;
-    private static final int SEND_PORT = 2300, RECEIVE_PORT = 2200, REPLY_PORT = 2400;
+    private static final int SEND_PORT = 2300, RECEIVE_PORT = 2200, SEND_REPLY_PORT = 2500, RECEIVE_REPLY_PORT = 2400;
     public static final int NUM_OF_ELEVATORS = 4;
 
     /**
@@ -48,7 +48,8 @@ public class Elevator extends Thread {
         try {
             sendSocket = new DatagramSocket();
             receiveSocket = new DatagramSocket(RECEIVE_PORT + elevatorNum);
-            replySocket = new DatagramSocket();
+            sendReplySocket = new DatagramSocket();
+            receiveReplySocket = new DatagramSocket(RECEIVE_REPLY_PORT + elevatorNum);
             address = InetAddress.getLocalHost();
         } catch (SocketException | UnknownHostException e) {
             e.printStackTrace();
@@ -247,7 +248,7 @@ public class Elevator extends Thread {
      * @param data
      */
     private synchronized void sendToScheduler(byte[] data, boolean reply) {
-        sendPacket = new DatagramPacket(data, data.length, address, (reply ? REPLY_PORT + elevatorNum : SEND_PORT));
+        sendPacket = new DatagramPacket(data, data.length, address, (reply ? SEND_REPLY_PORT + elevatorNum : SEND_PORT));
 
         try {
             sendSocket.send(sendPacket);
@@ -288,22 +289,19 @@ public class Elevator extends Thread {
     /**
      * Receive the response from Scheduler.
      */
-    private synchronized void receiveReply() {
+    private void receiveReply() {
         byte[] data = new byte[4];
 
-        replyPacket = new DatagramPacket(data, data.length, address, REPLY_PORT + elevatorNum);
+        replyPacket = new DatagramPacket(data, data.length, address, RECEIVE_REPLY_PORT + elevatorNum);
 
         try {
-            System.out.println("ELEVATOR: Waiting for reply packet from Scheduler...\n");
-            replySocket = new DatagramSocket(REPLY_PORT + elevatorNum);
-            replySocket.receive(replyPacket);
-            replySocket = new DatagramSocket();
+            receiveReplySocket.receive(replyPacket);
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
         }
 
-        System.out.println("ELEVATOR: Reply packet received.\n");
+        System.out.println("ELEVATOR: Reply received from scheduler.\n");
 
         // TODO: 2023-04-12 process reply
     }

@@ -16,11 +16,11 @@ public class Scheduler extends Thread {
 
     private DatagramPacket floorSendPacket, floorReceivePacket, floorReplyPacket, elevatorSendPacket, elevatorReceivePacket, elevatorReplyPacket;
     private InetAddress floorAddress, elevatorAddress;
-    private DatagramSocket floorReceivingSocket, floorSendingSocket, floorReplySocket, elevatorReceivingSocket, elevatorSendingSocket, elevatorReplySocket;
+    private DatagramSocket floorReceivingSocket, floorSendingSocket, floorReceiveReplySocket, floorSendReplySocket, elevatorReceivingSocket, elevatorSendingSocket, elevatorReceiveReplySocket, elevatorSendReplySocket;
     private States floorMessagingState, elevatorMessagingState;
     private byte[] floorData, elevatorData;
     private final HashMap<int[], Timer> elevatorsInfoAndTimers;
-    private static final int FLOOR_RECEIVING_PORT = 2000, FLOOR_SENDING_PORT = 2100, FLOOR_REPLY_PORT = 2110, ELEVATOR_SENDING_PORT = 2200, ELEVATOR_RECEIVING_PORT = 2300, ELEVATOR_REPLY_PORT = 2400;
+    private static final int FLOOR_RECEIVING_PORT = 2000, FLOOR_SENDING_PORT = 2100, FLOOR_RECEIVE_REPLY_PORT = 2110, FLOOR_SEND_REPLY_PORT = 2120, ELEVATOR_SENDING_PORT = 2200, ELEVATOR_RECEIVING_PORT = 2300, ELEVATOR_SEND_REPLY_PORT = 2400, ELEVATOR_RECEIVE_REPLY_PORT = 2500;
 
     /**
      * Initializes the controller.
@@ -35,10 +35,14 @@ public class Scheduler extends Thread {
         try {
             floorReceivingSocket = new DatagramSocket(FLOOR_RECEIVING_PORT);
             floorSendingSocket = new DatagramSocket();
-            floorReplySocket = new DatagramSocket();
+            floorReceiveReplySocket = new DatagramSocket(FLOOR_RECEIVE_REPLY_PORT);
+            floorSendReplySocket = new DatagramSocket();
+
             elevatorReceivingSocket = new DatagramSocket(ELEVATOR_RECEIVING_PORT);
             elevatorSendingSocket = new DatagramSocket();
-            elevatorReplySocket = new DatagramSocket();
+            elevatorReceiveReplySocket = new DatagramSocket(ELEVATOR_RECEIVE_REPLY_PORT);
+            elevatorSendReplySocket = new DatagramSocket();
+
             floorAddress = InetAddress.getLocalHost();
             elevatorAddress = InetAddress.getLocalHost();
         } catch (SocketException| UnknownHostException e) {
@@ -154,7 +158,7 @@ public class Scheduler extends Thread {
      */
     public void sendToElevator(byte[] data, int elevatorNum, boolean reply) {
         data = Arrays.copyOfRange(data, 0, data.length - 1);
-        elevatorSendPacket = new DatagramPacket(data, data.length, elevatorAddress, (reply ? ELEVATOR_REPLY_PORT : ELEVATOR_SENDING_PORT) + elevatorNum);
+        elevatorSendPacket = new DatagramPacket(data, data.length, elevatorAddress, (reply ? ELEVATOR_SEND_REPLY_PORT : ELEVATOR_SENDING_PORT) + elevatorNum);
 
         try {
             elevatorSendingSocket.send(elevatorSendPacket);
@@ -170,16 +174,15 @@ public class Scheduler extends Thread {
             System.out.println("SCHEDULER: Packet sent to elevator " + elevatorNum + ": " + Arrays.toString(data) + "\n");
             receiveElevatorReply(elevatorNum);
             elevatorMessagingState = States.IDLE;
+            updateElevatorInfo(elevatorNum, data[0], data[1]);
         }
-
-        updateElevatorInfo(elevatorNum, data[0], data[1]);
     }
 
     /**
      * Method to send data to the floor and update the scheduler's state.
      */
     public void sendToFloor(byte[] data, boolean reply) {
-        floorSendPacket = new DatagramPacket(data, data.length, floorAddress, reply ? FLOOR_REPLY_PORT : FLOOR_SENDING_PORT);
+        floorSendPacket = new DatagramPacket(data, data.length, floorAddress, reply ? FLOOR_SEND_REPLY_PORT : FLOOR_SENDING_PORT);
 
         try {
             floorSendingSocket.send(floorSendPacket);
@@ -215,9 +218,7 @@ public class Scheduler extends Thread {
 
         System.out.println("SCHEDULER: Packet Received from Elevator: " + Arrays.toString(data) + ".\n");
 
-        if(!Arrays.equals(data, new byte[5]))
-            sendToElevator(new byte[2], data[2], true);
-
+        sendToElevator(new byte[2], data[2], true);
 
         floorMessagingState = States.HANDLING_RECEIVED_MESSAGE;
 
@@ -251,32 +252,27 @@ public class Scheduler extends Thread {
 
     private void receiveElevatorReply(int elevatorNum) {
         byte[] data = new byte[5];
-        elevatorReplyPacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_REPLY_PORT + elevatorNum);
+        elevatorReplyPacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_RECEIVE_REPLY_PORT + elevatorNum);
 
         try {
-            elevatorReplySocket = new DatagramSocket(ELEVATOR_REPLY_PORT + elevatorNum);
-            elevatorReplySocket.receive(elevatorReplyPacket);
-            elevatorReplySocket = new DatagramSocket();
+            elevatorReceiveReplySocket.receive(elevatorReplyPacket);
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
         }
-        System.out.println("Receiving reply");
 
-        System.out.println("SCHEDULER: Received reply from elevator " + elevatorNum + ": " + Arrays.toString(data) + ".\n");
+        System.out.println("SCHEDULER: Received reply from elevator " + elevatorNum + ".\n");
 
         // TODO: 2023-04-12 process reply
     }
 
     private void receiveFloorSubsystemReply() {
         byte[] data = new byte[2];
-        floorReplyPacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_REPLY_PORT);
+        floorReplyPacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_RECEIVE_REPLY_PORT);
 
         try {
             System.out.println("SCHEDULER: Waiting for reply from Floor Subsystem...\n");
-            floorReplySocket = new DatagramSocket(FLOOR_REPLY_PORT);
-            floorReplySocket.receive(floorReplyPacket);
-            floorReplySocket = new DatagramSocket();
+            floorReceiveReplySocket.receive(floorReplyPacket);
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
@@ -379,9 +375,12 @@ public class Scheduler extends Thread {
     public void closeSocket() {
         floorSendingSocket.close();
         floorReceivingSocket.close();
-        floorReplySocket.close();
+        floorSendReplySocket.close();
+        floorReceiveReplySocket.close();
+
         elevatorSendingSocket.close();
         elevatorReceivingSocket.close();
-        elevatorReplySocket.close();
+        elevatorSendReplySocket.close();
+        elevatorReceiveReplySocket.close();
     }
 }

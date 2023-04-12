@@ -23,9 +23,9 @@ public class FloorSubsystem extends Thread {
     private final HashMap<Integer, int[]> elevatorInfo; // map elevatorNum to [currentFloor, direction, state]
     private States state, parseState, receiveState;
     private DatagramPacket sendPacket, receivePacket, replyPacket;
-    private DatagramSocket sendSocket, receiveSocket, replySocket;
+    private DatagramSocket sendSocket, receiveSocket, sendReplySocket, receiveReplySocket;
     private InetAddress address;
-    private static final int SEND_PORT = 2000, RECEIVE_PORT = 2100, REPLY_PORT = 2110;
+    private static final int SEND_PORT = 2000, RECEIVE_PORT = 2100, SEND_REPLY_PORT = 2110, RECEIVE_REPLY_PORT = 2120;
 
     /**
      * Initialize the FloorSubsystem.
@@ -34,6 +34,8 @@ public class FloorSubsystem extends Thread {
         floors = new ArrayList<>();
         elevatorInfo = new HashMap<>();
 
+        for(int i = 0; i < Floor.NUM_OF_FLOORS; i++)
+            new Floor(i + 1, this);
         for(int i = 0; i < Elevator.NUM_OF_ELEVATORS; i++)
             elevatorInfo.put(i + 1, new int[3]);
 
@@ -43,8 +45,9 @@ public class FloorSubsystem extends Thread {
 
         try {
             sendSocket = new DatagramSocket();
-            receiveSocket = new DatagramSocket();
-            replySocket = new DatagramSocket();
+            receiveSocket = new DatagramSocket(RECEIVE_PORT);
+            sendReplySocket = new DatagramSocket();
+            receiveReplySocket = new DatagramSocket(RECEIVE_REPLY_PORT);
             address = InetAddress.getLocalHost();
         } catch (SocketException | UnknownHostException e) {
             e.printStackTrace();
@@ -65,17 +68,15 @@ public class FloorSubsystem extends Thread {
     }
 
     public void callElevator(int floorNum, int direction) {
-        sendToScheduler(new byte[] {(byte) floorNum, (byte) direction, 0});
-        receiveReply();
+        sendToScheduler(new byte[] {(byte) floorNum, (byte) direction, 0}, false);
     }
 
     public void elevatorPress(int floorNum, int elevatorNum) {
-        sendToScheduler(new byte[] {(byte) floorNum, 0, (byte) elevatorNum});
-        receiveReply();
+        sendToScheduler(new byte[] {(byte) floorNum, 0, (byte) elevatorNum}, false);
     }
 
-    private void sendToScheduler(byte[] data) {
-        sendPacket = new DatagramPacket(data, data.length, address, SEND_PORT);
+    private void sendToScheduler(byte[] data, boolean reply) {
+        sendPacket = new DatagramPacket(data, data.length, address, reply ? SEND_REPLY_PORT : SEND_PORT);
 
         try {
             sendSocket.send(sendPacket);
@@ -83,7 +84,13 @@ public class FloorSubsystem extends Thread {
             System.out.println("FLOOR SUBSYSTEM: Send Packet Error: " + Arrays.toString(data) + "\n");
             throw new RuntimeException(e);
         }
-        System.out.println("FLOOR SUBSYSTEM: Sent Packet: " + Arrays.toString(data) + "\n");
+
+        if(reply)
+            System.out.println("FLOOR SUBSYSTEM: Reply sent to scheduler.\n");
+        else {
+            System.out.println("FLOOR SUBSYSTEM: Sent Packet: " + Arrays.toString(data) + "\n");
+            receiveReply();
+        }
     }
 
     private void receiveFromScheduler() {
@@ -102,6 +109,8 @@ public class FloorSubsystem extends Thread {
         System.out.println("FLOOR SUBSYSTEM: Packet received: " + Arrays.toString(data) + "\n");
         System.out.println("FLOOR " + data[0] + ": Elevator " + data[2] + " arrived.\n");
 
+        sendToScheduler(new byte[] {}, true); // send reply
+
         updateElevatorInfo(data);
         // update frame
 
@@ -111,12 +120,10 @@ public class FloorSubsystem extends Thread {
 
     private void receiveReply() {
         byte[] data = new byte[4];
-        replyPacket = new DatagramPacket(data, data.length, address, REPLY_PORT);
+        replyPacket = new DatagramPacket(data, data.length, address, RECEIVE_REPLY_PORT);
 
         try {
-            replySocket = new DatagramSocket(REPLY_PORT);
-            replySocket.receive(replyPacket);
-            replySocket = new DatagramSocket();
+            receiveReplySocket.receive(replyPacket);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -173,6 +180,7 @@ public class FloorSubsystem extends Thread {
     public void closeSocket() {
         sendSocket.close();
         receiveSocket.close();
-        replySocket.close();
+        sendReplySocket.close();
+        receiveReplySocket.close();
     }
 }
