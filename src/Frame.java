@@ -9,13 +9,13 @@ public class Frame extends JFrame {
     public static final Color ON = Color.GREEN;
     public static final Color OFF = Color.GRAY;
 
-    public Frame(FloorSubsystem floorSubsystem, ArrayList<Floor> floors) {
+    public Frame(FloorSubsystem floorSubsystem) {
         super("Elevator Simulation");
         this.floorSubsystem = floorSubsystem;
         floorPanels = new ArrayList<>();
         shaftPanels = new ArrayList<>();
 
-        for(Floor floor : floors)
+        for(Floor floor : floorSubsystem.getFloors())
             floorPanels.add(new FloorPanel(floor));
 
         generateElevatorShaftPanels();
