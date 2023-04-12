@@ -27,7 +27,7 @@ public class Elevator extends Thread {
 
     public static final int MOTOR_TIME = 3000, DOOR_HOLD_TIME = 5000, MAX_DOOR_HOLD_TIME = 10000, TRAVEL_TIME = 4000;
     private static final int SEND_PORT = 2300, RECEIVE_PORT = 2200, REPLY_PORT = 2400;
-    public static final int NUM_OF_ELEVATORS = 2;
+    public static final int NUM_OF_ELEVATORS = 4;
 
     /**
      * Constructor method for Elevator initializing the elevator on the first floor.
@@ -112,24 +112,6 @@ public class Elevator extends Thread {
     }
 
     /**
-     * Provides direct number which signifies different states
-     * @return  int which signify  state
-     */
-    private int getDatagramStateValue() {
-        if(state == States.IDLE) {
-            return 0;
-        } else if (state==States.GOING_UP) {
-            return  1;
-        } else if (state==States.GOING_DOWN) {
-            return 2;
-        } else if (state==States.OUT_OF_SERVICE) {
-            return 503;
-        }else{
-            return 404;
-        }
-    }
-
-    /**
      * Getter method for the HashMap of buttons and lamps related to each button.
      * @return HashMap<Integer, Boolean> buttonsAndLamps hashmap of the floor number buttons and state of the lamps (on if true, off if false)
      */
@@ -183,11 +165,11 @@ public class Elevator extends Thread {
      */
     public void injectFault(boolean floorOrDoorFault) {
         if(floorOrDoorFault) {
-            sendMessage(new byte[] {(byte) getDatagramStateValue(), (byte) 4, (byte) currentFloor, (byte) elevatorNum, -1});
+            sendMessage(new byte[] {(byte) States.getDatagramStateValue(state), (byte) 4, (byte) currentFloor, (byte) elevatorNum, -1});
         }
         else {
             openDoors();
-            sendMessageReceiveReply(new byte[] {(byte) getDatagramStateValue(), 2, (byte) currentFloor, (byte) elevatorNum, -1});
+            sendMessageReceiveReply(new byte[] {(byte) States.getDatagramStateValue(state), 2, (byte) currentFloor, (byte) elevatorNum, -1});
         }
     }
 
@@ -283,12 +265,17 @@ public class Elevator extends Thread {
         this.state = state;
     }
 
+    private void callElevator(int callFloor) {
+        sendMessage(new byte[] {(byte) States.getDatagramStateValue(States.RECEIVING_TASK), 4, (byte) currentFloor, (byte) elevatorNum, (byte) getMovingDirection(callFloor)});
+        receiveReply();
+    }
+
     public void move() {
         if(doorOpen)
             closeDoors();
         this.isMoving = true;
 
-        sendMessageReceiveReply(new byte[] {(byte) getDatagramStateValue(), (byte) 4, (byte) currentFloor, (byte) elevatorNum, -1});
+        sendMessageReceiveReply(new byte[] {(byte) States.getDatagramStateValue(state), (byte) 4, (byte) currentFloor, (byte) elevatorNum, -1});
 
         try {
             sleep(TRAVEL_TIME);
@@ -307,7 +294,16 @@ public class Elevator extends Thread {
         }
         System.out.println("ELEVATOR " + elevatorNum + ": At floor " + currentFloor + ".\n");
 
-        sendMessageReceiveReply(new byte[] {(byte) getDatagramStateValue(), (byte) (buttonsAndLamps.get(currentFloor) ? 1 : 0), (byte) currentFloor, (byte) elevatorNum, (byte) direction});
+        sendMessageReceiveReply(new byte[] {(byte) States.getDatagramStateValue(state), (byte) (buttonsAndLamps.get(currentFloor) ? 1 : 0), (byte) currentFloor, (byte) elevatorNum, (byte) direction});
+    }
+
+    private int getMovingDirection(int targetFloor) {
+        if(currentFloor < targetFloor)
+            return 1;
+        else if(currentFloor > targetFloor)
+            return 2;
+        else
+            return -1;
     }
 
     /**
@@ -386,9 +382,9 @@ public class Elevator extends Thread {
     }
 
     private void arrivalSequence() {
-        sendMessageReceiveReply(new byte[] {(byte) getDatagramStateValue(), 1, (byte) currentFloor, (byte) elevatorNum, -1});
+        sendMessageReceiveReply(new byte[] {(byte) States.getDatagramStateValue(state), 1, (byte) currentFloor, (byte) elevatorNum, -1});
         openDoors();
-        sendMessageReceiveReply(new byte[] {(byte) getDatagramStateValue(), 2, (byte) currentFloor, (byte) elevatorNum, -1});
+        sendMessageReceiveReply(new byte[] {(byte) States.getDatagramStateValue(state), 2, (byte) currentFloor, (byte) elevatorNum, -1});
 
         try {
             Thread.sleep(DOOR_HOLD_TIME);
@@ -396,9 +392,9 @@ public class Elevator extends Thread {
             return;
         }
 
-        sendMessageReceiveReply(new byte[] {(byte) getDatagramStateValue(), 3, (byte) currentFloor, (byte) elevatorNum, -1});
+        sendMessageReceiveReply(new byte[] {(byte) States.getDatagramStateValue(state), 3, (byte) currentFloor, (byte) elevatorNum, -1});
         closeDoors();
-        sendMessage(new byte[] {(byte) getDatagramStateValue(), (byte) (checkAllTaskComplete() ? 0 : 4), (byte) currentFloor, (byte) elevatorNum, -1});
+        sendMessage(new byte[] {(byte) States.getDatagramStateValue(state), (byte) (checkAllTaskComplete() ? 0 : 4), (byte) currentFloor, (byte) elevatorNum, -1});
     }
 
     private void sendMessageReceiveReply(byte[] data) {
