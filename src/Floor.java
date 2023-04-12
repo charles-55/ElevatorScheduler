@@ -24,8 +24,10 @@ public class Floor {
         this.floorSubsystem.addFloor(this);
 
         buttonsAndLamps = new HashMap<>();
-        buttonsAndLamps.put(1, false);
-        buttonsAndLamps.put(2, false);
+        if(floorNumber != NUM_OF_FLOORS)
+            buttonsAndLamps.put(1, false);
+        if(floorNumber != 1)
+            buttonsAndLamps.put(2, false);
     }
 
     /**
