@@ -22,8 +22,8 @@ public class FloorSubsystem extends Thread {
     private final ArrayList<Floor> floors;
     private final HashMap<Integer, int[]> elevatorInfo; // map elevatorNum to [currentFloor, direction, state]
     private States state, parseState, receiveState;
-    private DatagramPacket sendPacket, receivePacket;
-    private DatagramSocket socket;
+    private DatagramPacket sendPacket, receivePacket, replyPacket;
+    private DatagramSocket sendSocket, receiveSocket, replySocket;
     private InetAddress address;
     private static final int SEND_PORT = 2000, RECEIVE_PORT = 2100, REPLY_PORT = 2110;
 
@@ -42,7 +42,9 @@ public class FloorSubsystem extends Thread {
         receiveState = States.IDLE;
 
         try {
-            socket = new DatagramSocket();
+            sendSocket = new DatagramSocket();
+            receiveSocket = new DatagramSocket();
+            replySocket = new DatagramSocket(REPLY_PORT);
             address = InetAddress.getLocalHost();
         } catch (SocketException | UnknownHostException e) {
             e.printStackTrace();
@@ -71,7 +73,7 @@ public class FloorSubsystem extends Thread {
         sendPacket = new DatagramPacket(data, data.length, address, SEND_PORT);
 
         try {
-            socket.send(sendPacket);
+            sendSocket.send(sendPacket);
         } catch (IOException e) {
             System.out.println("FLOOR SUBSYSTEM: Send Packet Error: " + Arrays.toString(data) + "\n");
             throw new RuntimeException(e);
@@ -87,7 +89,7 @@ public class FloorSubsystem extends Thread {
 
         try {
             System.out.println("FLOOR SUBSYSTEM: Waiting for Packet...\n");
-            socket.receive(receivePacket);
+            receiveSocket.receive(receivePacket);
         } catch (IOException e) {
             System.out.println("FLOOR SUBSYSTEM: Error Socket Timed Out.\n");
             e.printStackTrace();
@@ -106,11 +108,9 @@ public class FloorSubsystem extends Thread {
 
     private synchronized void receiveReply() {
         byte[] data = new byte[3];
-        DatagramPacket replyPacket = new DatagramPacket(data, data.length, address, REPLY_PORT);
-        DatagramSocket replySocket;
+        replyPacket = new DatagramPacket(data, data.length, address, REPLY_PORT);
 
         try {
-            replySocket = new DatagramSocket(REPLY_PORT);
             replySocket.receive(replyPacket);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -125,7 +125,6 @@ public class FloorSubsystem extends Thread {
             System.out.println("FLOOR SUBSYSTEM: Reply received to floor " + data[0] + " going " + direction + ".\n");
         }
 
-        replySocket.close();
         state = States.IDLE;
     }
 
@@ -174,6 +173,8 @@ public class FloorSubsystem extends Thread {
      * Close the Datagram Sockets.
      */
     public void closeSocket() {
-        socket.close();
+        sendSocket.close();
+        receiveSocket.close();
+        replySocket.close();
     }
 }

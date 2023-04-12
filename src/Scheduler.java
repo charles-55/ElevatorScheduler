@@ -14,9 +14,9 @@ import java.util.*;
  */
 public class Scheduler extends Thread {
 
-    private DatagramPacket floorSendPacket, floorReceivePacket, elevatorSendPacket, elevatorReceivePacket;
+    private DatagramPacket floorSendPacket, floorReceivePacket, floorReplyPacket, elevatorSendPacket, elevatorReceivePacket, elevatorReplyPacket;
     private InetAddress floorAddress, elevatorAddress;
-    private DatagramSocket floorReceivingSocket, floorSendingSocket, elevatorReceivingSocket, elevatorSendingSocket, elevatorReplySocket;
+    private DatagramSocket floorReceivingSocket, floorSendingSocket, floorReplySocket, elevatorReceivingSocket, elevatorSendingSocket, elevatorReplySocket;
     private States floorMessagingState, elevatorMessagingState;
     private byte[] floorData, elevatorData;
     private final HashMap<int[], Timer> elevatorsInfoAndTimers;
@@ -31,9 +31,11 @@ public class Scheduler extends Thread {
         floorData = new byte[3];
         elevatorData = new byte[4];
         elevatorsInfoAndTimers = new HashMap<>();
+
         try {
             floorReceivingSocket = new DatagramSocket(FLOOR_RECEIVING_PORT);
             floorSendingSocket = new DatagramSocket();
+            floorReplySocket = new DatagramSocket();
             elevatorReceivingSocket = new DatagramSocket(ELEVATOR_RECEIVING_PORT);
             elevatorSendingSocket = new DatagramSocket();
             elevatorReplySocket = new DatagramSocket();
@@ -125,53 +127,6 @@ public class Scheduler extends Thread {
         }
     }
 
-    private byte[] receiveFromElevator() {
-        byte[] data = new byte[5];
-        elevatorReceivePacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_RECEIVING_PORT);
-
-        try {
-            System.out.println("SCHEDULER: Waiting for Packet from Elevator...\n");
-            elevatorReceivingSocket.receive(elevatorReceivePacket);
-        } catch (IOException e) {
-            floorMessagingState = States.OUT_OF_SERVICE;
-            printAnalyzedState();
-            e.printStackTrace();
-            System.exit(1);
-        }
-
-        System.out.println("SCHEDULER: Packet Received from Elevator: " + Arrays.toString(data) + ".\n");
-
-        sendToElevator(new byte[2], data[2], true);
-        floorMessagingState = States.HANDLING_RECEIVED_MESSAGE;
-
-        return data;
-    }
-
-    /**
-     * Waits to receive packet then passes the packet to the reply method to respond
-     * @return
-     */
-    private byte[] receiveFromFloorSubsystem() {
-        byte[] data = new byte[2];
-        floorReceivePacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_RECEIVING_PORT);
-
-        try {
-            System.out.println("SCHEDULER: Waiting for Packet from Floor...\n");
-            floorReceivingSocket.receive(floorReceivePacket);
-        } catch (IOException e) {
-            elevatorMessagingState = States.OUT_OF_SERVICE;
-            printAnalyzedState();
-            e.printStackTrace();
-            System.exit(1);
-        }
-
-        System.out.println("SCHEDULER: Packet Received from Floor " + ((int) data[0]) + ": " + Arrays.toString(data) + ".\n");
-
-        sendToFloor(new byte[] {data[0], data[1], 0, 0}, true); // reply floor
-        elevatorMessagingState = States.SENDING_TASK;
-        return data;
-    }
-
     /**
      * Assigns task to each elevator accordingly
      * @param data
@@ -206,6 +161,9 @@ public class Scheduler extends Thread {
         }
 
         System.out.println("SCHEDULER: Packet sent to elevatorNum: " + Arrays.toString(data) + "\n");
+
+        if(!reply)
+            receiveElevatorReply(elevatorNum);
         elevatorMessagingState = States.IDLE;
 
         updateElevatorInfo(elevatorNum, data[0], data[1]);
@@ -227,15 +185,94 @@ public class Scheduler extends Thread {
         }
 
         System.out.println("SCHEDULER: Packet sent to floor: " + Arrays.toString(data) + "\n");
+
+        if(!reply)
+            receiveFloorSubsystemReply();
         floorMessagingState = States.IDLE;
+    }
+
+    private synchronized byte[] receiveFromElevator() {
+        byte[] data = new byte[5];
+        elevatorReceivePacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_RECEIVING_PORT);
+
         try {
-            Thread.sleep(50);
-        } catch (InterruptedException e ) {
+            System.out.println("SCHEDULER: Waiting for Packet from Elevator...\n");
+            elevatorReceivingSocket.receive(elevatorReceivePacket);
+        } catch (IOException e) {
             floorMessagingState = States.OUT_OF_SERVICE;
             printAnalyzedState();
             e.printStackTrace();
             System.exit(1);
         }
+
+        System.out.println("SCHEDULER: Packet Received from Elevator: " + Arrays.toString(data) + ".\n");
+
+        if(!Arrays.equals(data, new byte[5]))
+            sendToElevator(new byte[2], data[2], true);
+
+
+        floorMessagingState = States.HANDLING_RECEIVED_MESSAGE;
+
+        return data;
+    }
+
+    /**
+     * Waits to receive packet then passes the packet to the reply method to respond
+     * @return
+     */
+    private synchronized byte[] receiveFromFloorSubsystem() {
+        byte[] data = new byte[2];
+        floorReceivePacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_RECEIVING_PORT);
+
+        try {
+            System.out.println("SCHEDULER: Waiting for Packet from Floor...\n");
+            floorReceivingSocket.receive(floorReceivePacket);
+        } catch (IOException e) {
+            elevatorMessagingState = States.OUT_OF_SERVICE;
+            printAnalyzedState();
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        System.out.println("SCHEDULER: Packet Received from Floor " + ((int) data[0]) + ": " + Arrays.toString(data) + ".\n");
+
+        sendToFloor(new byte[] {data[0], data[1], 0, 0}, true); // reply floor
+        elevatorMessagingState = States.SENDING_TASK;
+        return data;
+    }
+
+    private synchronized void receiveElevatorReply(int elevatorNum) {
+        byte[] data = new byte[5];
+        elevatorReplyPacket = new DatagramPacket(data, data.length, elevatorAddress, ELEVATOR_REPLY_PORT + elevatorNum);
+
+        try {
+            System.out.println("SCHEDULER: Waiting for reply from Elevator " + elevatorNum + "...\n");
+            elevatorReplySocket.receive(elevatorReplyPacket);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        System.out.println("SCHEDULER: Packet Received reply from Elevator " + elevatorNum + ": " + Arrays.toString(data) + ".\n");
+
+        // TODO: 2023-04-12 process reply
+    }
+
+    private synchronized void receiveFloorSubsystemReply() {
+        byte[] data = new byte[2];
+        floorReplyPacket = new DatagramPacket(data, data.length, floorAddress, FLOOR_REPLY_PORT);
+
+        try {
+            System.out.println("SCHEDULER: Waiting for reply from Floor Subsystem...\n");
+            floorReplySocket.receive(floorReplyPacket);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        System.out.println("SCHEDULER: Packet Received reply from Floor Subsystem: " + Arrays.toString(data) + ".\n");
+
+        // TODO: 2023-04-12 process reply
     }
 
     private void startFaultDetection(int elevatorNum, int time, boolean floorOrDoorFault) {
@@ -330,7 +367,9 @@ public class Scheduler extends Thread {
     public void closeSocket() {
         floorSendingSocket.close();
         floorReceivingSocket.close();
+        floorReplySocket.close();
         elevatorSendingSocket.close();
         elevatorReceivingSocket.close();
+        elevatorReplySocket.close();
     }
 }
