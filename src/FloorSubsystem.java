@@ -20,7 +20,7 @@ import java.util.Scanner;
 public class FloorSubsystem extends Thread {
 
     private final ArrayList<Floor> floors;
-    private HashMap<Integer, int[]> elevatorInfo;
+    private final HashMap<Integer, int[]> elevatorInfo; // map elevatorNum to [currentFloor, direction, state]
     private States state, parseState, receiveState;
     private DatagramPacket sendPacket, receivePacket;
     private DatagramSocket socket;
@@ -34,13 +34,16 @@ public class FloorSubsystem extends Thread {
         floors = new ArrayList<>();
         elevatorInfo = new HashMap<>();
 
+        for(int i = 0; i < Elevator.NUM_OF_ELEVATORS; i++)
+            elevatorInfo.put(i + 1, new int[3]);
+
         state = States.IDLE;
         parseState = States.IDLE;
         receiveState = States.IDLE;
 
         try {
             socket = new DatagramSocket();
-            this.address = InetAddress.getLocalHost();
+            address = InetAddress.getLocalHost();
         } catch (SocketException | UnknownHostException e) {
             e.printStackTrace();
             System.exit(1);
@@ -55,8 +58,13 @@ public class FloorSubsystem extends Thread {
         return floors;
     }
 
-    public void callElevator(int floorNum) {
-        sendToScheduler(new byte[] {});
+    public HashMap<Integer, int[]> getElevatorInfo() {
+        return elevatorInfo;
+    }
+
+    public void callElevator(int floorNum, Integer direction) {
+        sendToScheduler(new byte[] {(byte) floorNum, direction.byteValue()});
+        receiveReply();
     }
 
     public synchronized void sendToScheduler(byte[] data) {
@@ -71,6 +79,29 @@ public class FloorSubsystem extends Thread {
         System.out.println("FLOOR SUBSYSTEM: Sent Packet: " + Arrays.toString(data) + "\n");
 
         receiveReply();
+    }
+
+    private synchronized void receiveFromScheduler() {
+        byte[] data = new byte[4];
+        receivePacket = new DatagramPacket(data, data.length, address, RECEIVE_PORT);
+
+        try {
+            System.out.println("FLOOR SUBSYSTEM: Waiting for Packet...\n");
+            socket.receive(receivePacket);
+        } catch (IOException e) {
+            System.out.println("FLOOR SUBSYSTEM: Error Socket Timed Out.\n");
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        System.out.println("FLOOR SUBSYSTEM: Packet received: " + Arrays.toString(data) + "\n");
+        System.out.println("FLOOR " + data[0] + ": Elevator " + data[2] + " arrived.\n");
+
+        updateElevatorInfo(data);
+        // update frame
+
+        if(!updateFloor(data[0], data[2]))
+            System.out.println("FLOOR SUBSYSTEM: Failed to update floor!\n");
     }
 
     private synchronized void receiveReply() {
@@ -98,43 +129,30 @@ public class FloorSubsystem extends Thread {
         state = States.IDLE;
     }
 
-    private synchronized void receiveFromScheduler() {
-        byte[] data = new byte[3];
-        receivePacket = new DatagramPacket(data, data.length, address, RECEIVE_PORT);
+    private boolean updateFloor(int floorNumber, int direction) {
+        if(!((direction == 1) || (direction == 2)))
+            return false;
 
-        try {
-            System.out.println("FLOOR SUBSYSTEM: Waiting for Packet...\n");
-            socket.receive(receivePacket);
-        } catch (IOException e) {
-            System.out.println("FLOOR SUBSYSTEM: Error Socket Timed Out.\n");
-            e.printStackTrace();
-            System.exit(1);
-        }
-
-        System.out.println("FLOOR SUBSYSTEM: Packet received: " + Arrays.toString(data) + "\n");
-
-        System.out.println("FLOOR " + data[0] + ": Elevator " + data[1] + " arrived.\n");
-        if (data[2] == 1)
-            updateFloor(data[0], 1);
-        else if (data[2] == 2)
-            updateFloor(data[0], 2);
-
-        try {
-            Thread.sleep(50);
-        } catch (InterruptedException e ) {
-            e.printStackTrace();
-            System.exit(1);
-        }
-    }
-
-    private void updateFloor(int floorNumber, int direction) {
-        for(Floor floor:floors) {
+        for(Floor floor : floors) {
             if(floor.getFloorNumber() == floorNumber) {
                 floor.setButtonDirection(direction, false);
-                break;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void updateElevatorInfo(byte[] data) {
+        for(Integer elevatorNum : elevatorInfo.keySet()) {
+            if(elevatorNum == data[2]) {
+                elevatorInfo.put(elevatorNum, new int[] {data[0], data[1], data[3]});
+                return;
             }
         }
     }
+
+    private void updateFrame() {}
 
     /**
      * Run method.
