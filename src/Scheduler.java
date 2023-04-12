@@ -50,21 +50,8 @@ public class Scheduler extends Thread {
         }
     }
 
-    private int getDatagramStateValue(States state) {
-        if(state == States.IDLE)
-            return 0;
-        else if(state == States.GOING_UP)
-            return 1;
-        else if(state == States.GOING_DOWN)
-            return 2;
-        else if(state == States.OUT_OF_SERVICE)
-            return 503;
-        else
-            return 404;
-    }
-
     public void addElevator(Elevator elevator) {
-        int state = getDatagramStateValue(elevator.getStates());
+        int state = States.getDatagramStateValue(elevator.getStates());
 
         elevatorsInfoAndTimers.put(new int[] {elevator.getElevatorNum(), elevator.getCurrentFloor(), state}, new Timer());
     }
@@ -134,9 +121,9 @@ public class Scheduler extends Thread {
             startFaultDetection(data[3], Elevator.TRAVEL_TIME, true);
         else if(data[1] == 0)
             stopTimer(data[3]);
-        if((data[0] == getDatagramStateValue(States.GOING_UP)) || (data[0] == getDatagramStateValue(States.GOING_DOWN)))
+        if((data[0] == States.getDatagramStateValue(States.GOING_UP)) || (data[0] == States.getDatagramStateValue(States.GOING_DOWN)))
             startFaultDetection(data[3], Elevator.TRAVEL_TIME, true);
-        else if(data[0] == getDatagramStateValue(States.IDLE))
+        else if(data[0] == States.getDatagramStateValue(States.IDLE))
             stopTimer(data[3]);
         floorMessagingState = States.IDLE;
     }

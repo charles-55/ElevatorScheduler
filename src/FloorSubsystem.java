@@ -4,6 +4,7 @@ import java.net.*;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Scanner;
 
 /**
@@ -19,22 +20,24 @@ import java.util.Scanner;
 public class FloorSubsystem extends Thread {
 
     private final ArrayList<Floor> floors;
+    private HashMap<Integer, int[]> elevatorInfo;
     private States state, parseState, receiveState;
     private DatagramPacket sendPacket, receivePacket;
     private DatagramSocket socket;
     private InetAddress address;
     private static final int SEND_PORT = 2000, RECEIVE_PORT = 2100, REPLY_PORT = 2110;
-    private final String fileName;
 
     /**
      * Initialize the FloorSubsystem.
-     * @param fileName - the name of the input file preferably a .txt file.
      */
-    public FloorSubsystem(String fileName) {
-        this.fileName = fileName;
+    public FloorSubsystem() {
+        floors = new ArrayList<>();
+        elevatorInfo = new HashMap<>();
+
         state = States.IDLE;
         parseState = States.IDLE;
         receiveState = States.IDLE;
+
         try {
             socket = new DatagramSocket();
             this.address = InetAddress.getLocalHost();
@@ -42,62 +45,21 @@ public class FloorSubsystem extends Thread {
             e.printStackTrace();
             System.exit(1);
         }
-        floors = new ArrayList<>();
     }
 
     public void addFloor(Floor floor){
         floors.add(floor);
     }
 
-    private void handleParseState() {
-        switch (parseState) {
-            case IDLE ->  {
-                parseData();
-            }
-        }
+    public ArrayList<Floor> getFloors() {
+        return floors;
     }
 
-    /**
-     * Parse the data received in the input file
-     */
-    private void parseData() {
-        File file = new File(fileName);
-
-        try {
-            Scanner sc = new Scanner(file);
-            while (sc.hasNextLine()) {
-                String line = sc.nextLine();
-                String[] splitData = line.split(" ");
-
-                LocalTime time;
-                int floorNumber, destinationFloor;
-
-                String[] timeInfo = splitData[0].split(":");
-                time = LocalTime.of(Integer.parseInt(timeInfo[0]), Integer.parseInt(timeInfo[1]), Integer.parseInt(timeInfo[2].split("\\.")[0]), Integer.parseInt(timeInfo[2].split("\\.")[1]) * 1000000);
-
-                floorNumber = Integer.parseInt(splitData[1]);
-                destinationFloor = Integer.parseInt(splitData[3]);
-
-                byte[] data = new byte[3];
-                data[0] = (byte) floorNumber;
-                if(splitData[2].equalsIgnoreCase("UP"))
-                    data[1] = 1;
-                else if (splitData[2].equalsIgnoreCase("DOWN"))
-                    data[1] = 2;
-                data[2] = (byte) destinationFloor;
-
-                sendToScheduler(data, time);
-                Thread.sleep(2500); //testing purpose only
-            }
-        } catch (InterruptedException | IOException e) {
-            state = States.OUT_OF_SERVICE;
-            e.printStackTrace();
-            System.exit(1);
-        }
+    public void callElevator(int floorNum) {
+        sendToScheduler(new byte[] {});
     }
 
-    public synchronized void sendToScheduler(byte[] data, LocalTime time) {
-        updateFloor(data[0], data[2], true);
+    public synchronized void sendToScheduler(byte[] data) {
         sendPacket = new DatagramPacket(data, data.length, address, SEND_PORT);
 
         try {
@@ -107,25 +69,6 @@ public class FloorSubsystem extends Thread {
             throw new RuntimeException(e);
         }
         System.out.println("FLOOR SUBSYSTEM: Sent Packet: " + Arrays.toString(data) + "\n");
-
-//        time = LocalTime.now(); // for testing purposes only!
-//        if(LocalTime.now().equals(time)) {
-//            try {
-//                socket.send(sendPacket);
-//            } catch (IOException e) {
-//        System.out.println("FLOOR SUBSYSTEM: Send Packet Error: " + Arrays.toString(data) + "\n");
-//                throw new RuntimeException(e);
-//            }
-//        System.out.println("FLOOR SUBSYSTEM: Sent Packet: " + Arrays.toString(data) + "\n");
-//        }
-//        else if (time.isAfter(LocalTime.now())) {
-//            try {
-//                Thread.sleep((time.toNanoOfDay() - LocalTime.now().toNanoOfDay()) / 1000000);
-//                socket.send(sendPacket);
-//            } catch (InterruptedException | IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//        }
 
         receiveReply();
     }
@@ -172,9 +115,9 @@ public class FloorSubsystem extends Thread {
 
         System.out.println("FLOOR " + data[0] + ": Elevator " + data[1] + " arrived.\n");
         if (data[2] == 1)
-            updateFloor(data[0], 1, false);
+            updateFloor(data[0], 1);
         else if (data[2] == 2)
-            updateFloor(data[0], 2, false);
+            updateFloor(data[0], 2);
 
         try {
             Thread.sleep(50);
@@ -184,10 +127,10 @@ public class FloorSubsystem extends Thread {
         }
     }
 
-    private void updateFloor(int floorNumber, int direction, boolean state) {
-        for(Floor floor:floors){
-            if (floor.getFloorNumber()==floorNumber){
-                floor.setButtonDirection(direction, state);
+    private void updateFloor(int floorNumber, int direction) {
+        for(Floor floor:floors) {
+            if(floor.getFloorNumber() == floorNumber) {
+                floor.setButtonDirection(direction, false);
                 break;
             }
         }
@@ -198,13 +141,6 @@ public class FloorSubsystem extends Thread {
      */
     @Override
     public void run() {
-        Thread parseDataThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                parseData();
-            }
-        });
-
         Thread receiveMessageThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -213,7 +149,6 @@ public class FloorSubsystem extends Thread {
             }
         });
 
-        parseDataThread.start();
         receiveMessageThread.start();
     }
 
