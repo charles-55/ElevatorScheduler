@@ -106,7 +106,7 @@ public class FloorSubsystem extends Thread {
         System.out.println("FLOOR SUBSYSTEM: Packet received: " + Arrays.toString(data) + "\n");
         System.out.println("FLOOR " + data[0] + ": Elevator " + data[2] + " arrived.\n");
 
-        sendToScheduler(new byte[] {}, true); // send reply
+        sendToScheduler(new byte[] {data[0], 0, 0}, true); // send reply
 
         updateElevatorInfo(data);
         // update frame
