@@ -107,7 +107,7 @@ public class FloorSubsystem extends Thread {
         updateElevatorInfo(data);
         // update frame
 
-        if(!updateFloor(data[0], data[2]))
+        if(!updateFloor(data[0], data[1]))
             System.out.println("FLOOR SUBSYSTEM: Failed to update floor!\n");
     }
 
