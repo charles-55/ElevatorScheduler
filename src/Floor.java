@@ -53,11 +53,6 @@ public class Floor {
         buttonsAndLamps.put(direction, state);
     }
 
-    public void callElevator(Integer direction) {
-        buttonsAndLamps.put(direction, true);
-        floorSubsystem.callElevator(floorNumber, direction);
-    }
-
     /**
      * Method to print the state of the floor.
      */
