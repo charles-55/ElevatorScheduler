@@ -25,7 +25,7 @@ public class ElevatorShaftPanel extends JPanel {
             panel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
             floors[i] = panel;
         }
-        floors[elevatorPanel.getElevator().getCurrentFloor() - 1] = elevatorPanel;
+        floors[elevatorPanel.getCurrentFloor() - 1] = elevatorPanel;
 
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         for(int i = Floor.NUM_OF_FLOORS - 1; i >= 0; i--)

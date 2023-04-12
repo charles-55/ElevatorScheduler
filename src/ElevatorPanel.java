@@ -4,14 +4,19 @@ import java.awt.*;
 public class ElevatorPanel extends JPanel {
 
     private final JLabel floorDisplay, stateDisplay;
-    private final Elevator elevator;
+    private final int elevatorNum;
+    private int currentFloor;
+    private States elevatorState;
     private final JButton[] buttons;
     public static final int WIDTH = 150, HEIGHT = 200;
 
-    public ElevatorPanel(Elevator elevator) {
-        floorDisplay = new JLabel(String.valueOf(elevator.getCurrentFloor()));
-        stateDisplay = new JLabel(elevator.getStates().toString().replace('_', ' '));
-        this.elevator = elevator;
+    public ElevatorPanel(int elevatorNum, int currentFloor, States elevatorState) {
+        this.elevatorNum = elevatorNum;
+        this.currentFloor = currentFloor;
+        this.elevatorState = elevatorState;
+
+        floorDisplay = new JLabel(String.valueOf(currentFloor));
+        stateDisplay = new JLabel(elevatorState.toString().replace('_', ' '));
         buttons = new JButton[Floor.NUM_OF_FLOORS];
 
         initializeButtons();
@@ -33,8 +38,12 @@ public class ElevatorPanel extends JPanel {
         this.setPreferredSize(new Dimension(WIDTH, HEIGHT));
     }
 
-    public Elevator getElevator() {
-        return elevator;
+    public int getElevatorNum() {
+        return elevatorNum;
+    }
+
+    public int getCurrentFloor() {
+        return currentFloor;
     }
 
     private void initializeButtons() {
@@ -57,20 +66,26 @@ public class ElevatorPanel extends JPanel {
         }
     }
 
+    public void updateElevatorInfo(int currentFloor, States elevatorState) {
+        this.currentFloor = currentFloor;
+        this.elevatorState = elevatorState;
+    }
+
+    public void updateButton(int floorNum, boolean pressed) {
+        if(pressed)
+            buttons[floorNum - 1].setBackground(Frame.ON);
+        else
+            buttons[floorNum - 1].setBackground(Frame.OFF);
+    }
+
     @Override
     public void updateUI() {
         super.updateUI();
 
-        if(elevator == null)
+        if(elevatorNum == 0)
             return;
 
-        floorDisplay.setText(String.valueOf(elevator.getCurrentFloor()));
-        stateDisplay.setText(elevator.getStates().toString().replace('_', ' '));
-        for(int i = 0; i < Floor.NUM_OF_FLOORS; i++) {
-            if(elevator.getButtonsAndLamps().get(i + 1))
-                buttons[i].setBackground(Frame.ON);
-            else
-                buttons[i].setBackground(Frame.OFF);
-        }
+        floorDisplay.setText(String.valueOf(currentFloor));
+        stateDisplay.setText(elevatorState.toString().replace('_', ' '));
     }
 }
