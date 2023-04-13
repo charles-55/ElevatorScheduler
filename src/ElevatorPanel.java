@@ -10,10 +10,13 @@ public class ElevatorPanel extends JPanel {
     private final JButton[] buttons;
     public static final int WIDTH = 200, HEIGHT = 200;
 
-    public ElevatorPanel(int elevatorNum, int currentFloor, States elevatorState) {
+    private ElevatorButtonController  elevatorButtonController;
+
+    public ElevatorPanel(int elevatorNum, int currentFloor, States elevatorState, FloorSubsystem floorSubsystem) {
         this.elevatorNum = elevatorNum;
         this.currentFloor = currentFloor;
         this.elevatorState = elevatorState;
+        elevatorButtonController=new ElevatorButtonController(floorSubsystem);
 
         floorDisplay = new JLabel(String.valueOf(currentFloor));
         stateDisplay = new JLabel(elevatorState.toString().replace('_', ' '));
@@ -57,7 +60,8 @@ public class ElevatorPanel extends JPanel {
     private void initializeButtons() {
         for(int i = 0; i < Floor.NUM_OF_FLOORS; i++) {
             buttons[i] = new JButton(String.valueOf(i + 1));
-            buttons[i].setActionCommand("");
+            buttons[i].setActionCommand(String.valueOf(i+1));
+            buttons[i].addActionListener(elevatorButtonController);
             buttons[i].setBackground(Frame.OFF);
             buttons[i].setEnabled(false);
         }

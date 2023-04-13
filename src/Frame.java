@@ -36,7 +36,7 @@ public class Frame extends JFrame {
     private void generateElevatorShaftPanels() {
         for(int elevatorNum : floorSubsystem.getElevatorInfo().keySet()) {
             int[] arr = floorSubsystem.getElevatorInfo().get(elevatorNum);
-            shaftPanels.add(new ElevatorShaftPanel(new ElevatorPanel(elevatorNum, arr[0], States.getDatagramValueState(arr[2]))));
+            shaftPanels.add(new ElevatorShaftPanel(new ElevatorPanel(elevatorNum, arr[0], States.getDatagramValueState(arr[2]),floorSubsystem)));
         }
     }
 
