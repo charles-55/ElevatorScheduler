@@ -189,6 +189,18 @@ public class Elevator extends Thread {
     }
 
     private void processTask(byte[] data) {
+        if(data[1] == 103) {
+            state = States.OUT_OF_SERVICE;
+            return;
+        }
+        else if(data[1] == 104) {
+            closeDoors();
+            checkForStateUpdate();
+
+            sendToScheduler(new byte[] {(byte) currentFloor, 0, (byte) elevatorNum, (byte) States.getStateDatagramValue(state), 0}, false);
+            receiveReply();
+            return;
+        }
         buttonsAndLamps.put((int) data[0], true);
         if(data[1] == 0)
             data[1] = (byte) getMovingDirection(data[0]);
