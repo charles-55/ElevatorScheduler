@@ -8,7 +8,7 @@ public class ElevatorPanel extends JPanel {
     private int currentFloor;
     private States elevatorState;
     private final JButton[] buttons;
-    public static final int WIDTH = 150, HEIGHT = 200;
+    public static final int WIDTH = 200, HEIGHT = 200;
 
     public ElevatorPanel(int elevatorNum, int currentFloor, States elevatorState) {
         this.elevatorNum = elevatorNum;
