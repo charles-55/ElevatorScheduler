@@ -46,6 +46,14 @@ public class ElevatorPanel extends JPanel {
         return currentFloor;
     }
 
+    public void setCurrentFloor(int currentFloor) {
+        this.currentFloor = currentFloor;
+    }
+
+    public void setElevatorState(States elevatorState) {
+        this.elevatorState = elevatorState;
+    }
+
     private void initializeButtons() {
         for(int i = 0; i < Floor.NUM_OF_FLOORS; i++) {
             buttons[i] = new JButton(String.valueOf(i + 1));

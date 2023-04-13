@@ -32,6 +32,10 @@ public class ElevatorShaftPanel extends JPanel {
             this.add(floors[i]);
     }
 
+    public ElevatorPanel getElevatorPanel() {
+        return elevatorPanel;
+    }
+
     @Override
     public void updateUI() {
         super.updateUI();

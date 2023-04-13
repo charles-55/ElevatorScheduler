@@ -15,6 +15,7 @@ import java.util.HashMap;
  * */
 
 public class FloorSubsystem extends Thread {
+
     //private final Thread thread;
     private Frame frame;
     private final ArrayList<Floor> floors;
@@ -70,8 +71,8 @@ public class FloorSubsystem extends Thread {
         }
     }
 
-    public void setFrame(Frame frame){
-        this.frame=frame;
+    public void setFrame(Frame frame) {
+        this.frame = frame;
     }
 
     public void addFloor(Floor floor){
@@ -131,7 +132,7 @@ public class FloorSubsystem extends Thread {
         sendToScheduler(new byte[] {data[0], 0, 0}, true); // send reply
 
         updateElevatorInfo(data);
-        // update frame
+        updateFrame(data);
 
         if(!updateFloor(data[0], data[1]))
             System.out.println("FLOOR SUBSYSTEM: Failed to update floor!\n");
@@ -175,8 +176,8 @@ public class FloorSubsystem extends Thread {
         }
     }
 
-    private void updateFrame() {
-
+    private void updateFrame(byte[] data) {
+        frame.updateUI(data[2], data[0], States.getDatagramValueState(data[3]));
     }
 
     /**

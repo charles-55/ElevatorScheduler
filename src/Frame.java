@@ -55,10 +55,15 @@ public class Frame extends JFrame {
         return mainFramePanel;
     }
 
-    public void updateUI() {
+    public void updateUI(int elevatorNum, int currentFloor, States state) {
         for(FloorPanel floorPanel : floorPanels)
             floorPanel.updateUI();
-        for(ElevatorShaftPanel shaftPanel : shaftPanels)
+        for(ElevatorShaftPanel shaftPanel : shaftPanels) {
+            if(shaftPanel.getElevatorPanel().getElevatorNum() == elevatorNum) {
+                shaftPanel.getElevatorPanel().setCurrentFloor(currentFloor);
+                shaftPanel.getElevatorPanel().setElevatorState(state);
+            }
             shaftPanel.updateUI();
+        }
     }
 }
