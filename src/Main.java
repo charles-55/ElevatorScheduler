@@ -10,7 +10,8 @@ public class Main {
 
         Scheduler scheduler = new Scheduler();
         new Elevator(1,Floor.NUM_OF_FLOORS,scheduler);
-        new FloorSubsystem();
+        //new FloorSubsystem();
+        new Frame(new FloorSubsystem());
 
     }
 }

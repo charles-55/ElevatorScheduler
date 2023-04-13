@@ -12,6 +12,7 @@ public class Frame extends JFrame {
     public Frame(FloorSubsystem floorSubsystem) {
         super("Elevator Simulation");
         this.floorSubsystem = floorSubsystem;
+        this.floorSubsystem.setFrame(this);
         floorPanels = new ArrayList<>();
         shaftPanels = new ArrayList<>();
 
