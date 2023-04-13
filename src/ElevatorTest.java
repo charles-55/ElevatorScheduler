@@ -28,9 +28,6 @@ public class ElevatorTest {
         floorSubsystem = new FloorSubsystem();
         floor = new Floor(1, floorSubsystem);
         elevator = new Elevator(1, Floor.NUM_OF_FLOORS,scheduler);
-        elevator = new Elevator(2, Floor.NUM_OF_FLOORS,scheduler);
-        elevator = new Elevator(3, Floor.NUM_OF_FLOORS,scheduler);
-        elevator = new Elevator(4, Floor.NUM_OF_FLOORS,scheduler);
         queue = new HashMap<>();
     }
 
