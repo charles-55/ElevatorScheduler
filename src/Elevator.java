@@ -14,6 +14,7 @@ public class Elevator extends Thread {
 
     private final int elevatorNum;
     private int currentFloor;
+    private int direction;
     private boolean doorOpen;
     private boolean isMoving;
     private final HashMap<Integer, Boolean> buttonsAndLamps;
@@ -34,6 +35,7 @@ public class Elevator extends Thread {
     public Elevator(int elevatorNum, int numOfFloors, Scheduler scheduler) {
         this.elevatorNum = elevatorNum;
         this.currentFloor = 1;
+        direction = 0;
 
         doorOpen = false;
         isMoving = false;
@@ -125,6 +127,33 @@ public class Elevator extends Thread {
         state = States.IDLE;
     }
 
+    private void checkDirectionalTaskUpdate() {
+        switch (direction) {
+            case 0 -> {
+                for (int i = 0; i < Floor.NUM_OF_FLOORS; i++) {
+                    if (buttonsAndLamps.get(i + 1)) {
+                        direction = getMovingDirection(i + 1);
+                        return;
+                    }
+                }
+            }
+            case 1 -> {
+                for (int i = currentFloor - 1; i < Floor.NUM_OF_FLOORS; i++) {
+                    if(buttonsAndLamps.get(i + 1))
+                        return;
+                }
+                direction = 0;
+            }
+            case 2 -> {
+                for (int i = currentFloor - 1; i > 0; i--) {
+                    if(buttonsAndLamps.get(i + 1))
+                        return;
+                }
+                direction = 0;
+            }
+        }
+    }
+
     /**
      * Getter method for the HashMap of buttons and lamps related to each button.
      * @return HashMap<Integer, Boolean> buttonsAndLamps hashmap of the floor number buttons and state of the lamps (on if true, off if false)
@@ -176,6 +205,7 @@ public class Elevator extends Thread {
                 }
             }
             case GOING_UP, GOING_DOWN -> {
+                checkDirectionalTaskUpdate();
                 move();
                 if(buttonsAndLamps.get(currentFloor)) {
                     if(state == States.GOING_UP)
@@ -183,6 +213,7 @@ public class Elevator extends Thread {
                     else if(state == States.GOING_DOWN)
                         arrivalSequence(2);
                 }
+                checkDirectionalTaskUpdate();
             }
             case OUT_OF_SERVICE -> printAnalyzedState();
         }
@@ -202,6 +233,9 @@ public class Elevator extends Thread {
             return;
         }
         buttonsAndLamps.put((int) data[0], true);
+        if(direction == 0)
+            direction = getMovingDirection(data[0]);
+
         if(data[1] == 0)
             data[1] = (byte) getMovingDirection(data[0]);
         if(data[1] == 1)
@@ -218,7 +252,6 @@ public class Elevator extends Thread {
         this.isMoving = true;
 
         sendToScheduler(new byte[] {(byte) currentFloor, (byte) States.getStateDatagramValue(state), (byte) elevatorNum, (byte) States.getStateDatagramValue(state), 4}, false);
-        //receiveReply();
 
         try {
             Thread.sleep(TRAVEL_TIME);
@@ -226,9 +259,9 @@ public class Elevator extends Thread {
             throw new RuntimeException(e);
         }
 
-        if(state == States.GOING_UP)
+        if(direction == 1)
             currentFloor++;
-        else if(state == States.GOING_DOWN)
+        else if(direction == 2)
             currentFloor--;
         System.out.println("ELEVATOR " + elevatorNum + ": At floor " + currentFloor + ".\n");
     }

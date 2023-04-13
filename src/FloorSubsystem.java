@@ -16,11 +16,9 @@ import java.util.HashMap;
 
 public class FloorSubsystem extends Thread {
 
-    //private final Thread thread;
     private Frame frame;
     private final ArrayList<Floor> floors;
     private final HashMap<Integer, int[]> elevatorInfo; // map elevatorNum to [currentFloor, direction, state]
-    private States state, parseState, receiveState;
     private DatagramPacket sendPacket, receivePacket, replyPacket;
     private DatagramSocket sendSocket, receiveSocket, sendReplySocket, receiveReplySocket;
     private InetAddress address;
@@ -37,27 +35,6 @@ public class FloorSubsystem extends Thread {
             new Floor(i + 1, this);
         for(int i = 0; i < Elevator.NUM_OF_ELEVATORS; i++)
             elevatorInfo.put(i + 1, new int[] {1, 0, 0});
-
-        state = States.IDLE;
-        parseState = States.IDLE;
-        receiveState = States.IDLE;
-
-
-//        thread = new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                while (true){
-//                    try {
-//                        Thread.sleep(1000);
-//                    }
-//                    catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
-//                    frame.updateUI();
-//                }
-//            }
-//        });
-
 
         try {
             sendSocket = new DatagramSocket();
@@ -149,8 +126,6 @@ public class FloorSubsystem extends Thread {
         }
 
         System.out.println("FLOOR SUBSYSTEM: Reply received for floor " + data[0] + ".\n");
-
-        state = States.IDLE;
     }
 
     private boolean updateFloor(int floorNumber, int direction) {
