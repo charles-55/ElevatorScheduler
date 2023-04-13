@@ -17,7 +17,7 @@ public class Frame extends JFrame {
         shaftPanels = new ArrayList<>();
 
         for(Floor floor : floorSubsystem.getFloors())
-            floorPanels.add(new FloorPanel(floor));
+            floorPanels.add(new FloorPanel(floor, floorSubsystem));
 
         generateElevatorShaftPanels();
 
