@@ -57,6 +57,7 @@ public class ElevatorPanel extends JPanel {
     private void initializeButtons() {
         for(int i = 0; i < Floor.NUM_OF_FLOORS; i++) {
             buttons[i] = new JButton(String.valueOf(i + 1));
+            buttons[i].setActionCommand("");
             buttons[i].setBackground(Frame.OFF);
             buttons[i].setEnabled(false);
         }
