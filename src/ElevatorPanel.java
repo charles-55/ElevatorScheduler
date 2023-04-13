@@ -8,15 +8,15 @@ public class ElevatorPanel extends JPanel {
     private int currentFloor;
     private States elevatorState;
     private final JButton[] buttons;
+    private final ElevatorButtonController  elevatorButtonController;
     public static final int WIDTH = 200, HEIGHT = 200;
 
-    private ElevatorButtonController  elevatorButtonController;
 
     public ElevatorPanel(int elevatorNum, int currentFloor, States elevatorState, FloorSubsystem floorSubsystem) {
         this.elevatorNum = elevatorNum;
         this.currentFloor = currentFloor;
         this.elevatorState = elevatorState;
-        elevatorButtonController=new ElevatorButtonController(floorSubsystem);
+        elevatorButtonController=new ElevatorButtonController(elevatorNum, floorSubsystem);
 
         floorDisplay = new JLabel(String.valueOf(currentFloor));
         stateDisplay = new JLabel(elevatorState.toString().replace('_', ' '));
@@ -63,21 +63,21 @@ public class ElevatorPanel extends JPanel {
             buttons[i].setActionCommand(String.valueOf(i+1));
             buttons[i].addActionListener(elevatorButtonController);
             buttons[i].setBackground(Frame.OFF);
-            buttons[i].setEnabled(false);
+            //buttons[i].setEnabled(false);
         }
     }
 
-    public void enableButtons(){
-        for(int i = 0; i < Floor.NUM_OF_FLOORS; i++) {
-            buttons[i].setEnabled(true);
-        }
-    }
-
-    public void disableButtons(){
-        for(int i = 0; i < Floor.NUM_OF_FLOORS; i++) {
-            buttons[i].setEnabled(false);
-        }
-    }
+//    public void enableButtons(){
+//        for(int i = 0; i < Floor.NUM_OF_FLOORS; i++) {
+//            buttons[i].setEnabled(true);
+//        }
+//    }
+//
+//    public void disableButtons(){
+//        for(int i = 0; i < Floor.NUM_OF_FLOORS; i++) {
+//            buttons[i].setEnabled(false);
+//        }
+//    }
 
     public void updateElevatorInfo(int currentFloor, States elevatorState) {
         this.currentFloor = currentFloor;

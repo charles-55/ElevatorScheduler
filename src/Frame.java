@@ -66,4 +66,11 @@ public class Frame extends JFrame {
             shaftPanel.updateUI();
         }
     }
+
+    public void refresh() {
+        for(FloorPanel floorPanel : floorPanels)
+            floorPanel.updateUI();
+        for(ElevatorShaftPanel shaftPanel : shaftPanels)
+            shaftPanel.updateUI();
+    }
 }

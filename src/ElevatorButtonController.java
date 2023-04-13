@@ -3,17 +3,16 @@ import java.awt.event.ActionListener;
 
 public class ElevatorButtonController implements ActionListener {
 
+    private final int elevatorNum;
     private FloorSubsystem floorSubsystem;
 
-    public ElevatorButtonController(FloorSubsystem floorSubsystem){
-        this.floorSubsystem=floorSubsystem;
+    public ElevatorButtonController(int elevatorNum, FloorSubsystem floorSubsystem){
+        this.elevatorNum = elevatorNum;
+        this.floorSubsystem = floorSubsystem;
 
     }
     @Override
     public void actionPerformed(ActionEvent e) {
-        if(e.getActionCommand().equals("")){
-
-        }
-
+        floorSubsystem.elevatorPress(Integer.parseInt(e.getActionCommand()), elevatorNum);
     }
 }

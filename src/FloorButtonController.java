@@ -2,21 +2,18 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class FloorButtonController implements ActionListener {
+
+    private final int floorNum;
     private FloorSubsystem floorSubsystem;
 
-    public FloorButtonController(FloorSubsystem floorSubsystem){
-        this.floorSubsystem=floorSubsystem;
-
+    public FloorButtonController(int floorNum, FloorSubsystem floorSubsystem) {
+        this.floorNum = floorNum;
+        this.floorSubsystem = floorSubsystem;
     }
 
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if(e.getActionCommand().equals("1")){
-
-        }else if(e.getActionCommand().equals("2")){
-
-        }
-
+        floorSubsystem.callElevator(floorNum, Integer.parseInt(e.getActionCommand()));
     }
 }
