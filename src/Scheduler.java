@@ -131,24 +131,24 @@ public class Scheduler extends Thread {
      * @param data takes in a parameter to decrypt the message received
      */
     private void handleElevatorMessage(byte[] data) {
-        if(data[4] == (byte) 1) {
+        if(data[4] == (byte) 1) { // if opening door
             startFaultDetection(data[2], Elevator.MOTOR_TIME, false);
             floorData = new byte[] {data[0], data[1], data[2], (byte) States.getStateDatagramValue(States.DOOR_OPEN)}; // update the floor subsystem
             floorMessagingState = States.SENDING_MESSAGE;
             updateElevatorInfo(data[2], data[0], data[3]);
             return;
         }
-        else if(data[4] == (byte) 2)
+        else if(data[4] == (byte) 2) // if holding door
             startFaultDetection(data[2], Elevator.MAX_DOOR_HOLD_TIME, false);
-        else if(data[4] == 3)
+        else if(data[4] == 3) // if closing door
             startFaultDetection(data[2], Elevator.MOTOR_TIME, false);
-        else if(data[4] == 4) {
+        else if(data[4] == 4) { // if elevator is moving
             startFaultDetection(data[2], Elevator.TRAVEL_TIME, true);
             floorData = new byte[] {data[0], data[1], data[2], data[3]}; // update floor subsystem
             floorMessagingState = States.SENDING_MESSAGE;
             return;
         }
-        else if(data[4] == 0) {
+        else if(data[4] == 0) { // if door closed and all task complete
             stopTimer(data[3]);
             floorData = new byte[] {data[0], data[1], data[2], data[3]}; // update floor subsystem
             floorMessagingState = States.SENDING_MESSAGE;
@@ -344,16 +344,6 @@ public class Scheduler extends Thread {
      */
     @Override
     public void run() {
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            floorMessagingState = States.OUT_OF_SERVICE;
-            elevatorMessagingState = States.OUT_OF_SERVICE;
-            printAnalyzedState();
-            e.printStackTrace();
-            System.exit(1);
-        }
-
         Thread elevatorHandlingThread = new Thread(new Runnable() {
             @Override
             public void run() {
