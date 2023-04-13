@@ -14,7 +14,6 @@ public class FloorButtonController implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        System.out.println(e.getActionCommand());
         floorSubsystem.callElevator(floorNum, Integer.parseInt(e.getActionCommand()));
     }
 }

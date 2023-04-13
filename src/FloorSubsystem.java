@@ -50,9 +50,23 @@ public class FloorSubsystem extends Thread {
 
     public void setFrame(Frame frame) {
         this.frame = frame;
+
+        Thread refreshThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    frame.refresh();
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        });
     }
 
-    public void addFloor(Floor floor){
+    public void addFloor(Floor floor) {
         floors.add(floor);
     }
 
