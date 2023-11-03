@@ -1,4 +1,4 @@
-# SYSC 3303 PROJECT
+# ELEVATOR SCHEDULER PROJECT
 
 
 ## Introduction:
